@@ -114,6 +114,9 @@ var Seats = {
 Seats.takeSeat = function(playerId)
 {
     for (var index in Seats.seats) {
+        if (Seats.seats[index] === playerId) {
+            return index;
+        }
         if (Seats.seats[index] === false) {
             Seats.seats[index] = playerId;
             return index;
@@ -164,16 +167,16 @@ Players.addPlayer = function(socketId, playerId)
 {
     this.players[socketId] = playerId;
     Seats.takeSeat(playerId);
-    io.emit('players', makePlayersToSeatsViewModel(this.playerIds()));
+    io.emit('seats', makeSeatsViewModel());
 };
 
-function makePlayersToSeatsViewModel(playerIds)
+function makeSeatsViewModel()
 {
     var viewModel = [];
-    playerIds.forEach(playerId => {
+    Seats.seats.forEach((playerId, seat) => {
         viewModel.push({
             playerId: playerId,
-            seat: Seats.getSeat(playerId)
+            seat: seat
         });
     });
     return viewModel;
@@ -182,9 +185,10 @@ function makePlayersToSeatsViewModel(playerIds)
 Players.removePlayer = function(socketId)
 {
     var playerId = this.players[socketId];
+    var seat = Seats.getSeat(playerId);
     Seats.freeUpSeat(playerId);
     delete this.players[socketId];
-    io.emit('playerRemoved', playerId);
+    io.emit('seatEmptied', seat);
 };
 
 Players.playerIds = function()

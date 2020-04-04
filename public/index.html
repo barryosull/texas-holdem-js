@@ -92,13 +92,12 @@ Controller.joinGame = function()
 
     this.socket.emit('playerId', this.playerId);
 
-    this.socket.on('players', function(players){
-        console.log(players);
-        View.renderPlayers(players, Controller.playerId);
+    this.socket.on('seats', function(seats){
+        View.renderSeats(seats, Controller.playerId);
     });
 
-    this.socket.on('playerRemoved', function(playerId){
-        View.removePlayer(playerId);
+    this.socket.on('seatEmptied', function(seat){
+        View.renderEmptySeat(seat);
     });
 
     this.socket.on('hand', function(hand){
@@ -132,32 +131,46 @@ Controller.createPlayerId = function()
 
 var View = {};
 
-View.renderPlayers = function(players, currentPlayerId)
+View.renderSeats = function(seats, currentPlayerId)
 {
-    for (var index in players) {
-        var player = players[index];
-        View.renderPlayer(player.seat, player.playerId, currentPlayerId);
+    console.log(seats);
+    for (var index in seats) {
+        var seat = seats[index];
+        if (seat.playerId) {
+            View.renderSeat(seat.seat, seat.playerId, currentPlayerId);
+        } else {
+            View.renderEmptySeat(seat.seat);
+        }
     }
 };
 
-View.renderPlayer = function(seat, playerId, currentPlayerId)
+View.renderSeat = function(seat, playerId, currentPlayerId)
 {
-    if ($('#player-' + playerId).length) {
-        return;
-    }
-
-    var title = "Seat " + (seat + 1);
+    var title = "Seat " + (seat + 1) + "(taken)";
     if (playerId === currentPlayerId) {
         title = "<b>" + title + "</b>";
     }
 
-    var player = "<div id='player-" + playerId + "' style='float:left; margin-right: 20px;'>" + title + ": <br><span class='cards'></span></div>";
-    $('#hands').append(player);
+    var seatHtml = "<div id='seat-" + seat + "' style='float: left; width: 200px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + ": <br><span class='cards'></span></div>";
+
+    if ($('#seat-' + seat).length) {
+        $('#seat-' + seat).replaceWith(seatHtml);
+    } else {
+        $('#hands').append(seatHtml);
+    }
 };
 
-View.removePlayer = function(playerId)
+View.renderEmptySeat = function(seat)
 {
-    $('#player-' + playerId).remove();
+    var title = "Seat " + (seat + 1) + " (empty)";
+
+    var seatHtml = "<div id='seat-" + seat + "' style='float:left; width: 200px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span class='cards'></span></div>";
+
+    if ($('#seat-' + seat).length) {
+        $('#seat-' + seat).replaceWith(seatHtml);
+    } else {
+        $('#hands').append(seatHtml);
+    }
 };
 
 View.renderPlayerHand = function(playerId, cards)
