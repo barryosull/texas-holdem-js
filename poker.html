@@ -1,0 +1,186 @@
+<html>
+<head>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+  integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+  crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+
+var demominations = [
+	'2',
+	'3',
+	'4',
+	'5',
+	'6',
+	'7',
+	'8',
+	'9',
+	'jack',
+	'queen',
+	'king',
+	'ace',
+];
+
+var suits = [
+	'clubs',
+	'diamonds',
+	'hearts',
+	'spades'
+];
+
+var deck = [];
+
+$.each(suits, function(key, suit) 
+{
+	$.each(demominations, function(key, demomination) {
+  		deck.push(demomination + '_of_' + suit);
+	});
+});
+
+function makeShuffuledDeck() 
+{
+	var newDeck = deck.slice();
+	shuffle(newDeck);
+	return newDeck;
+}
+
+function shuffle (array) 
+{
+	var currentIndex = array.length;
+	var temporaryValue, randomIndex;
+
+	while (0 !== currentIndex) {
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+
+}
+
+function dealHands(deck, players)
+{
+	for (var i = 0; i < players; i++ ) {
+		deck = dealHandToPlayer(deck, i);
+	}
+
+	return deck;
+}
+
+function dealHandToPlayer(deck, playerId)
+{
+	var card1 = deck.pop();	
+	var card2 = deck.pop();	
+	var hand = renderCards([card1, card2]);
+	$('#player-' + playerId).html(hand);
+	return deck;
+}
+
+function startGame(players)
+{
+	makePlayers(players);
+}
+
+function makePlayers(players)
+{
+	for (var i = 0; i < players; i++) {
+		$('#hands').append("<div style='float:left; margin-right: 20px;'>Player " + (i + 1) + ": <br><span id='player-" + i + "'></span></div>")
+	}
+}
+
+function dealFlop(deck) 
+{
+	var card1 = deck.pop();	
+	var card2 = deck.pop();	
+	var card3 = deck.pop();
+
+	var flop = renderCards([card1, card2, card3]);
+
+	$('#cards').html(flop);
+
+	return deck;
+}
+
+function renderCards(cards)
+{
+	return cards.map(function(card){
+		return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+	});
+}
+
+function dealTurn(deck) 
+{
+	var card4 = deck.pop();
+
+	$('#cards').html( $('#cards').html() + renderCards([card4]));
+
+	return deck;
+}
+
+function dealRiver(deck) 
+{
+	var card5 = deck.pop();
+
+	$('#cards').html( $('#cards').html() + renderCards([card5]));
+
+	return deck;
+}
+
+function clearTable()
+{
+	$('#cards').html('');
+}
+
+$(function(){
+
+	var players = 5;
+	var freshDeck;
+
+	$("#deal").click(function(){
+		console.log("dfsdf");
+		clearTable();
+		freshDeck = makeShuffuledDeck(deck);
+		freshDeck = dealHands(freshDeck, players);
+	});
+	$("#flop").click(function(){
+		freshDeck = dealFlop(freshDeck);
+	});
+	$("#turn").click(function(){
+		freshDeck = dealTurn(freshDeck);
+	});
+	$("#river").click(function(){
+		freshDeck = dealRiver(freshDeck);
+	});
+
+	startGame(players);
+});
+
+</script>
+</head>
+<body>
+
+<h3>Cards</h3>
+<div id="cards">
+
+</div>
+
+<h3>Players</h3>
+<div id="hands">
+
+</div>
+<div style="clear:both"></div>
+<br><br>
+<button id="deal">Deal</button>
+<button id="flop">Flop</button>
+<button id="turn">Turn</button>
+<button id="river">River</button>
+
+</body>
+</html>
