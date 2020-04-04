@@ -80,12 +80,12 @@ Controller.dealRiver = function(deck)
     deck.dealRiver();
 };
 
-Controller.joinGame = function()
+Controller.joinGame = function(playerName)
 {
     this.socket = io();
     this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
 
-    this.socket.emit('playerId', this.playerId);
+    this.socket.emit('newPlayer', {playerId: this.playerId, playerName: playerName});
 
     this.socket.on('seatFilled', function(seats){
         if (Controller.isFirstPlayer(seats)) {
@@ -151,21 +151,21 @@ View.renderSeats = function(seats, currentPlayerId)
     for (var index in seats) {
         var seat = seats[index];
         if (seat.playerId) {
-            View.renderSeat(seat.seat, seat.playerId, currentPlayerId);
+            View.renderSeat(seat.seat, seat.playerId, seat.playerName, currentPlayerId);
         } else {
             View.renderEmptySeat(seat.seat);
         }
     }
 };
 
-View.renderSeat = function(seat, playerId, currentPlayerId)
+View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
 {
-    var title = "Seat " + (seat + 1) + "(taken)";
+    var title = "Seat " + (seat + 1) + ": " + playerName;
     if (playerId === currentPlayerId) {
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat' style='float: left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + ": <br><span class='cards' id='player-" + playerId + "'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat' style='float: left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span class='cards' id='player-" + playerId + "'></span></div>";
 
     if ($('#seat-' + seat).length) {
         $('#seat-' + seat).replaceWith(seatHtml);
@@ -261,7 +261,20 @@ $(function(){
         Controller.dealRiver(deck);
 	});
 
-	Controller.joinGame();
+	var isValidName = false;
+    var playerName = "";
+
+	while (!isValidName) {
+        playerName = prompt("What is your screen name?");
+
+        if (playerName.length !== 0) {
+            break;
+        }
+
+        alert("Name cannot be empty.")
+    }
+
+	Controller.joinGame(playerName);
 });
 
 </script>

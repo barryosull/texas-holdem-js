@@ -104,10 +104,11 @@ var Seats = {
         false,
         false,
         false,
-    ]
+    ],
+    playerNames: {}
 };
 
-Seats.takeSeat = function(playerId)
+Seats.takeSeat = function(playerId, playerName)
 {
     for (var index in Seats.seats) {
         if (Seats.seats[index] === playerId) {
@@ -115,6 +116,7 @@ Seats.takeSeat = function(playerId)
         }
         if (Seats.seats[index] === false) {
             Seats.seats[index] = playerId;
+            Seats.playerNames[index] = playerName;
             return index;
         }
     }
@@ -138,6 +140,7 @@ Seats.freeUpSeat = function(seat)
         return;
     }
     Seats.seats[seat] = false;
+    delete Seats.playerNames[seat];
 };
 
 Seats.activePlayers = function()
@@ -153,6 +156,7 @@ Seats.makeSeatsViewModel = function()
     Seats.seats.forEach((playerId, seat) => {
         viewModel.push({
             playerId: playerId,
+            playerName: Seats.playerNames[seat],
             seat: seat
         });
     });
@@ -227,11 +231,13 @@ Controller.dealRiver = function (req, res) {
     res.send('');
 };
 
-Controller.addPlayer = function(playerId)
+Controller.addPlayer = function(player)
 {
     var socketId = this.id;
+    var playerId = player.playerId;
+    var playerName = player.playerName;
 
-    console.log('playerId ' + playerId + ' connected');
+    console.log('player "' + playerName + '" (' + playerId + ') connected');
 
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
@@ -242,7 +248,7 @@ Controller.addPlayer = function(playerId)
 
     SocketsToPlayersMap.associate(socketId, playerId);
 
-    Seats.takeSeat(playerId);
+    Seats.takeSeat(playerId, playerName);
 
     io.emit('seatFilled', Seats.makeSeatsViewModel());
 };
@@ -272,7 +278,7 @@ Controller.removePlayer = function()
  ************************************/
 io.on('connection', function(socket)
 {
-    socket.on('playerId', Controller.addPlayer);
+    socket.on('newPlayer', Controller.addPlayer);
     socket.on('disconnect', Controller.removePlayer);
 });
 
