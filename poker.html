@@ -15,7 +15,7 @@ Array.prototype.forEach = function(callback)
     }
 };
 
-var demominations = [
+var denominations = [
 	'2',
 	'3',
 	'4',
@@ -37,155 +37,214 @@ var suits = [
 	'spades'
 ];
 
-function makeDeck()
+var Deck = function(cards)
 {
-    var deck = [];
+    this.cards = cards;
+};
+
+Deck.prototype.shuffle = function()
+{
+    function shuffle (array)
+    {
+        var currentIndex = array.length;
+        var temporaryValue, randomIndex;
+
+        while (0 !== currentIndex) {
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+    }
+
+    shuffle(this.cards);
+};
+
+Deck.prototype.dealHand = function()
+{
+    var card1 = this.cards.pop();
+    var card2 = this.cards.pop();
+    return [card1, card2];
+};
+
+Deck.prototype.dealFlop = function()
+{
+    var card1 = this.cards.pop();
+    var card2 = this.cards.pop();
+    var card3 = this.cards.pop();
+    return [card1, card2, card3];
+};
+
+Deck.prototype.dealTurn = function()
+{
+    return this.cards.pop();
+};
+
+Deck.prototype.dealRiver = function()
+{
+    return this.cards.pop();
+};
+
+var Controller = {};
+
+/**
+ * @returns {Deck}
+ */
+Controller.makeDeck = function()
+{
+    var cards = [];
 
     suits.forEach(suit => {
-        demominations.forEach(demomination => {
-            deck.push(demomination + '_of_' + suit);
+        denominations.forEach(denomination => {
+            cards.push(denomination + '_of_' + suit);
         });
     });
 
-    return deck;
-}
+    return new Deck(cards);
+};
 
-var deck = makeDeck();
-
-function makeShuffuledDeck() 
+/**
+ * @param players {int}
+ */
+Controller.startGame = function(players)
 {
-	var newDeck = deck.slice();
-	shuffle(newDeck);
-	return newDeck;
-}
+	View.renderPlayers(players);
+};
 
-function shuffle (array) 
+/**
+ * @param deck {Deck}
+ * @param players {int}
+ */
+Controller.dealHands = function(deck, players)
 {
-	var currentIndex = array.length;
-	var temporaryValue, randomIndex;
+    for (var i = 0; i < players; i++ ) {
+        Controller.dealHandToPlayer(deck, i);
+    }
+};
 
-	while (0 !== currentIndex) {
-		// Pick a remaining element...
-		randomIndex = Math.floor(Math.random() * currentIndex);
-		currentIndex -= 1;
-
-		// And swap it with the current element.
-		temporaryValue = array[currentIndex];
-		array[currentIndex] = array[randomIndex];
-		array[randomIndex] = temporaryValue;
-	}
-
-	return array;
-
-}
-
-function dealHands(deck, players)
+/**
+ * @param deck {Deck}
+ * @param playerId {int}
+ */
+Controller.dealHandToPlayer = function(deck, playerId)
 {
-	for (var i = 0; i < players; i++ ) {
-		deck = dealHandToPlayer(deck, i);
-	}
+    var cards = deck.dealHand();
 
-	return deck;
-}
+    View.renderPlayerHand(playerId, cards);
+};
 
-function dealHandToPlayer(deck, playerId)
+/**
+ * @param deck {Deck}
+ */
+Controller.dealFlop = function(deck)
 {
-	var card1 = deck.pop();	
-	var card2 = deck.pop();	
-	var hand = renderCards([card1, card2]);
-	$('#player-' + playerId).html(hand);
-	return deck;
-}
+    var flop = deck.dealFlop();
 
-function startGame(players)
+    View.renderFlop(flop);
+};
+
+/**
+ * @param deck {Deck}
+ */
+Controller.dealTurn = function(deck)
 {
-	makePlayers(players);
-}
+    var card = deck.dealTurn();
 
-function makePlayers(players)
+    View.renderTurn(card);
+};
+
+/**
+ * @param deck {Deck}
+ */
+Controller.dealRiver = function(deck)
+{
+    var card = deck.dealRiver();
+
+    View.renderRiver(card);
+};
+
+var View = {};
+
+View.renderPlayers = function(players)
 {
 	for (var i = 0; i < players; i++) {
-	    var playerHtml = renderPlayer(i);
-		$('#hands').append(playerHtml);
+	    View.renderPlayer(i);
 	}
-}
+};
 
-function renderPlayer(playerId)
+View.renderPlayer = function(playerId)
 {
-    return "<div style='float:left; margin-right: 20px;'>Player " + (playerId + 1) + ": <br><span id='player-" + playerId + "'></span></div>"
-}
+    var player = "<div style='float:left; margin-right: 20px;'>Player " + (playerId + 1) + ": <br><span id='player-" + playerId + "'></span></div>"
+    $('#hands').append(player);
+};
 
-function dealFlop(deck) 
+View.renderPlayerHand = function(playerId, cards)
 {
-	var card1 = deck.pop();	
-	var card2 = deck.pop();	
-	var card3 = deck.pop();
+    var hand = View.renderCards(cards);
+    $('#player-' + playerId).html(hand);
+};
 
-	var cards = [card1, card2, card3];
-
-	var flop = renderCards(cards);
-
-	$('#cards').html(flop);
-
-	return deck;
-}
-
-function renderCards(cards)
+View.renderFlop = function(flop)
 {
-	return cards.map(function(card){
-		return renderCard(card);
-	});
-}
+    $('#cards').html(View.renderCards(flop));
+};
 
-function renderCard(card)
+View.renderTurn = function(card)
 {
-    return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
-}
+    $('#cards').html( $('#cards').html() + View.renderCards([card]));
+};
 
-function dealTurn(deck) 
+View.renderRiver = function(card)
 {
-	var card4 = deck.pop();
+    $('#cards').html( $('#cards').html() + View.renderCards([card]));
+};
 
-	$('#cards').html( $('#cards').html() + renderCards([card4]));
-
-	return deck;
-}
-
-function dealRiver(deck) 
-{
-	var card5 = deck.pop();
-
-	$('#cards').html( $('#cards').html() + renderCards([card5]));
-
-	return deck;
-}
-
-function clearTable()
+View.clearTable = function()
 {
 	$('#cards').html('');
-}
+};
+
+View.renderCards = function(cards)
+{
+    return cards.map(function(card){
+        return View.renderCard(card);
+    });
+};
+
+View.renderCard = function(card)
+{
+    return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+};
+
 
 $(function(){
 
 	var players = 5;
-	var freshDeck;
+	var deck;
 
 	$("#deal").click(function(){
-		clearTable();
-		freshDeck = makeShuffuledDeck(deck);
-		freshDeck = dealHands(freshDeck, players);
+		View.clearTable();
+        deck = Controller.makeDeck();
+        deck.shuffle();
+        Controller.dealHands(deck, players);
 	});
 	$("#flop").click(function(){
-		freshDeck = dealFlop(freshDeck);
+        Controller.dealFlop(deck);
 	});
 	$("#turn").click(function(){
-		freshDeck = dealTurn(freshDeck);
+        Controller.dealTurn(deck);
 	});
 	$("#river").click(function(){
-		freshDeck = dealRiver(freshDeck);
+        Controller.dealRiver(deck);
 	});
 
-	startGame(players);
+	Controller.startGame(players);
 });
 
 </script>
