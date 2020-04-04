@@ -64,15 +64,6 @@ Deck.prototype.shuffle = function()
     this.cards = array;
 };
 
-Deck.prototype.dealHands = function(playerIds)
-{
-    var hands = {};
-    playerIds.forEach(playerId => {
-        hands[playerId] = this.dealHand();
-    });
-    return hands;
-};
-
 Deck.prototype.dealHand = function()
 {
     var card1 = this.cards.pop();
@@ -136,36 +127,27 @@ Seats.getSeat = function(playerId)
     return false;
 };
 
-Seats.freeUpSeat = function(playerId)
+Seats.freeUpSeat = function(seat)
 {
-    var seat = Seats.getSeat(playerId);
     if (seat === false) {
         return;
     }
     Seats.seats[seat] = false;
 };
 
+Seats.activePlayers = function()
+{
+    return Seats.seats.filter(seatOccupant => {
+        return seatOccupant !== false
+    });
+};
+
 var Players = {
-    players: {},
+
 };
 
-Players.length = function()
+Players.addPlayer = function(playerId)
 {
-    var size = 0, key;
-    for (key in this.players) {
-        if (this.players.hasOwnProperty(key)) size++;
-    }
-    return size;
-};
-
-Players.getPlayerId = function(socketId)
-{
-    return this.players[socketId];
-};
-
-Players.addPlayer = function(socketId, playerId)
-{
-    this.players[socketId] = playerId;
     Seats.takeSeat(playerId);
     io.emit('seatFilled', makeSeatsViewModel());
 };
@@ -182,22 +164,11 @@ function makeSeatsViewModel()
     return viewModel;
 }
 
-Players.removePlayer = function(socketId)
+Players.removePlayer = function(playerId)
 {
-    var playerId = this.players[socketId];
     var seat = Seats.getSeat(playerId);
-    Seats.freeUpSeat(playerId);
-    delete this.players[socketId];
+    Seats.freeUpSeat(seat);
     io.emit('seatEmptied', seat);
-};
-
-Players.playerIds = function()
-{
-    var ids = [];
-    for (var index in this.players) {
-        ids.push(this.players[index]);
-    }
-    return ids;
 };
 
 Players.sendHand = function(playerId, hand)
@@ -212,10 +183,11 @@ var deck;
 
 app.post('/api/deal', function (req, res) {
     deck = Deck.makeNew();
-    var hands = deck.dealHands(Players.playerIds());
-    for (var playerId in hands) {
-        Players.sendHand(playerId, hands[playerId]);
-    }
+    Seats.activePlayers().forEach(playerId => {
+        var hand = deck.dealHand();
+        var socketId = Controller.getSocketIdForPlayer(playerId);
+        io.sockets.to(socketId).emit('hand', hand);
+    });
     res.send('');
 });
 
@@ -234,18 +206,60 @@ app.post('/api/river', function (req, res) {
     res.send('');
 });
 
-io.on('connection', function(socket){
+var Controller =
+{
+    socketsToPlayers: {},
 
-    socket.on('playerId', function(playerId){
-        Players.addPlayer(socket.id, playerId);
-        console.log('playerId ' + playerId + ' connected');
-    });
+    associateSocketWithPlayer: function(socketId, playerId)
+    {
+        Controller.socketsToPlayers[socketId] = playerId;
+    },
 
-    socket.on('disconnect', function(){
-        var playerId = Players.getPlayerId(socket.id);
-        Players.removePlayer(socket.id);
-        console.log('playerId ' + playerId + ' disconnected');
-    });
+    deassociateSocketWithPlayer: function(socketId)
+    {
+        delete Controller.socketsToPlayers[socketId];
+    },
+
+    getPlayerIdForSocket: function(socketId)
+    {
+        return Controller.socketsToPlayers[socketId];
+    },
+
+    getSocketIdForPlayer: function(playerId)
+    {
+        for (var socketId in Controller.socketsToPlayers) {
+            if (Controller.socketsToPlayers[socketId] === playerId) {
+                return socketId;
+            }
+        }
+        return undefined;
+    }
+};
+
+Controller.addPlayer = function(playerId)
+{
+    console.log('playerId ' + playerId + ' connected');
+
+    var socketId = this.id;
+    Controller.associateSocketWithPlayer(socketId, playerId);
+    Players.addPlayer(playerId);
+};
+
+Controller.removePlayer = function()
+{
+    var socketId = this.id;
+    var playerId = Controller.getPlayerIdForSocket(socketId);
+
+    console.log('playerId ' + playerId + ' disconnected');
+
+    Players.removePlayer(playerId);
+    Controller.deassociateSocketWithPlayer(socketId);
+};
+
+io.on('connection', function(socket)
+{
+    socket.on('playerId', Controller.addPlayer);
+    socket.on('disconnect', Controller.removePlayer);
 });
 
 
