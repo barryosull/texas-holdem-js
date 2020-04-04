@@ -167,7 +167,7 @@ Players.addPlayer = function(socketId, playerId)
 {
     this.players[socketId] = playerId;
     Seats.takeSeat(playerId);
-    io.emit('seats', makeSeatsViewModel());
+    io.emit('seatFilled', makeSeatsViewModel());
 };
 
 function makeSeatsViewModel()

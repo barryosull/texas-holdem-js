@@ -92,7 +92,10 @@ Controller.joinGame = function()
 
     this.socket.emit('playerId', this.playerId);
 
-    this.socket.on('seats', function(seats){
+    this.socket.on('seatFilled', function(seats){
+        if (Controller.isFirstPlayer(seats)) {
+            View.enableControls();
+        }
         View.renderSeats(seats, Controller.playerId);
     });
 
@@ -101,6 +104,7 @@ Controller.joinGame = function()
     });
 
     this.socket.on('hand', function(hand){
+        View.renderDownFacingHands();
         View.renderPlayerHand(Controller.playerId, hand);
     });
 
@@ -129,11 +133,22 @@ Controller.createPlayerId = function()
     return playerId;
 };
 
+Controller.isFirstPlayer = function(seats)
+{
+    for (var index in seats) {
+        var seat = seats[index];
+        if (seat.playerId) {
+            return seat.playerId === Controller.playerId;
+        }
+    }
+
+    return false;
+};
+
 var View = {};
 
 View.renderSeats = function(seats, currentPlayerId)
 {
-    console.log(seats);
     for (var index in seats) {
         var seat = seats[index];
         if (seat.playerId) {
@@ -151,7 +166,7 @@ View.renderSeat = function(seat, playerId, currentPlayerId)
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' style='float: left; width: 200px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + ": <br><span class='cards'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat' style='float: left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + ": <br><span class='cards' id='player-" + playerId + "'></span></div>";
 
     if ($('#seat-' + seat).length) {
         $('#seat-' + seat).replaceWith(seatHtml);
@@ -164,7 +179,7 @@ View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' style='float:left; width: 200px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span class='cards'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' style='float:left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span></span></div>";
 
     if ($('#seat-' + seat).length) {
         $('#seat-' + seat).replaceWith(seatHtml);
@@ -176,7 +191,15 @@ View.renderEmptySeat = function(seat)
 View.renderPlayerHand = function(playerId, cards)
 {
     var hand = View.renderCards(cards);
-    $('#player-' + playerId + " .cards").html(hand);
+    $('#player-' + playerId).html(hand);
+};
+
+View.renderDownFacingHands = function()
+{
+    $('.seat .cards').each(function(){
+        var hand = [View.renderDownFacingCard(), View.renderDownFacingCard()];
+        $(this).html(hand);
+    });
 };
 
 View.renderFlop = function(flop)
@@ -209,6 +232,16 @@ View.renderCards = function(cards)
 View.renderCard = function(card)
 {
     return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+};
+
+View.renderDownFacingCard = function()
+{
+    return '<img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+};
+
+View.enableControls = function()
+{
+    $("#controls").show();
 };
 
 $(function(){
@@ -247,7 +280,7 @@ $(function(){
 </div>
 <div style="clear:both"></div>
 <br><br>
-<div id="controls">
+<div style="display: none" id="controls">
     <button id="deal">Deal</button>
     <button id="flop">Flop</button>
     <button id="turn">Turn</button>
