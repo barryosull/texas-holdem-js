@@ -7,6 +7,14 @@
 
 <script type="text/javascript">
 
+Array.prototype.forEach = function(callback)
+{
+    for (var key in this) {
+        var item = this[key];
+        callback(item);
+    }
+};
+
 var demominations = [
 	'2',
 	'3',
@@ -29,14 +37,20 @@ var suits = [
 	'spades'
 ];
 
-var deck = [];
-
-$.each(suits, function(key, suit) 
+function makeDeck()
 {
-	$.each(demominations, function(key, demomination) {
-  		deck.push(demomination + '_of_' + suit);
-	});
-});
+    var deck = [];
+
+    suits.forEach(suit => {
+        demominations.forEach(demomination => {
+            deck.push(demomination + '_of_' + suit);
+        });
+    });
+
+    return deck;
+}
+
+var deck = makeDeck();
 
 function makeShuffuledDeck() 
 {
@@ -91,8 +105,14 @@ function startGame(players)
 function makePlayers(players)
 {
 	for (var i = 0; i < players; i++) {
-		$('#hands').append("<div style='float:left; margin-right: 20px;'>Player " + (i + 1) + ": <br><span id='player-" + i + "'></span></div>")
+	    var playerHtml = renderPlayer(i);
+		$('#hands').append(playerHtml);
 	}
+}
+
+function renderPlayer(playerId)
+{
+    return "<div style='float:left; margin-right: 20px;'>Player " + (playerId + 1) + ": <br><span id='player-" + playerId + "'></span></div>"
 }
 
 function dealFlop(deck) 
@@ -101,7 +121,9 @@ function dealFlop(deck)
 	var card2 = deck.pop();	
 	var card3 = deck.pop();
 
-	var flop = renderCards([card1, card2, card3]);
+	var cards = [card1, card2, card3];
+
+	var flop = renderCards(cards);
 
 	$('#cards').html(flop);
 
@@ -111,8 +133,13 @@ function dealFlop(deck)
 function renderCards(cards)
 {
 	return cards.map(function(card){
-		return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+		return renderCard(card);
 	});
+}
+
+function renderCard(card)
+{
+    return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
 }
 
 function dealTurn(deck) 
@@ -144,7 +171,6 @@ $(function(){
 	var freshDeck;
 
 	$("#deal").click(function(){
-		console.log("dfsdf");
 		clearTable();
 		freshDeck = makeShuffuledDeck(deck);
 		freshDeck = dealHands(freshDeck, players);
