@@ -93,7 +93,7 @@ Controller.joinGame = function()
     this.socket.emit('playerId', this.playerId);
 
     this.socket.on('players', function(players){
-       View.renderPlayers(players, Controller.playerId);
+        View.renderPlayers(players, Controller.playerId);
     });
 
     this.socket.on('playerRemoved', function(playerId){
@@ -232,10 +232,12 @@ $(function(){
 </div>
 <div style="clear:both"></div>
 <br><br>
-<button id="deal">Deal</button>
-<button id="flop">Flop</button>
-<button id="turn">Turn</button>
-<button id="river">River</button>
+<div id="controls">
+    <button id="deal">Deal</button>
+    <button id="flop">Flop</button>
+    <button id="turn">Turn</button>
+    <button id="river">River</button>
+</div>
 
 </body>
 </html>
