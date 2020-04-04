@@ -93,6 +93,7 @@ Controller.joinGame = function()
     this.socket.emit('playerId', this.playerId);
 
     this.socket.on('players', function(players){
+        console.log(players);
         View.renderPlayers(players, Controller.playerId);
     });
 
@@ -133,18 +134,19 @@ var View = {};
 
 View.renderPlayers = function(players, currentPlayerId)
 {
-    $.each(players, (socketId, playerId) => {
-        View.renderPlayer(playerId, currentPlayerId);
-    });
+    for (var index in players) {
+        var player = players[index];
+        View.renderPlayer(player.seat, player.playerId, currentPlayerId);
+    }
 };
 
-View.renderPlayer = function(playerId, currentPlayerId)
+View.renderPlayer = function(seat, playerId, currentPlayerId)
 {
     if ($('#player-' + playerId).length) {
         return;
     }
 
-    var title = "Player " + (playerId + 1);
+    var title = "Seat " + (seat + 1);
     if (playerId === currentPlayerId) {
         title = "<b>" + title + "</b>";
     }

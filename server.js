@@ -98,8 +98,52 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
+var Seats = {
+    seats: [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+    ]
+};
+
+Seats.takeSeat = function(playerId)
+{
+    for (var index in Seats.seats) {
+        if (Seats.seats[index] === false) {
+            Seats.seats[index] = playerId;
+            return index;
+        }
+    }
+    console.log("All seats taken, no room for player " + playerId);
+    return false;
+};
+
+Seats.getSeat = function(playerId)
+{
+    for (var index in Seats.seats) {
+        if (Seats.seats[index] === playerId) {
+            return parseInt(index);
+        }
+    }
+    return false;
+};
+
+Seats.freeUpSeat = function(playerId)
+{
+    var seat = Seats.getSeat(playerId);
+    if (seat === false) {
+        return;
+    }
+    Seats.seats[seat] = false;
+};
+
 var Players = {
-    players: {}
+    players: {},
 };
 
 Players.length = function()
@@ -111,24 +155,43 @@ Players.length = function()
     return size;
 };
 
+Players.getPlayerId = function(socketId)
+{
+    return this.players[socketId];
+};
+
 Players.addPlayer = function(socketId, playerId)
 {
     this.players[socketId] = playerId;
-    io.emit('players', this.players);
+    Seats.takeSeat(playerId);
+    io.emit('players', makePlayersToSeatsViewModel(this.playerIds()));
 };
+
+function makePlayersToSeatsViewModel(playerIds)
+{
+    var viewModel = [];
+    playerIds.forEach(playerId => {
+        viewModel.push({
+            playerId: playerId,
+            seat: Seats.getSeat(playerId)
+        });
+    });
+    return viewModel;
+}
 
 Players.removePlayer = function(socketId)
 {
     var playerId = this.players[socketId];
+    Seats.freeUpSeat(playerId);
     delete this.players[socketId];
     io.emit('playerRemoved', playerId);
 };
 
 Players.playerIds = function()
 {
-    var ids = [], key;
-    for (key in this.players) {
-        ids.push(this.players[key]);
+    var ids = [];
+    for (var index in this.players) {
+        ids.push(this.players[index]);
     }
     return ids;
 };
@@ -171,16 +234,13 @@ io.on('connection', function(socket){
 
     socket.on('playerId', function(playerId){
         Players.addPlayer(socket.id, playerId);
-
-        console.log('user ' + socket.id + ' connected');
-        console.log('playerId ' + playerId);
-        console.log('players', Players.players);
+        console.log('playerId ' + playerId + ' connected');
     });
 
     socket.on('disconnect', function(){
+        var playerId = Players.getPlayerId(socket.id);
         Players.removePlayer(socket.id);
-
-        console.log('user ' + socket.id + ' disconnected');
+        console.log('playerId ' + playerId + ' disconnected');
     });
 });
 
