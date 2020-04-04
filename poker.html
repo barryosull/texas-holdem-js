@@ -42,6 +42,21 @@ var Deck = function(cards)
     this.cards = cards;
 };
 
+Deck.makeNew = function()
+{
+    var cards = [];
+
+    suits.forEach(suit => {
+        denominations.forEach(denomination => {
+            cards.push(denomination + '_of_' + suit);
+        });
+    });
+
+    var deck = new Deck(cards);
+    deck.shuffle();
+    return deck;
+};
+
 Deck.prototype.shuffle = function()
 {
     function shuffle (array)
@@ -64,6 +79,16 @@ Deck.prototype.shuffle = function()
     }
 
     shuffle(this.cards);
+};
+
+
+Deck.prototype.dealHands = function(players)
+{
+    var hands = [];
+    for (var i = 0; i < players; i++) {
+        hands[i] = this.dealHand();
+    }
+    return hands;
 };
 
 Deck.prototype.dealHand = function()
@@ -94,37 +119,19 @@ Deck.prototype.dealRiver = function()
 var Controller = {};
 
 /**
- * @returns {Deck}
- */
-Controller.makeDeck = function()
-{
-    var cards = [];
-
-    suits.forEach(suit => {
-        denominations.forEach(denomination => {
-            cards.push(denomination + '_of_' + suit);
-        });
-    });
-
-    return new Deck(cards);
-};
-
-/**
- * @param players {int}
- */
-Controller.startGame = function(players)
-{
-	View.renderPlayers(players);
-};
-
-/**
  * @param deck {Deck}
  * @param players {int}
  */
-Controller.dealHands = function(deck, players)
+Controller.startGame = function(deck, players)
 {
+    View.clearTable();
+    View.renderPlayers(players);
+
+    var hands = deck.dealHands(players);
+
     for (var i = 0; i < players; i++ ) {
-        Controller.dealHandToPlayer(deck, i);
+        var hand = hands[i];
+        View.renderPlayerHand(i, hand);
     }
 };
 
@@ -135,7 +142,6 @@ Controller.dealHands = function(deck, players)
 Controller.dealHandToPlayer = function(deck, playerId)
 {
     var cards = deck.dealHand();
-
     View.renderPlayerHand(playerId, cards);
 };
 
@@ -145,7 +151,6 @@ Controller.dealHandToPlayer = function(deck, playerId)
 Controller.dealFlop = function(deck)
 {
     var flop = deck.dealFlop();
-
     View.renderFlop(flop);
 };
 
@@ -155,7 +160,6 @@ Controller.dealFlop = function(deck)
 Controller.dealTurn = function(deck)
 {
     var card = deck.dealTurn();
-
     View.renderTurn(card);
 };
 
@@ -165,7 +169,6 @@ Controller.dealTurn = function(deck)
 Controller.dealRiver = function(deck)
 {
     var card = deck.dealRiver();
-
     View.renderRiver(card);
 };
 
@@ -208,6 +211,7 @@ View.renderRiver = function(card)
 View.clearTable = function()
 {
 	$('#cards').html('');
+    $('#hands').html('');
 };
 
 View.renderCards = function(cards)
@@ -229,10 +233,8 @@ $(function(){
 	var deck;
 
 	$("#deal").click(function(){
-		View.clearTable();
-        deck = Controller.makeDeck();
-        deck.shuffle();
-        Controller.dealHands(deck, players);
+        deck = Deck.makeNew();
+        Controller.startGame(deck, players);
 	});
 	$("#flop").click(function(){
         Controller.dealFlop(deck);
@@ -243,8 +245,6 @@ $(function(){
 	$("#river").click(function(){
         Controller.dealRiver(deck);
 	});
-
-	Controller.startGame(players);
 });
 
 </script>
