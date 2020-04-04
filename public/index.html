@@ -1,9 +1,7 @@
 <html>
 <head>
-<script
-  src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-  integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
-  crossorigin="anonymous"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 <script type="text/javascript">
 
@@ -15,105 +13,37 @@ Array.prototype.forEach = function(callback)
     }
 };
 
-var denominations = [
-	'2',
-	'3',
-	'4',
-	'5',
-	'6',
-	'7',
-	'8',
-	'9',
-	'jack',
-	'queen',
-	'king',
-	'ace',
-];
-
-var suits = [
-	'clubs',
-	'diamonds',
-	'hearts',
-	'spades'
-];
-
-var Deck = function(cards)
+var Deck = function(jquery)
 {
-    this.cards = cards;
+    this.jquery = jquery;
 };
 
-Deck.makeNew = function()
+Deck.prototype.dealHands = function(players, handler)
 {
-    var cards = [];
-
-    suits.forEach(suit => {
-        denominations.forEach(denomination => {
-            cards.push(denomination + '_of_' + suit);
-        });
+    this.jquery.post("api/deal/" + players, function(data) {
+        handler(data);
     });
-
-    var deck = new Deck(cards);
-    deck.shuffle();
-    return deck;
 };
 
-Deck.prototype.shuffle = function()
+Deck.prototype.dealFlop = function(handler)
 {
-    function shuffle (array)
-    {
-        var currentIndex = array.length;
-        var temporaryValue, randomIndex;
-
-        while (0 !== currentIndex) {
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
-
-            // And swap it with the current element.
-            temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
-        }
-
-        return array;
-    }
-
-    shuffle(this.cards);
+    this.jquery.post("api/flop/", function(data) {
+        handler(data);
+    });
 };
 
-
-Deck.prototype.dealHands = function(players)
+Deck.prototype.dealTurn = function(handler)
 {
-    var hands = [];
-    for (var i = 0; i < players; i++) {
-        hands[i] = this.dealHand();
-    }
-    return hands;
+    this.jquery.post("api/turn/", function(data) {
+        handler(data);
+    });
 };
 
-Deck.prototype.dealHand = function()
+Deck.prototype.dealRiver = function(handler)
 {
-    var card1 = this.cards.pop();
-    var card2 = this.cards.pop();
-    return [card1, card2];
-};
-
-Deck.prototype.dealFlop = function()
-{
-    var card1 = this.cards.pop();
-    var card2 = this.cards.pop();
-    var card3 = this.cards.pop();
-    return [card1, card2, card3];
-};
-
-Deck.prototype.dealTurn = function()
-{
-    return this.cards.pop();
-};
-
-Deck.prototype.dealRiver = function()
-{
-    return this.cards.pop();
+    this.jquery.post("api/river/", function(data) {
+        handler(data);
+    });
 };
 
 var Controller = {};
@@ -127,12 +57,12 @@ Controller.startGame = function(deck, players)
     View.clearTable();
     View.renderPlayers(players);
 
-    var hands = deck.dealHands(players);
-
-    for (var i = 0; i < players; i++ ) {
-        var hand = hands[i];
-        View.renderPlayerHand(i, hand);
-    }
+    deck.dealHands(players, function(hands){
+        for (var i = 0; i < players; i++ ) {
+            var hand = hands[i];
+            View.renderPlayerHand(i, hand);
+        }
+    });
 };
 
 /**
@@ -140,8 +70,9 @@ Controller.startGame = function(deck, players)
  */
 Controller.dealFlop = function(deck)
 {
-    var flop = deck.dealFlop();
-    View.renderFlop(flop);
+    deck.dealFlop(function(flop){
+        View.renderFlop(flop);
+    });
 };
 
 /**
@@ -149,8 +80,9 @@ Controller.dealFlop = function(deck)
  */
 Controller.dealTurn = function(deck)
 {
-    var card = deck.dealTurn();
-    View.renderTurn(card);
+    deck.dealTurn(function(turn){
+        View.renderTurn(turn);
+    });
 };
 
 /**
@@ -158,8 +90,9 @@ Controller.dealTurn = function(deck)
  */
 Controller.dealRiver = function(deck)
 {
-    var card = deck.dealRiver();
-    View.renderRiver(card);
+    deck.dealRiver(function(river){
+        View.renderRiver(river);
+    });
 };
 
 var View = {};
@@ -223,7 +156,7 @@ $(function(){
 	var deck;
 
 	$("#deal").click(function(){
-        deck = Deck.makeNew();
+        deck = new Deck($);
         Controller.startGame(deck, players);
 	});
 	$("#flop").click(function(){
