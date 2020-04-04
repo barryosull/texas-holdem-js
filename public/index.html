@@ -7,14 +7,9 @@
 
 <script type="text/javascript">
 
-Array.prototype.forEach = function(callback)
-{
-    for (var key in this) {
-        var item = this[key];
-        callback(item);
-    }
-};
-
+/************************************
+ * Deck interface, calls the HTTP API
+ ************************************/
 var Deck = function(jquery)
 {
     this.jquery = jquery;
@@ -118,6 +113,10 @@ Controller.joinGame = function()
 
     this.socket.on('river', function(river){
         View.renderRiver(river);
+    });
+
+    this.socket.on('existingSession', function(){
+        alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
     });
 };
 

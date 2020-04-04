@@ -229,9 +229,17 @@ Controller.dealRiver = function (req, res) {
 
 Controller.addPlayer = function(playerId)
 {
+    var socketId = this.id;
+
     console.log('playerId ' + playerId + ' connected');
 
-    var socketId = this.id;
+    var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
+
+    if (existingSocketId) {
+        io.sockets.to(socketId).emit('existingSession');
+        return;
+    }
+
     SocketsToPlayersMap.associate(socketId, playerId);
 
     Seats.takeSeat(playerId);
@@ -243,6 +251,10 @@ Controller.removePlayer = function()
 {
     var socketId = this.id;
     var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
+
+    if (!playerId) {
+        return;
+    }
 
     console.log('playerId ' + playerId + ' disconnected');
 
