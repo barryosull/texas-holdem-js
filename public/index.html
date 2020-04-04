@@ -3,6 +3,7 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js" integrity="sha256-Dul4c09cdrWKXVtallPxF558lwxMwCC8dXJdZ0PVW54=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js" integrity="sha256-oE03O+I6Pzff4fiMqwEGHbdfcW7a3GRRxlL+U49L5sA=" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
 
@@ -39,6 +40,13 @@ Deck.prototype.dealRiver = function()
     this.jquery.post("api/river/");
 };
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 var Controller = {
     socket: null,
     playerId: null
@@ -49,6 +57,7 @@ var Controller = {
  */
 Controller.startGame = function(deck)
 {
+    View.clearTable();
     deck.dealHands();
 };
 
@@ -79,15 +88,20 @@ Controller.dealRiver = function(deck)
 Controller.joinGame = function()
 {
     this.socket = io();
+    this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
 
-    this.socket.on('playerId', function(playerId){
-       this.playerId = playerId;
-       console.log("player id " + playerId);
-        View.renderPlayer(this.playerId);
+    this.socket.emit('playerId', this.playerId);
+
+    this.socket.on('players', function(players){
+       View.renderPlayers(players, Controller.playerId);
+    });
+
+    this.socket.on('playerRemoved', function(playerId){
+        View.removePlayer(playerId);
     });
 
     this.socket.on('hand', function(hand){
-        View.renderPlayerHand(this.playerId, hand);
+        View.renderPlayerHand(Controller.playerId, hand);
     });
 
     this.socket.on('flop', function(flop){
@@ -103,25 +117,51 @@ Controller.joinGame = function()
     });
 };
 
-var View = {};
-
-View.renderPlayers = function(players)
+Controller.getPlayerId = function()
 {
-	for (var i = 0; i < players; i++) {
-	    View.renderPlayer(i);
-	}
+    return Cookies.get('playerId');
 };
 
-View.renderPlayer = function(playerId)
+Controller.createPlayerId = function()
 {
-    var player = "<div style='float:left; margin-right: 20px;'>Player " + (playerId + 1) + ": <br><span id='player-" + playerId + "'></span></div>"
+    var playerId = uuidv4();
+    Cookies.set('playerId', playerId);
+    return playerId;
+};
+
+var View = {};
+
+View.renderPlayers = function(players, currentPlayerId)
+{
+    $.each(players, (socketId, playerId) => {
+        View.renderPlayer(playerId, currentPlayerId);
+    });
+};
+
+View.renderPlayer = function(playerId, currentPlayerId)
+{
+    if ($('#player-' + playerId).length) {
+        return;
+    }
+
+    var title = "Player " + (playerId + 1);
+    if (playerId === currentPlayerId) {
+        title = "<b>" + title + "</b>";
+    }
+
+    var player = "<div id='player-" + playerId + "' style='float:left; margin-right: 20px;'>" + title + ": <br><span class='cards'></span></div>";
     $('#hands').append(player);
+};
+
+View.removePlayer = function(playerId)
+{
+    $('#player-' + playerId).remove();
 };
 
 View.renderPlayerHand = function(playerId, cards)
 {
     var hand = View.renderCards(cards);
-    $('#player-' + playerId).html(hand);
+    $('#player-' + playerId + " .cards").html(hand);
 };
 
 View.renderFlop = function(flop)
@@ -142,7 +182,6 @@ View.renderRiver = function(card)
 View.clearTable = function()
 {
 	$('#cards').html('');
-    $('#hands').html('');
 };
 
 View.renderCards = function(cards)

@@ -47,34 +47,29 @@ Deck.makeNew = function()
 
 Deck.prototype.shuffle = function()
 {
-    function shuffle (array)
-    {
-        var currentIndex = array.length;
-        var temporaryValue, randomIndex;
+    var array = this.cards;
 
-        while (0 !== currentIndex) {
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
+    var currentIndex = array.length;
+    var temporaryValue, randomIndex;
 
-            // And swap it with the current element.
-            temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
-        }
+    while (0 !== currentIndex) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
 
-        return array;
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
     }
-
-    shuffle(this.cards);
+    this.cards = array;
 };
 
-Deck.prototype.dealHands = function(players)
+Deck.prototype.dealHands = function(playerIds)
 {
-    var hands = [];
-    for (var i = 0; i < players; i++) {
-        hands[i] = this.dealHand();
-    }
+    var hands = {};
+    playerIds.forEach(playerId => {
+        hands[playerId] = this.dealHand();
+    });
     return hands;
 };
 
@@ -103,17 +98,56 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
+var Players = {
+    players: {}
+};
+
+Players.length = function()
+{
+    var size = 0, key;
+    for (key in this.players) {
+        if (this.players.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
+Players.addPlayer = function(socketId, playerId)
+{
+    this.players[socketId] = playerId;
+    io.emit('players', this.players);
+};
+
+Players.removePlayer = function(socketId)
+{
+    var playerId = this.players[socketId];
+    delete this.players[socketId];
+    io.emit('playerRemoved', playerId);
+};
+
+Players.playerIds = function()
+{
+    var ids = [], key;
+    for (key in this.players) {
+        ids.push(this.players[key]);
+    }
+    return ids;
+};
+
+Players.sendHand = function(playerId, hand)
+{
+    var socketId = Object.keys(this.players).find(key => this.players[key] === playerId);
+    io.sockets.to(socketId).emit('hand', hand);
+};
+
 app.use(express.static('public'));
 
 var deck;
 
 app.post('/api/deal', function (req, res) {
     deck = Deck.makeNew();
-    var hands = deck.dealHands(connections.length);
-    for (var i = 0; i < hands.length; i++) {
-        var hand = hands[i];
-        var socketId = connections[i];
-        io.sockets.to(socketId).emit('hand', hand);
+    var hands = deck.dealHands(Players.playerIds());
+    for (var playerId in hands) {
+        Players.sendHand(playerId, hands[playerId]);
     }
     res.send('');
 });
@@ -133,24 +167,23 @@ app.post('/api/river', function (req, res) {
     res.send('');
 });
 
-var connections = [];
-
 io.on('connection', function(socket){
 
-    connections.push(socket.id);
-    var playerId = connections.length - 1;
-    socket.emit('playerId', playerId, socket.id);
+    socket.on('playerId', function(playerId){
+        Players.addPlayer(socket.id, playerId);
 
-    console.log('user ' + socket.id + ' connected');
-    console.log('playerId ' + playerId);
-    console.log('connections', connections);
+        console.log('user ' + socket.id + ' connected');
+        console.log('playerId ' + playerId);
+        console.log('players', Players.players);
+    });
 
     socket.on('disconnect', function(){
+        Players.removePlayer(socket.id);
+
         console.log('user ' + socket.id + ' disconnected');
-        var index = connections.indexOf(socket.id);
-        connections.splice(index, 1);
     });
 });
+
 
 var port = 3000;
 
