@@ -2,6 +2,7 @@
 <head>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js" integrity="sha256-Dul4c09cdrWKXVtallPxF558lwxMwCC8dXJdZ0PVW54=" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
 
@@ -18,51 +19,37 @@ var Deck = function(jquery)
     this.jquery = jquery;
 };
 
-Deck.prototype.dealHands = function(players, handler)
+Deck.prototype.dealHands = function()
 {
-    this.jquery.post("api/deal/" + players, function(data) {
-        handler(data);
-    });
+    this.jquery.post("api/deal");
 };
 
-Deck.prototype.dealFlop = function(handler)
+Deck.prototype.dealFlop = function()
 {
-    this.jquery.post("api/flop/", function(data) {
-        handler(data);
-    });
+    this.jquery.post("api/flop/");
 };
 
-Deck.prototype.dealTurn = function(handler)
+Deck.prototype.dealTurn = function()
 {
-    this.jquery.post("api/turn/", function(data) {
-        handler(data);
-    });
+    this.jquery.post("api/turn/");
 };
 
-Deck.prototype.dealRiver = function(handler)
+Deck.prototype.dealRiver = function()
 {
-    this.jquery.post("api/river/", function(data) {
-        handler(data);
-    });
+    this.jquery.post("api/river/");
 };
 
-var Controller = {};
+var Controller = {
+    socket: null,
+    playerId: null
+};
 
 /**
  * @param deck {Deck}
- * @param players {int}
  */
-Controller.startGame = function(deck, players)
+Controller.startGame = function(deck)
 {
-    View.clearTable();
-    View.renderPlayers(players);
-
-    deck.dealHands(players, function(hands){
-        for (var i = 0; i < players; i++ ) {
-            var hand = hands[i];
-            View.renderPlayerHand(i, hand);
-        }
-    });
+    deck.dealHands();
 };
 
 /**
@@ -70,9 +57,7 @@ Controller.startGame = function(deck, players)
  */
 Controller.dealFlop = function(deck)
 {
-    deck.dealFlop(function(flop){
-        View.renderFlop(flop);
-    });
+    deck.dealFlop();
 };
 
 /**
@@ -80,9 +65,7 @@ Controller.dealFlop = function(deck)
  */
 Controller.dealTurn = function(deck)
 {
-    deck.dealTurn(function(turn){
-        View.renderTurn(turn);
-    });
+    deck.dealTurn();
 };
 
 /**
@@ -90,7 +73,32 @@ Controller.dealTurn = function(deck)
  */
 Controller.dealRiver = function(deck)
 {
-    deck.dealRiver(function(river){
+    deck.dealRiver();
+};
+
+Controller.joinGame = function()
+{
+    this.socket = io();
+
+    this.socket.on('playerId', function(playerId){
+       this.playerId = playerId;
+       console.log("player id " + playerId);
+        View.renderPlayer(this.playerId);
+    });
+
+    this.socket.on('hand', function(hand){
+        View.renderPlayerHand(this.playerId, hand);
+    });
+
+    this.socket.on('flop', function(flop){
+        View.renderFlop(flop);
+    });
+
+    this.socket.on('turn', function(turn){
+        View.renderTurn(turn);
+    });
+
+    this.socket.on('river', function(river){
         View.renderRiver(river);
     });
 };
@@ -149,15 +157,13 @@ View.renderCard = function(card)
     return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
 };
 
-
 $(function(){
 
-	var players = 5;
 	var deck;
 
 	$("#deal").click(function(){
         deck = new Deck($);
-        Controller.startGame(deck, players);
+        Controller.startGame(deck);
 	});
 	$("#flop").click(function(){
         Controller.dealFlop(deck);
@@ -168,6 +174,8 @@ $(function(){
 	$("#river").click(function(){
         Controller.dealRiver(deck);
 	});
+
+	Controller.joinGame();
 });
 
 </script>

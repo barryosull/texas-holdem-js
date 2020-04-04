@@ -1,5 +1,7 @@
 var express = require('express');
 var app = express();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
 
 var denominations = [
     '2',
@@ -67,7 +69,6 @@ Deck.prototype.shuffle = function()
     shuffle(this.cards);
 };
 
-
 Deck.prototype.dealHands = function(players)
 {
     var hands = [];
@@ -106,25 +107,51 @@ app.use(express.static('public'));
 
 var deck;
 
-app.post('/api/deal/:players', function (req, res) {
-    var players = req.params.players;
+app.post('/api/deal', function (req, res) {
     deck = Deck.makeNew();
-    var hands = deck.dealHands(players);
-    res.send(hands);
+    var hands = deck.dealHands(connections.length);
+    for (var i = 0; i < hands.length; i++) {
+        var hand = hands[i];
+        var socketId = connections[i];
+        io.sockets.to(socketId).emit('hand', hand);
+    }
+    res.send('');
 });
 
 app.post('/api/flop', function (req, res) {
-    res.send(deck.dealFlop());
+    io.emit('flop', deck.dealFlop());
+    res.send('');
 });
 
 app.post('/api/turn', function (req, res) {
-    res.send(deck.dealTurn());
+    io.emit('turn', deck.dealTurn());
+    res.send('');
 });
 
 app.post('/api/river', function (req, res) {
-    res.send(deck.dealRiver());
+    io.emit('river', deck.dealRiver());
+    res.send('');
+});
+
+var connections = [];
+
+io.on('connection', function(socket){
+
+    connections.push(socket.id);
+    var playerId = connections.length - 1;
+    socket.emit('playerId', playerId, socket.id);
+
+    console.log('user ' + socket.id + ' connected');
+    console.log('playerId ' + playerId);
+    console.log('connections', connections);
+
+    socket.on('disconnect', function(){
+        console.log('user ' + socket.id + ' disconnected');
+        var index = connections.indexOf(socket.id);
+        connections.splice(index, 1);
+    });
 });
 
 var port = 3000;
 
-app.listen(port, () => console.log("Texas holdem server running at http://localhost:${port}"));
+http.listen(port, () => console.log("Texas holdem server running at http://localhost:${port}"));
