@@ -3,8 +3,10 @@ var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
-// Serve public files
-app.use(express.static('public'));
+
+/*******************************
+ * Domain concepts
+ *******************************/
 
 var denominations = [
     '2',
@@ -157,33 +159,10 @@ Seats.makeSeatsViewModel = function()
     return viewModel;
 };
 
-var deck;
 
-app.post('/api/deal', function (req, res) {
-    deck = Deck.makeNew();
-    Seats.activePlayers().forEach(playerId => {
-        var hand = deck.dealHand();
-        var socketId = Controller.getSocketIdForPlayer(playerId);
-        io.sockets.to(socketId).emit('hand', hand);
-    });
-    res.send('');
-});
-
-app.post('/api/flop', function (req, res) {
-    io.emit('flop', deck.dealFlop());
-    res.send('');
-});
-
-app.post('/api/turn', function (req, res) {
-    io.emit('turn', deck.dealTurn());
-    res.send('');
-});
-
-app.post('/api/river', function (req, res) {
-    io.emit('river', deck.dealRiver());
-    res.send('');
-});
-
+/*******************************
+ * Scoket.io controller adapter
+ *******************************/
 var SocketsToPlayersMap =
 {
     map: {},
@@ -214,6 +193,40 @@ var SocketsToPlayersMap =
     }
 };
 
+
+/*******************************
+ * Controller
+ *******************************/
+
+var Controller = {
+    deck: null,
+};
+
+Controller.dealCards = function (req, res) {
+    Controller.deck = Deck.makeNew();
+    Seats.activePlayers().forEach(playerId => {
+        var hand = Controller.deck.dealHand();
+        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
+        io.sockets.to(socketId).emit('hand', hand);
+    });
+    res.send('');
+};
+
+Controller.dealFlop = function (req, res) {
+    io.emit('flop', Controller.deck.dealFlop());
+    res.send('');
+};
+
+Controller.dealTurn = function (req, res) {
+    io.emit('turn', Controller.deck.dealTurn());
+    res.send('');
+};
+
+Controller.dealRiver = function (req, res) {
+    io.emit('turn', Controller.deck.dealRiver());
+    res.send('');
+};
+
 Controller.addPlayer = function(playerId)
 {
     console.log('playerId ' + playerId + ' connected');
@@ -229,7 +242,7 @@ Controller.addPlayer = function(playerId)
 Controller.removePlayer = function()
 {
     var socketId = this.id;
-    var playerId = Controller.getPlayerIdForSocket(socketId);
+    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
 
     console.log('playerId ' + playerId + ' disconnected');
 
@@ -241,6 +254,10 @@ Controller.removePlayer = function()
     io.emit('seatEmptied', seat);
 };
 
+
+/************************************
+ * Boot Incoming Message Handlers
+ ************************************/
 io.on('connection', function(socket)
 {
     socket.on('playerId', Controller.addPlayer);
@@ -248,6 +265,24 @@ io.on('connection', function(socket)
 });
 
 
-var port = 3000;
+/*******************************
+ * Boot HTTP Routes
+ *******************************/
 
-http.listen(port, () => console.log("Texas holdem server running at http://localhost:${port}"));
+// Serve public files
+app.use(express.static('public'));
+
+app.post('/api/deal', Controller.dealCards);
+
+app.post('/api/flop', Controller.dealFlop);
+
+app.post('/api/turn', Controller.dealTurn);
+
+app.post('/api/river', Controller.dealRiver);
+
+
+/*******************************
+ * Launch the Webserver
+ *******************************/
+var port = 3000;
+http.listen(port, () => console.log("Texas holdem server running at http://localhost:" + port));
