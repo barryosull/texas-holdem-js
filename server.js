@@ -3,6 +3,9 @@ var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
+// Serve public files
+app.use(express.static('public'));
+
 var denominations = [
     '2',
     '3',
@@ -142,17 +145,7 @@ Seats.activePlayers = function()
     });
 };
 
-var Players = {
-
-};
-
-Players.addPlayer = function(playerId)
-{
-    Seats.takeSeat(playerId);
-    io.emit('seatFilled', makeSeatsViewModel());
-};
-
-function makeSeatsViewModel()
+Seats.makeSeatsViewModel = function()
 {
     var viewModel = [];
     Seats.seats.forEach((playerId, seat) => {
@@ -162,22 +155,7 @@ function makeSeatsViewModel()
         });
     });
     return viewModel;
-}
-
-Players.removePlayer = function(playerId)
-{
-    var seat = Seats.getSeat(playerId);
-    Seats.freeUpSeat(seat);
-    io.emit('seatEmptied', seat);
 };
-
-Players.sendHand = function(playerId, hand)
-{
-    var socketId = Object.keys(this.players).find(key => this.players[key] === playerId);
-    io.sockets.to(socketId).emit('hand', hand);
-};
-
-app.use(express.static('public'));
 
 var deck;
 
@@ -206,29 +184,29 @@ app.post('/api/river', function (req, res) {
     res.send('');
 });
 
-var Controller =
+var SocketsToPlayersMap =
 {
-    socketsToPlayers: {},
+    map: {},
 
-    associateSocketWithPlayer: function(socketId, playerId)
+    associate: function(socketId, playerId)
     {
-        Controller.socketsToPlayers[socketId] = playerId;
+        SocketsToPlayersMap.map[socketId] = playerId;
     },
 
-    deassociateSocketWithPlayer: function(socketId)
+    deassociate: function(socketId)
     {
-        delete Controller.socketsToPlayers[socketId];
+        delete SocketsToPlayersMap.map[socketId];
     },
 
     getPlayerIdForSocket: function(socketId)
     {
-        return Controller.socketsToPlayers[socketId];
+        return SocketsToPlayersMap.map[socketId];
     },
 
     getSocketIdForPlayer: function(playerId)
     {
-        for (var socketId in Controller.socketsToPlayers) {
-            if (Controller.socketsToPlayers[socketId] === playerId) {
+        for (var socketId in SocketsToPlayersMap.map) {
+            if (SocketsToPlayersMap.map[socketId] === playerId) {
                 return socketId;
             }
         }
@@ -241,8 +219,11 @@ Controller.addPlayer = function(playerId)
     console.log('playerId ' + playerId + ' connected');
 
     var socketId = this.id;
-    Controller.associateSocketWithPlayer(socketId, playerId);
-    Players.addPlayer(playerId);
+    SocketsToPlayersMap.associate(socketId, playerId);
+
+    Seats.takeSeat(playerId);
+
+    io.emit('seatFilled', Seats.makeSeatsViewModel());
 };
 
 Controller.removePlayer = function()
@@ -252,8 +233,12 @@ Controller.removePlayer = function()
 
     console.log('playerId ' + playerId + ' disconnected');
 
-    Players.removePlayer(playerId);
-    Controller.deassociateSocketWithPlayer(socketId);
+    var seat = Seats.getSeat(playerId);
+    Seats.freeUpSeat(seat);
+
+    SocketsToPlayersMap.deassociate(socketId);
+
+    io.emit('seatEmptied', seat);
 };
 
 io.on('connection', function(socket)
