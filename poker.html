@@ -137,16 +137,6 @@ Controller.startGame = function(deck, players)
 
 /**
  * @param deck {Deck}
- * @param playerId {int}
- */
-Controller.dealHandToPlayer = function(deck, playerId)
-{
-    var cards = deck.dealHand();
-    View.renderPlayerHand(playerId, cards);
-};
-
-/**
- * @param deck {Deck}
  */
 Controller.dealFlop = function(deck)
 {
