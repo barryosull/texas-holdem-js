@@ -81,6 +81,11 @@ Round.prototype.dealRiver = function()
     this.jquery.post("api/river/");
 };
 
+Round.prototype.announceWinner = function()
+{
+    this.jquery.post("api/finish/");
+};
+
 Round.prototype.foldHand = function(playerId)
 {
     this.jquery.post("api/fold/" + playerId);
@@ -131,6 +136,12 @@ Controller.dealTurn = function(round)
 Controller.dealRiver = function(round)
 {
     round.dealRiver();
+    View.showFinishButton();
+};
+
+Controller.announceWinner = function(round)
+{
+    round.announceWinner();
     View.hideCommunityCardsButtons();
 };
 
@@ -362,6 +373,12 @@ View.showRiverButton = function()
     $('#river').show();
 };
 
+View.showFinishButton = function()
+{
+    View.hideCommunityCardsButtons();
+    $('#finish').show();
+};
+
 View.hideCommunityCardsButtons = function()
 {
     $('#community-cards button').hide();
@@ -393,7 +410,9 @@ $(function(){
 	$("#river").click(function(){
         Controller.dealRiver(round);
 	});
-
+    $("#finish").click(function(){
+        Controller.announceWinner(round);
+    });
     $("#fold").click(function(){
         Controller.foldHand(round);
     });
@@ -449,6 +468,7 @@ $(function(){
             <button id="flop">Flop</button>
             <button id="turn">Turn</button>
             <button id="river">River</button>
+            <button id="finish">Finish</button>
         </span>
         <button id="deal">Deal</button>
     </div>

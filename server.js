@@ -244,7 +244,8 @@ var Controller = {
     round: null,
 };
 
-Controller.dealCards = function (req, res) {
+Controller.dealCards = function (req, res)
+{
     var deck = Deck.makeNew();
 
     Controller.round = new Round(deck);
@@ -259,23 +260,29 @@ Controller.dealCards = function (req, res) {
     res.send('');
 };
 
-Controller.dealFlop = function (req, res) {
+Controller.dealFlop = function (req, res)
+{
     io.emit('flop', Controller.round.deck.dealFlop());
     res.send('');
 };
 
-Controller.dealTurn = function (req, res) {
+Controller.dealTurn = function (req, res)
+{
     io.emit('turn', Controller.round.deck.dealTurn());
     res.send('');
 };
 
-Controller.dealRiver = function (req, res) {
+Controller.dealRiver = function (req, res)
+{
     io.emit('river', Controller.round.deck.dealRiver());
+    res.send('');
+};
 
+Controller.finish = function(req, res)
+{
     Controller.round.hands.forEach(hand => {
         io.emit('hand', hand);
     });
-
     res.send('');
 };
 
@@ -358,6 +365,8 @@ app.post('/api/flop', Controller.dealFlop);
 app.post('/api/turn', Controller.dealTurn);
 
 app.post('/api/river', Controller.dealRiver);
+
+app.post('/api/finish', Controller.finish);
 
 app.post('/api/fold/:playerId', Controller.foldHand);
 
