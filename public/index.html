@@ -5,6 +5,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js" integrity="sha256-Dul4c09cdrWKXVtallPxF558lwxMwCC8dXJdZ0PVW54=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js" integrity="sha256-oE03O+I6Pzff4fiMqwEGHbdfcW7a3GRRxlL+U49L5sA=" crossorigin="anonymous"></script>
 
+<style type="text/css">
+
+.card {
+    width: 80px;
+    height: auto;
+    border: 1px solid #aaa;
+    background-color: #fff;
+    margin: 5px;
+}
+
+.seat {
+    float: left;
+    width: 190px;
+    height: 150px;
+    padding: 10px;
+    border: 1px solid #aaa;
+    margin: 0 10px;
+}
+
+</style>
+
 <script type="text/javascript">
 
 /************************************
@@ -165,12 +186,12 @@ View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat' style='float: left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span class='cards' id='player-" + playerId + "'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat'>" + title + "<br><span class='cards' id='player-" + playerId + "'></span></div>";
 
-    if ($('#seat-' + seat).length) {
-        $('#seat-' + seat).replaceWith(seatHtml);
+    if ($(`#seat-${seat}`).length) {
+        $(`#seat-${seat}`).replaceWith(seatHtml);
     } else {
-        $('#hands').append(seatHtml);
+        View.getHandsDiv(seat).append(seatHtml);
     }
 };
 
@@ -178,13 +199,21 @@ View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' style='float:left; width: 200px; height: 150px; padding: 10px; border: 1px solid #aaa; margin-right: 20px;'>" + title + "<br><span></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat'>" + title + "<br><span></span></div>";
 
-    if ($('#seat-' + seat).length) {
-        $('#seat-' + seat).replaceWith(seatHtml);
+    if ($(`#seat-${seat}`).length) {
+        $(`#seat-${seat}`).replaceWith(seatHtml);
     } else {
-        $('#hands').append(seatHtml);
+        View.getHandsDiv(seat).append(seatHtml);
     }
+};
+
+View.getHandsDiv = function(seat)
+{
+    if (seat < 4) {
+        return $('#hands-1-to-4');
+    }
+    return $('#hands-5-to-8');
 };
 
 View.renderPlayerHand = function(playerId, cards)
@@ -230,12 +259,12 @@ View.renderCards = function(cards)
 
 View.renderCard = function(card)
 {
-    return '<img src="images/' + card + '.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+    return '<img src="images/' + card + '.png" class="card"/>';
 };
 
 View.renderDownFacingCard = function()
 {
-    return '<img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="width: 80px; height: auto; border: 1px solid #aaa; margin: 5px;"/>';
+    return '<img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" class="card"/>';
 };
 
 View.enableControls = function()
@@ -280,24 +309,29 @@ $(function(){
 </script>
 </head>
 <body>
+<div class="table" style="background-color: #16840d; padding: 20px;">
 
-<h3>Cards</h3>
-<div id="cards" style="height: 130px; width: 500px; padding: 10px; border: 1px solid #aaa">
+    <div id="hands-1-to-4" style="width: 940px; margin: 20px auto;">
+
+    </div>
+    <div style="clear:both"></div>
+    <div id="cards" style="margin: 20px auto; height: 130px; width: 500px; padding: 10px; border: 1px solid #aaa">
+
+    </div>
+
+    <div id="hands-5-to-8" style="width: 940px; margin: 20px auto;">
+
+    </div>
+    <div style="clear:both"></div>
+
+    <br><br>
+    <div style="display: none" id="controls">
+        <button id="deal">Deal</button>
+        <button id="flop">Flop</button>
+        <button id="turn">Turn</button>
+        <button id="river">River</button>
+    </div>
 
 </div>
-
-<h3>Players</h3>
-<div id="hands">
-
-</div>
-<div style="clear:both"></div>
-<br><br>
-<div style="display: none" id="controls">
-    <button id="deal">Deal</button>
-    <button id="flop">Flop</button>
-    <button id="turn">Turn</button>
-    <button id="river">River</button>
-</div>
-
 </body>
 </html>
