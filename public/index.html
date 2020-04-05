@@ -34,6 +34,13 @@ body {
     opacity: 0.5;
 }
 
+.card.winner {
+    -webkit-box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
+    -moz-box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
+    box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
+    Copy Text
+}
+
 .seat {
     float: left;
     width: 190px;
@@ -177,8 +184,8 @@ Controller.joinGame = function(playerName)
     });
 
     this.socket.on('winningHand', function(hand){
-        console.log("Winner", hand);
         View.renderPlayerHand(hand);
+        View.highlightWinner(hand.playerId);
     });
 
     this.socket.on('flop', function(flop){
@@ -350,6 +357,13 @@ View.renderCard = function(card)
 View.renderDownFacingCard = function()
 {
     return '<img src="/images/back.png" class="card"/>';
+};
+
+View.highlightWinner = function(playerId)
+{
+    $('#player-' + playerId + ' .card').each(function(){
+        $(this).addClass('winner');
+    });
 };
 
 View.enableControls = function()
