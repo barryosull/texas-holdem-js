@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var pokerTools = require("poker-tools");
 
 
 /*******************************
@@ -17,6 +18,7 @@ var denominations = [
     '7',
     '8',
     '9',
+    '10',
     'jack',
     'queen',
     'king',
@@ -171,6 +173,7 @@ Seats.makeSeatsViewModel = function()
 var Round = function(deck)
 {
     this.deck = deck;
+    this.communityCards = [];
     this.hands = [];
 };
 
@@ -186,6 +189,27 @@ Round.prototype.start = function(players)
         });
     });
     this.hands = hands;
+};
+
+Round.prototype.dealFlop = function()
+{
+    var flop = this.deck.dealFlop();
+    this.communityCards = flop;
+    return flop;
+};
+
+Round.prototype.dealTurn = function()
+{
+    var turn = this.deck.dealTurn();
+    this.communityCards.push(turn);
+    return turn;
+};
+
+Round.prototype.dealRiver = function()
+{
+    var river = this.deck.dealRiver();
+    this.communityCards.push(river);
+    return river;
 };
 
 Round.prototype.foldHand = function(playerId)
@@ -207,6 +231,51 @@ Round.prototype.activeHands = function()
         return !hand.hasFolded;
     });
 };
+
+Round.prototype.chooseWinningHand = function()
+{
+    var hands = this.activeHands();
+    var communityCards = this.communityCards;
+
+    var pokerToolsHands = hands.map(hand => {
+       return pokerTools.CardGroup.fromString(
+            convertToPokerToolsString(hand.cards)
+       );
+    });
+    var board = pokerTools.CardGroup.fromString(
+        convertToPokerToolsString(communityCards)
+    );
+
+    const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+
+    var winnerIndex = result[0][0].index;
+
+    return hands[winnerIndex];
+};
+
+function convertToPokerToolsString(cards)
+{
+    var convertedCards = cards.map(card => {
+       var parts = card.split('_of_');
+       var number = parts[0];
+        if (number === "10") {
+            number = "T";
+        }
+       if (isFaceCard(number)) {
+           number = number.charAt(0);
+       }
+
+       var suit = parts[1].charAt(0);
+       return number.toUpperCase().concat(suit);
+    });
+
+    return convertedCards.join("");
+}
+
+function isFaceCard(number)
+{
+    return number.length > 2;
+}
 
 
 /*******************************
@@ -269,27 +338,26 @@ Controller.dealCards = function (req, res)
 
 Controller.dealFlop = function (req, res)
 {
-    io.emit('flop', Controller.round.deck.dealFlop());
+    io.emit('flop', Controller.round.dealFlop());
     res.send('');
 };
 
 Controller.dealTurn = function (req, res)
 {
-    io.emit('turn', Controller.round.deck.dealTurn());
+    io.emit('turn', Controller.round.dealTurn());
     res.send('');
 };
 
 Controller.dealRiver = function (req, res)
 {
-    io.emit('river', Controller.round.deck.dealRiver());
+    io.emit('river', Controller.round.dealRiver());
     res.send('');
 };
 
 Controller.finish = function(req, res)
 {
-    Controller.round.activeHands().forEach(hand => {
-        io.emit('hand', hand);
-    });
+    var winningHand = Controller.round.chooseWinningHand();
+    io.emit('winningHand', winningHand);
     res.send('');
 };
 

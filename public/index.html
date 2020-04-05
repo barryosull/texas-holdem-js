@@ -176,7 +176,8 @@ Controller.joinGame = function(playerName)
         View.renderPlayerHand(hand);
     });
 
-    this.socket.on('hand', function(hand){
+    this.socket.on('winningHand', function(hand){
+        console.log("Winner", hand);
         View.renderPlayerHand(hand);
     });
 
@@ -265,6 +266,7 @@ View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
     if ($(`#seat-${seat}`).length) {
         $(`#seat-${seat}`).removeClass('empty');
         $(`#seat-${seat} .name`).html(title);
+        $(`#seat-${seat} .cards`).attr('id', 'player-' + playerId);
     } else {
         View.getHandsDiv(seat).append(seatHtml);
     }
