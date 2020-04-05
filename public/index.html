@@ -26,6 +26,14 @@ body {
     margin: 5px;
 }
 
+.card.grey {
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
 .seat {
     float: left;
     width: 190px;
@@ -35,7 +43,7 @@ body {
     margin: 0 10px;
 }
 
-#controls button {
+.controls button {
     font-size: 16px;
     margin: 10px;
     display: block;
@@ -46,31 +54,36 @@ body {
 <script type="text/javascript">
 
 /************************************
- * Deck interface, calls the HTTP API
+ * Round interface, calls the HTTP API
  ************************************/
-var Deck = function(jquery)
+var Round = function(jquery)
 {
     this.jquery = jquery;
 };
 
-Deck.prototype.dealHands = function()
+Round.prototype.dealHands = function()
 {
     this.jquery.post("api/deal");
 };
 
-Deck.prototype.dealFlop = function()
+Round.prototype.dealFlop = function()
 {
     this.jquery.post("api/flop/");
 };
 
-Deck.prototype.dealTurn = function()
+Round.prototype.dealTurn = function()
 {
     this.jquery.post("api/turn/");
 };
 
-Deck.prototype.dealRiver = function()
+Round.prototype.dealRiver = function()
 {
     this.jquery.post("api/river/");
+};
+
+Round.prototype.foldHand = function(playerId)
+{
+    this.jquery.post("api/fold/" + playerId);
 };
 
 function uuidv4() {
@@ -86,39 +99,44 @@ var Controller = {
 };
 
 /**
- * @param deck {Deck}
+ * @param round {Round}
  */
-Controller.startGame = function(deck)
+Controller.startGame = function(round)
 {
     View.showFlopButton();
-    deck.dealHands();
+    round.dealHands();
 };
 
 /**
- * @param deck {Deck}
+ * @param round {Round}
  */
-Controller.dealFlop = function(deck)
+Controller.dealFlop = function(round)
 {
-    deck.dealFlop();
+    round.dealFlop();
     View.showTurnButton();
 };
 
 /**
- * @param deck {Deck}
+ * @param round {Round}
  */
-Controller.dealTurn = function(deck)
+Controller.dealTurn = function(round)
 {
-    deck.dealTurn();
+    round.dealTurn();
     View.showRiverButton();
 };
 
 /**
- * @param deck {Deck}
+ * @param round {Round}
  */
-Controller.dealRiver = function(deck)
+Controller.dealRiver = function(round)
 {
-    deck.dealRiver();
+    round.dealRiver();
     View.hideCommunityCardsButtons();
+};
+
+Controller.foldHand = function(round)
+{
+    round.foldHand(Controller.playerId);
 };
 
 Controller.joinGame = function(playerName)
@@ -159,6 +177,10 @@ Controller.joinGame = function(playerName)
 
     this.socket.on('river', function(river){
         View.renderRiver(river);
+    });
+
+    this.socket.on('playerFolded', function(playerId){
+        View.foldPlayerHand(playerId);
     });
 
     this.socket.on('existingSession', function(){
@@ -263,6 +285,13 @@ View.renderPlayerHand = function(hand)
     $('#player-' + hand.playerId).html(handHtml);
 };
 
+View.foldPlayerHand = function(playerId)
+{
+    $('#player-' + playerId + ' .card').each(function(){
+       $(this).addClass('grey');
+    });
+};
+
 View.renderDownFacingHands = function()
 {
     $('.seat:not(.empty) .cards').each(function(){
@@ -310,7 +339,7 @@ View.renderDownFacingCard = function()
 
 View.enableControls = function()
 {
-    $("#controls").show();
+    $("#admin-controls").show();
 };
 
 View.showFlopButton = function()
@@ -338,21 +367,24 @@ View.hideCommunityCardsButtons = function()
 
 $(function(){
 
-	var deck;
+	var round = new Round($);
 
 	$("#deal").click(function(){
-        deck = new Deck($);
-        Controller.startGame(deck);
+        Controller.startGame(round);
 	});
 	$("#flop").click(function(){
-        Controller.dealFlop(deck);
+        Controller.dealFlop(round);
 	});
 	$("#turn").click(function(){
-        Controller.dealTurn(deck);
+        Controller.dealTurn(round);
 	});
 	$("#river").click(function(){
-        Controller.dealRiver(deck);
+        Controller.dealRiver(round);
 	});
+
+    $("#fold").click(function(){
+        Controller.foldHand(round);
+    });
 
 	var isValidName = false;
 	var wantsToChangeName = Controller.wantsToChangeName();
@@ -394,7 +426,11 @@ $(function(){
 
     <br><br>
 
-    <div id="controls" style="display: none; padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; right: 0;">
+    <div id="player-controls" class="controls" style="padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; left: 0;">
+        <button id="fold">Fold</button>
+    </div>
+
+    <div id="admin-controls" class="controls" style="display: none; padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; right: 0;">
         <span id="community-cards">
             <button id="flop">Flop</button>
             <button id="turn">Turn</button>

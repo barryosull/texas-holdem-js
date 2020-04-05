@@ -181,10 +181,24 @@ Round.prototype.start = function(players)
     players.forEach(playerId => {
         hands.push({
             playerId: playerId,
-            cards: deck.dealHand()
+            cards: deck.dealHand(),
+            hasFolded: false
         });
     });
     this.hands = hands;
+};
+
+Round.prototype.foldHand = function(playerId)
+{
+    var playerHand = this.hands.filter(hand => {
+        return hand.playerId === playerId;
+    }).pop();
+
+    if (!playerHand) {
+        return;
+    }
+
+    playerHand.hasFolded = true;
 };
 
 
@@ -306,6 +320,19 @@ Controller.removePlayer = function()
     io.emit('seatEmptied', seat);
 };
 
+Controller.foldHand = function(req, res)
+{
+    var playerId = req.params.playerId;
+
+    Controller.round.foldHand(playerId);
+
+    console.log(Controller.round.hands);
+
+    io.emit('playerFolded', playerId);
+
+    res.send('');
+};
+
 
 /************************************
  * Boot Incoming Message Handlers
@@ -332,6 +359,7 @@ app.post('/api/turn', Controller.dealTurn);
 
 app.post('/api/river', Controller.dealRiver);
 
+app.post('/api/fold/:playerId', Controller.foldHand);
 
 /*******************************
  * Launch the Webserver
