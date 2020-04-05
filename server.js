@@ -239,7 +239,7 @@ Controller.dealCards = function (req, res) {
 
     Controller.round.hands.forEach(hand => {
         var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
-        io.sockets.to(socketId).emit('hand', hand.cards);
+        io.sockets.to(socketId).emit('roundStarted', hand);
     });
 
     res.send('');
@@ -256,7 +256,12 @@ Controller.dealTurn = function (req, res) {
 };
 
 Controller.dealRiver = function (req, res) {
-    io.emit('turn', Controller.round.deck.dealRiver());
+    io.emit('river', Controller.round.deck.dealRiver());
+
+    Controller.round.hands.forEach(hand => {
+        io.emit('hand', hand);
+    });
+
     res.send('');
 };
 

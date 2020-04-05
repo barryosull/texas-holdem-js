@@ -139,10 +139,14 @@ Controller.joinGame = function(playerName)
         View.renderEmptySeat(seat);
     });
 
-    this.socket.on('hand', function(hand){
+    this.socket.on('roundStarted', function(hand){
         View.clearTable();
         View.renderDownFacingHands();
-        View.renderPlayerHand(Controller.playerId, hand);
+        View.renderPlayerHand(hand);
+    });
+
+    this.socket.on('hand', function(hand){
+        View.renderPlayerHand(hand);
     });
 
     this.socket.on('flop', function(flop){
@@ -224,7 +228,7 @@ View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
     var seatHtml = "<div id='seat-" + seat + "' class='seat'><span class='name'>" + title + "</span><br><span class='cards' id='player-" + playerId + "'></span></div>";
 
     if ($(`#seat-${seat}`).length) {
-        //Update title
+        $(`#seat-${seat}`).removeClass('empty');
         $(`#seat-${seat} .name`).html(title);
     } else {
         View.getHandsDiv(seat).append(seatHtml);
@@ -235,9 +239,10 @@ View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat'><span class='name'>" + title + "</span><br><span></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat empty'><span class='name'>" + title + "</span><br><span class='cards'></span></div>";
 
     if ($(`#seat-${seat}`).length) {
+        $(`#seat-${seat}`).addClass('empty');
         $(`#seat-${seat} .name`).html(title);
     } else {
         View.getHandsDiv(seat).append(seatHtml);
@@ -252,15 +257,15 @@ View.getHandsDiv = function(seat)
     return $('#hands-5-to-8');
 };
 
-View.renderPlayerHand = function(playerId, cards)
+View.renderPlayerHand = function(hand)
 {
-    var hand = View.renderCards(cards);
-    $('#player-' + playerId).html(hand);
+    var handHtml = View.renderCards(hand.cards);
+    $('#player-' + hand.playerId).html(handHtml);
 };
 
 View.renderDownFacingHands = function()
 {
-    $('.seat .cards').each(function(){
+    $('.seat:not(.empty) .cards').each(function(){
         var hand = [View.renderDownFacingCard(), View.renderDownFacingCard()];
         $(this).html(hand);
     });
