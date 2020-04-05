@@ -11,16 +11,87 @@
 
 body {
     font-family: Arial;
+    text-align: center;
+    background-color: #000;
 }
 
 #cards {
     position: relative;
     z-index: 2;
+    padding: 10px;
+}
+
+.table {
+    position: relative;
+    background: url(/images/felt.jpg);
+    padding: 20px;
+    display: inline-block;
+    margin: 20px auto;
+    text-align: left;
+    border: 10px solid #60341c;
+}
+
+.controls {
+    padding: 10px 20px;
+    background-color: #a8cc92;
+    border-radius: 10px;
+    margin: 10px;
+    width: 90px;
+}
+
+.controls .title {
+    font-weight: bold;
+}
+
+.controls button {
+    margin: 10px 0;
+    box-shadow: 0px 1px 0px 0px #fff6af;
+    background: linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
+    background-color: #ffec64;
+    border-radius: 6px;
+    border: 1px solid #ffaa22;
+    display: inline-block;
+    cursor: pointer;
+    color: #333333;
+    font-family: Arial;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 6px 24px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #ffee66;
+}
+
+.controls button:hover {
+    background:linear-gradient(to bottom, #ffab23 5%, #ffec64 100%);
+    background-color:#ffab23;
+}
+
+.controls button:active {
+    position:relative;
+    top:1px;
+}
+
+.controls button:disabled {
+    opacity: 0.5;
+}
+
+.seat {
+    float: left;
+    width: 190px;
+    height: 160px;
+    border: 1px solid #aaa;
+    margin: 0 10px;
+}
+
+.name {
+    background-color: #649c42;
+    padding: 4px 10px;
+    overflow: hidden;
 }
 
 .card {
     width: 80px;
-    height: auto;
+    height: 118px;
     border: 1px solid #aaa;
     background-color: #fff;
     margin: 5px;
@@ -42,22 +113,6 @@ body {
     -webkit-box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
     -moz-box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
     box-shadow: 0px 0px 10px 2px rgba(255,255,255,1);
-    Copy Text
-}
-
-.seat {
-    float: left;
-    width: 190px;
-    height: 150px;
-    padding: 10px;
-    border: 1px solid #aaa;
-    margin: 0 10px;
-}
-
-.controls button {
-    font-size: 16px;
-    margin: 10px;
-    display: block;
 }
 
 </style>
@@ -279,7 +334,7 @@ View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat'><span class='name'>" + title + "</span><br><span class='cards' id='player-" + playerId + "'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat'><div class='name'>" + title + "</div><span class='cards' id='player-" + playerId + "'></span></div>";
 
     if ($(`#seat-${seat}`).length) {
         $(`#seat-${seat}`).removeClass('empty');
@@ -294,7 +349,7 @@ View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat empty'><span class='name'>" + title + "</span><br><span class='cards'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat empty'><div class='name'>" + title + "</div><span class='cards'></span></div>";
 
     if ($(`#seat-${seat}`).length) {
         $(`#seat-${seat}`).addClass('empty');
@@ -464,33 +519,31 @@ $(function(){
 
 </script>
 </head>
-<body style="margin: 0; background-color: #16840d; ">
-<div class="table" style="padding: 20px;">
+<body style="margin: 0;">
+<div class="table">
 
-    <div id="hands-1-to-4" style="width: 940px; margin: 20px auto;">
+    <div id="hands-1-to-4" style="width: 860px; margin: 20px auto;">
 
     </div>
     <div style="clear:both"></div>
 
-    <div style="margin: 20px auto; height: 130px; width: 460px; padding: 10px; border: 1px solid #aaa; position: relative">
-        <div style="z-index: 1; width: 460px; font-size: 45px; text-align: center; padding-top: 50px; font-family: 'Great Vibes', cursive; color: #2e580e; position: absolute; top: 0; left: 0;">Texas Holdem</div>
+    <div style="margin: 20px auto; height: 150px; width: 480px; border: 1px solid #aaa; position: relative">
+        <div style="z-index: 1; width: 460px; font-size: 45px; text-align: center; padding-top: 50px; font-family: 'Great Vibes', cursive; color: #5c8a38; position: absolute; top: 0; left: 0;">Texas Holdem</div>
         <div id="cards"></div>
     </div>
 
-    <div id="hands-5-to-8" style="width: 940px; margin: 20px auto;">
+    <div id="hands-5-to-8" style="width: 860px; margin: 20px auto;">
 
     </div>
     <div style="clear:both"></div>
 
-    <br><br>
-
-    <div id="player-controls" class="controls" style="padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; left: 0;">
-        <h4>Players controls</h4>
+    <div id="player-controls" class="controls" style="position: absolute; top: 212px; right: 30px;">
+        <div class="title">Player</div>
         <button id="fold" disabled="disabled">Fold</button>
     </div>
 
-    <div id="admin-controls" class="controls" style="display: none; padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; right: 0;">
-        <h4>Admin controls</h4>
+    <div id="admin-controls" class="controls" style="display: none; position: absolute; top: 212px; left: 22px;">
+        <div class="title">Admin</div>
         <span id="community-cards">
             <button id="flop">Flop</button>
             <button id="turn">Turn</button>
