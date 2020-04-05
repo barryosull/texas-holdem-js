@@ -21,14 +21,26 @@ body {
     padding: 10px;
 }
 
+.table-border {
+    position: relative;
+    background-color: #63370b;
+    display: inline-block;
+    margin: 20px auto;
+    padding: 15px;
+    -moz-box-shadow:    inset 0 0 10px #000000;
+    -webkit-box-shadow: inset 0 0 10px #000000;
+    box-shadow:         inset 0 0 10px #000000;
+}
+
 .table {
     position: relative;
     background: url(/images/felt.jpg);
     padding: 20px;
     display: inline-block;
-    margin: 20px auto;
     text-align: left;
-    border: 15px ridge #63370b;
+    -moz-box-shadow:    inset 0 0 10px #000000;
+    -webkit-box-shadow: inset 0 0 10px #000000;
+    box-shadow:         inset 0 0 10px #000000;
 }
 
 .controls {
@@ -520,6 +532,7 @@ $(function(){
 </script>
 </head>
 <body style="margin: 0;">
+<div class="table-border">
 <div class="table">
 
     <div id="hands-1-to-4" style="width: 860px; margin: 20px auto;">
@@ -552,6 +565,7 @@ $(function(){
         </span>
         <button id="deal">Deal</button>
     </div>
+</div>
 </div>
 </body>
 </html>
