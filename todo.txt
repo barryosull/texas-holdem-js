@@ -75,13 +75,14 @@ Ideally I want it to handle it gracecfully.
     - Hosted on a bitly URL, good enough for now
 [x] Restart node process if it fails
     - Went with Supervisord, good enough
+[ ] Add concept of a game
 [ ] Chips system
     - Need a system to keep track of a players chips
     - Give everyone 1000 chips on start
     - Players bet chips on a hand
     - Winner takes the pot
     - Player is no longer dealt in when they have zero chips
-[ ] Add concept of a game
+
 [ ] Player can buy back in to a game
 [ ] Add basic security
 [ ] Show winning hand title 

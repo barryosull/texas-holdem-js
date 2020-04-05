@@ -61,7 +61,7 @@ body {
     box-shadow: 0px 1px 0px 0px #fff6af;
     background: linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
     background-color: #ffec64;
-    border-radius: 6px;
+    border-rgameIdadius: 6px;
     border: 1px solid #ffaa22;
     display: inline-block;
     cursor: pointer;
@@ -135,36 +135,38 @@ body {
 /************************************
  * Round interface, calls the HTTP API
  ************************************/
-var Round = {};
+var Round = {
+    gameId: null
+};
 
 Round.dealHands = function()
 {
-    $.post("api/deal");
+    $.post("api/game/" + Round.gameId + "/deal");
 };
 
 Round.dealFlop = function()
 {
-    $.post("api/flop/");
+    $.post("api/game/" + Round.gameId + "/flop");
 };
 
 Round.dealTurn = function()
 {
-    $.post("api/turn/");
+    $.post("api/game/" + Round.gameId + "/turn");
 };
 
 Round.dealRiver = function()
 {
-    $.post("api/river/");
+    $.post("api/game/" + Round.gameId + "/river");
 };
 
 Round.finishRound = function()
 {
-    $.post("api/finish/");
+    $.post("api/game/" + Round.gameId + "/finish/");
 };
 
 Round.foldHand = function(playerId)
 {
-    $.post("api/fold/" + playerId);
+    $.post("api/game/" + Round.gameId + "/fold/" + playerId);
 };
 
 function uuidv4() {
@@ -232,7 +234,7 @@ Controller.joinGame = function(socket)
 
     this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
 
-    socket.emit('newPlayer', {playerId: this.playerId, playerName: playerName});
+    socket.emit('newPlayer', {gameId: Round.gameId, playerId: this.playerId, playerName: playerName});
 
     View.hideCommunityCardsButtons();
 };
@@ -267,6 +269,13 @@ Controller.wantsToChangeName = function()
     var url = new URL(url_string);
     var c = url.searchParams.get("changeName");
     return !!c;
+};
+
+Controller.getGameId = function()
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    return url.searchParams.get("gameId");
 };
 
 Controller.seatFilled = function(seats)
@@ -478,16 +487,6 @@ View.enableFoldButton = function()
     $('#fold').removeAttr('disabled');
 };
 
-$(function()
-{
-    var socket = io();
-
-    Bootstrap.attachHtmlEventListeners();
-    Bootstrap.attachSocketEventListeners(socket);
-
-	Controller.joinGame(socket);
-});
-
 var Bootstrap = {};
 
 Bootstrap.attachHtmlEventListeners = function()
@@ -535,7 +534,24 @@ Bootstrap.attachSocketEventListeners = function(socket)
     socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
     });
-}
+};
+
+$(function()
+{
+    var socket = io();
+
+    var gameId = Controller.getGameId();
+    if (!gameId) {
+        window.location.href = window.location.href + "?gameId=" + uuidv4();
+    }
+
+    Round.gameId = gameId;
+
+    Bootstrap.attachHtmlEventListeners();
+    Bootstrap.attachSocketEventListeners(socket);
+
+    Controller.joinGame(socket);
+});
 
 </script>
 </head>

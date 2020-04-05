@@ -96,8 +96,9 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
-var Seats = {
-    seats: [
+var Seats = function ()
+{
+    this.seats = [
         false,
         false,
         false,
@@ -106,19 +107,19 @@ var Seats = {
         false,
         false,
         false,
-    ],
-    playerNames: {}
+    ];
+    this.playerNames = {};
 };
 
-Seats.takeSeat = function(playerId, playerName)
+Seats.prototype.takeSeat = function(playerId, playerName)
 {
-    for (var index in Seats.seats) {
-        if (Seats.seats[index] === playerId) {
+    for (var index in this.seats) {
+        if (this.seats[index] === playerId) {
             return index;
         }
-        if (Seats.seats[index] === false) {
-            Seats.seats[index] = playerId;
-            Seats.playerNames[index] = playerName;
+        if (this.seats[index] === false) {
+            this.seats[index] = playerId;
+            this.playerNames[index] = playerName;
             return index;
         }
     }
@@ -126,39 +127,39 @@ Seats.takeSeat = function(playerId, playerName)
     return false;
 };
 
-Seats.getSeat = function(playerId)
+Seats.prototype.getSeat = function(playerId)
 {
-    for (var index in Seats.seats) {
-        if (Seats.seats[index] === playerId) {
+    for (var index in this.seats) {
+        if (this.seats[index] === playerId) {
             return parseInt(index);
         }
     }
     return false;
 };
 
-Seats.freeUpSeat = function(seat)
+Seats.prototype.freeUpSeat = function(seat)
 {
     if (seat === false) {
         return;
     }
-    Seats.seats[seat] = false;
-    delete Seats.playerNames[seat];
+    this.seats[seat] = false;
+    delete this.playerNames[seat];
 };
 
-Seats.activePlayers = function()
+Seats.prototype.activePlayers = function()
 {
-    return Seats.seats.filter(seatOccupant => {
+    return this.seats.filter(seatOccupant => {
         return seatOccupant !== false
     });
 };
 
-Seats.makeSeatsViewModel = function()
+Seats.prototype.makeSeatsViewModel = function()
 {
     var viewModel = [];
-    Seats.seats.forEach((playerId, seat) => {
+    this.seats.forEach((playerId, seat) => {
         viewModel.push({
             playerId: playerId,
-            playerName: Seats.playerNames[seat],
+            playerName: this.playerNames[seat],
             seat: seat
         });
     });
@@ -291,6 +292,53 @@ function isFaceCard(number)
     return number.length > 2;
 }
 
+var Game = function(id)
+{
+    this.id = id;
+    this.seats = new Seats();
+    this.round = null;
+};
+
+Game.prototype.newRound = function()
+{
+    var deck = Deck.makeNew();
+
+    this.round = new Round(deck);
+
+    this.round.start(this.seats.activePlayers());
+
+    return this.round.hands;
+};
+
+Game.prototype.hasPlayers = function()
+{
+    return this.seats.activePlayers().length != 0;
+};
+
+var GameRepo = {
+    games: []
+};
+
+GameRepo.store = function(game)
+{
+    GameRepo.games[game.id] = game;
+};
+
+GameRepo.fetch = function(gameId)
+{
+    var game = GameRepo.games[gameId];
+    if (!game) {
+        game = new Game(gameId);
+        GameRepo.store(game);
+    }
+    return game;
+};
+
+GameRepo.remove = function (game)
+{
+    delete GameRepo.games[game.id];
+};
+
 
 /*******************************
  * Scoket.io controller adapter
@@ -325,6 +373,26 @@ var SocketsToPlayersMap =
     }
 };
 
+var PlayerToGameMap = {
+
+    map: {},
+
+    associate: function(playerId, gameId)
+    {
+        PlayerToGameMap.map[playerId] = gameId;
+    },
+
+    deassociate: function(playerId)
+    {
+        delete PlayerToGameMap.map[playerId];
+    },
+
+    getGameIdForPlayer: function(playerId)
+    {
+        return PlayerToGameMap.map[playerId];
+    },
+};
+
 
 /*******************************
  * Controller
@@ -336,13 +404,13 @@ var Controller = {
 
 Controller.dealCards = function (req, res)
 {
-    var deck = Deck.makeNew();
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
 
-    Controller.round = new Round(deck);
-
-    Controller.round.start(Seats.activePlayers());
-
-    Controller.round.hands.forEach(hand => {
+    var hands = game.newRound();
+    hands.forEach(hand => {
         var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
         io.sockets.to(socketId).emit('roundStarted', hand);
     });
@@ -352,34 +420,55 @@ Controller.dealCards = function (req, res)
 
 Controller.dealFlop = function (req, res)
 {
-    io.emit('flop', Controller.round.dealFlop());
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
+    io.emit('flop', game.round.dealFlop());
     res.send('');
 };
 
 Controller.dealTurn = function (req, res)
 {
-    io.emit('turn', Controller.round.dealTurn());
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
+    io.emit('turn', game.round.dealTurn());
     res.send('');
 };
 
 Controller.dealRiver = function (req, res)
 {
-    io.emit('river', Controller.round.dealRiver());
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
+    io.emit('river', game.round.dealRiver());
     res.send('');
 };
 
 Controller.finish = function(req, res)
 {
-    var winningHand = Controller.round.chooseWinningHand();
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
+    var winningHand = game.round.chooseWinningHand();
     io.emit('winningHand', winningHand);
     res.send('');
 };
 
-Controller.addPlayer = function(player)
+Controller.addPlayer = function(addPlayer)
 {
+    var game = GameRepo.fetch(addPlayer.gameId);
+    if (!game) {
+        return res.send('');
+    }
+
     var socketId = this.id;
-    var playerId = player.playerId;
-    var playerName = player.playerName;
+    var playerId = addPlayer.playerId;
+    var playerName = addPlayer.playerName;
 
     console.log('player "' + playerName + '" (' + playerId + ') connected');
 
@@ -391,27 +480,28 @@ Controller.addPlayer = function(player)
     }
 
     SocketsToPlayersMap.associate(socketId, playerId);
+    PlayerToGameMap.associate(playerId, addPlayer.gameId);
 
-    Seats.takeSeat(playerId, playerName);
+    game.seats.takeSeat(playerId, playerName);
 
-    io.emit('seatFilled', Seats.makeSeatsViewModel());
+    io.emit('seatFilled', game.seats.makeSeatsViewModel());
 
-    if (!Controller.round) {
+    if (!game.round) {
         return;
     }
 
-    Controller.broadcastInProgressRound(socketId, playerId);
+    var playerHand = game.round.getPlayerHand(playerId);
+
+    Controller.broadcastInProgressRound(socketId, playerHand, game.round.communityCards);
 };
 
-Controller.broadcastInProgressRound = function(socketId, playerId)
+Controller.broadcastInProgressRound = function(socketId, playerHand, communityCards)
 {
-    var playerHand = Controller.round.getPlayerHand(playerId);
-
     if (playerHand) {
         io.sockets.to(socketId).emit('roundStarted', playerHand);
     }
 
-    var cards = Controller.round.communityCards;
+    var cards = communityCards;
     if (cards.length > 2) {
         io.sockets.to(socketId).emit('flop', [cards[0], cards[1], cards[2]]);
     }
@@ -427,30 +517,41 @@ Controller.removePlayer = function()
 {
     var socketId = this.id;
     var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
-
     if (!playerId) {
         return;
     }
 
+    var gameId = PlayerToGameMap.getGameIdForPlayer(playerId);
+    var game = GameRepo.fetch(gameId);
+    if (!game) {
+        return res.send('');
+    }
+
     console.log('playerId ' + playerId + ' disconnected');
 
-    var seat = Seats.getSeat(playerId);
-    Seats.freeUpSeat(seat);
+    var seat = game.seats.getSeat(playerId);
+    game.seats.freeUpSeat(seat);
 
     SocketsToPlayersMap.deassociate(socketId);
+    PlayerToGameMap.deassociate(playerId);
 
-    io.emit('seatEmptied', {
-        seats: Seats.makeSeatsViewModel(),
-        emptiedSeat: seat,
-    });
-
-    if (!Controller.round) {
+    if (!game.hasPlayers()) {
+        GameRepo.remove(game);
         return;
     }
 
-    Controller.round.removePlayer(playerId);
+    io.emit('seatEmptied', {
+        seats: game.seats.makeSeatsViewModel(),
+        emptiedSeat: seat,
+    });
 
-    var activeHands = Controller.round.activeHands();
+    if (!game.round) {
+        return;
+    }
+
+    game.round.removePlayer(playerId);
+
+    var activeHands = game.round.activeHands();
     if (activeHands.length === 1) {
         io.emit('winnerByDefault', activeHands[0].playerId);
     }
@@ -458,15 +559,22 @@ Controller.removePlayer = function()
 
 Controller.foldHand = function(req, res)
 {
+    var game = GameRepo.fetch(req.params.gameId);
+    if (!game) {
+        return res.send('');
+    }
+
     var playerId = req.params.playerId;
 
-    Controller.round.foldHand(playerId);
+    if (!game.round) {
+        return;
+    }
 
-    console.log(Controller.round.hands);
+    game.round.foldHand(playerId);
 
     io.emit('playerFolded', playerId);
 
-    var activeHands = Controller.round.activeHands();
+    var activeHands = game.round.activeHands();
     if (activeHands.length === 1) {
         io.emit('winnerByDefault', activeHands[0].playerId);
     }
@@ -492,17 +600,17 @@ io.on('connection', function(socket)
 // Serve public files
 app.use(express.static('public'));
 
-app.post('/api/deal', Controller.dealCards);
+app.post('/api/game/:gameId/deal', Controller.dealCards);
 
-app.post('/api/flop', Controller.dealFlop);
+app.post('/api/game/:gameId/flop', Controller.dealFlop);
 
-app.post('/api/turn', Controller.dealTurn);
+app.post('/api/game/:gameId/turn', Controller.dealTurn);
 
-app.post('/api/river', Controller.dealRiver);
+app.post('/api/game/:gameId/river', Controller.dealRiver);
 
-app.post('/api/finish', Controller.finish);
+app.post('/api/game/:gameId/finish', Controller.finish);
 
-app.post('/api/fold/:playerId', Controller.foldHand);
+app.post('/api/game/:gameId/fold/:playerId', Controller.foldHand);
 
 /*******************************
  * Launch the Webserver
