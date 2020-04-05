@@ -1,11 +1,22 @@
 <html>
 <head>
 
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js" integrity="sha256-Dul4c09cdrWKXVtallPxF558lwxMwCC8dXJdZ0PVW54=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js" integrity="sha256-oE03O+I6Pzff4fiMqwEGHbdfcW7a3GRRxlL+U49L5sA=" crossorigin="anonymous"></script>
 
 <style type="text/css">
+
+body {
+    font-family: Arial;
+}
+
+#cards {
+    position: relative;
+    z-index: 2;
+}
 
 .card {
     width: 80px;
@@ -365,8 +376,9 @@ $(function(){
     </div>
     <div style="clear:both"></div>
 
-    <div id="cards" style="margin: 20px auto; height: 130px; width: 460px; padding: 10px; border: 1px solid #aaa">
-
+    <div style="margin: 20px auto; height: 130px; width: 460px; padding: 10px; border: 1px solid #aaa; position: relative">
+        <div style="z-index: 1; width: 460px; font-size: 45px; text-align: center; padding-top: 50px; font-family: 'Great Vibes', cursive; color: #2e580e; position: absolute; top: 0; left: 0;">Texas Holdem</div>
+        <div id="cards"></div>
     </div>
 
     <div id="hands-5-to-8" style="width: 940px; margin: 20px auto;">
