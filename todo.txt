@@ -1,0 +1,81 @@
+[x] Deal hands to players
+[x] Deal cards
+[x] Basic visualtiation
+[x] Server
+	- Game stored on server
+		- PHP or JS?
+		- Hosting?
+			- Can be ephemeral, as long as the storage of state isn't
+			- Need to store the state file somewhere
+			- Would need basic security
+				- Ensure someone can't mess with it by posting dodgy data
+				- Means the server needs to control the data
+				- Need a hosting client with data storage that isn't horribly slow
+				- Admin is the one that starts the game?
+			- Digital ocean droplet will work, as I only need file storage
+	[x] Game state stored on server
+		- Triggered by button presses
+	[x] Changes one client are updated in another
+[x] Gracefully handle clients refreshing
+When a client disconnects they become a new player, player 2 becomes player 1, etc . . .
+Ideally I want it to handle it gracecfully.
+- Browser close causes player to leave
+- Refresh causes a new socket connection for the same player
+[x] Show other players
+	[x] Show new players
+	[x] Remove old players
+[x] Player seats
+[x] Seats in order and Empty seats
+[x] Player 1 controls the game
+[x] Render downward facing cards
+[x] Handle bug when same user closes one active window with others open
+	- Don't allow multiple windows
+[x] Player names
+[x] Style it better
+	- Backround colour
+	- Cards in center
+	- Tables are center
+[x] Name stored in cookie
+[x] Change name	
+	- Handled via 'changeName=1' URL param
+[x] Buttons in better position
+[x] Refresh breaks the app for everyone, fix this
+	- No longer breaks game
+	- Refreshed player can no longer see cards, have to wait for next deal
+	- Other players can continue as normal
+[x] Introduce concept of "Round"
+	[x] Dealing starts a round
+	[x] At end of a round all cards are shown
+[x] Folding
+	- A user can fold their hand in a round at any time
+	- They are out of the round
+[x] Show cards after river betting is finished	
+[x] Choose winning hand
+	- Use this lib https://www.npmjs.com/package/poker-ranking
+	- Currently installed
+	- Select all active hands
+	- Choose winner
+	- Send message with winner and their hand
+[x] Highlight winner
+[x] Pretty it up some more
+[x] Announce default winner of hand
+	- Announce when all other hands are folded
+	- Do not show cards
+[x] Mobile player
+	- Full screen horizontally
+[x] Host it at an IP
+[x] Pass control to player when host leaves
+[x] Pass controls back when host returns
+	- Just give the controls to the first player and remove them from the second
+[x] Handle refresh
+	- Emit all the events to the player that refreshed
+	- Broadcasts community cards and the players current cards
+[x] Remove cards of players that leave
+[ ] Host it at a URL
+[ ] Chips system
+[ ] Show winning hand title 
+[ ] Handle draws
+	- Currently defaults to the first handle winning
+	- This is fine for now, as draws are so rare
+
+
