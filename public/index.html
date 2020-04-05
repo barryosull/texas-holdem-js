@@ -137,6 +137,7 @@ Controller.dealRiver = function(round)
 Controller.foldHand = function(round)
 {
     round.foldHand(Controller.playerId);
+    View.disableFoldButton();
 };
 
 Controller.joinGame = function(playerName)
@@ -160,6 +161,7 @@ Controller.joinGame = function(playerName)
     this.socket.on('roundStarted', function(hand){
         View.clearTable();
         View.renderDownFacingHands();
+        View.enableFoldButton();
         View.renderPlayerHand(hand);
     });
 
@@ -365,6 +367,16 @@ View.hideCommunityCardsButtons = function()
     $('#community-cards button').hide();
 };
 
+View.disableFoldButton = function()
+{
+    $('#fold').attr('disabled', 'disabled');
+};
+
+View.enableFoldButton = function()
+{
+    $('#fold').removeAttr('disabled');
+};
+
 $(function(){
 
 	var round = new Round($);
@@ -427,10 +439,12 @@ $(function(){
     <br><br>
 
     <div id="player-controls" class="controls" style="padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; left: 0;">
-        <button id="fold">Fold</button>
+        <h4>Players controls</h4>
+        <button id="fold" disabled="disabled">Fold</button>
     </div>
 
     <div id="admin-controls" class="controls" style="display: none; padding: 20px; background-color: white; border: 1px solid #aaa; position: fixed; top: 0; right: 0;">
+        <h4>Admin controls</h4>
         <span id="community-cards">
             <button id="flop">Flop</button>
             <button id="turn">Turn</button>
