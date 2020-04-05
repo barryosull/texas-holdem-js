@@ -164,6 +164,30 @@ Seats.makeSeatsViewModel = function()
 };
 
 
+/**
+ * @param deck {Deck}
+ * @constructor
+ */
+var Round = function(deck)
+{
+    this.deck = deck;
+    this.hands = [];
+};
+
+Round.prototype.start = function(players)
+{
+    var hands = [];
+    var deck = this.deck;
+    players.forEach(playerId => {
+        hands.push({
+            playerId: playerId,
+            cards: deck.dealHand()
+        });
+    });
+    this.hands = hands;
+};
+
+
 /*******************************
  * Scoket.io controller adapter
  *******************************/
@@ -203,31 +227,36 @@ var SocketsToPlayersMap =
  *******************************/
 
 var Controller = {
-    deck: null,
+    round: null,
 };
 
 Controller.dealCards = function (req, res) {
-    Controller.deck = Deck.makeNew();
-    Seats.activePlayers().forEach(playerId => {
-        var hand = Controller.deck.dealHand();
-        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
-        io.sockets.to(socketId).emit('hand', hand);
+    var deck = Deck.makeNew();
+
+    Controller.round = new Round(deck);
+
+    Controller.round.start(Seats.activePlayers());
+
+    Controller.round.hands.forEach(hand => {
+        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
+        io.sockets.to(socketId).emit('hand', hand.cards);
     });
+
     res.send('');
 };
 
 Controller.dealFlop = function (req, res) {
-    io.emit('flop', Controller.deck.dealFlop());
+    io.emit('flop', Controller.round.deck.dealFlop());
     res.send('');
 };
 
 Controller.dealTurn = function (req, res) {
-    io.emit('turn', Controller.deck.dealTurn());
+    io.emit('turn', Controller.round.deck.dealTurn());
     res.send('');
 };
 
 Controller.dealRiver = function (req, res) {
-    io.emit('turn', Controller.deck.dealRiver());
+    io.emit('turn', Controller.round.deck.dealRiver());
     res.send('');
 };
 

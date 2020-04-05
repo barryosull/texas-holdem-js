@@ -90,7 +90,6 @@ var Controller = {
  */
 Controller.startGame = function(deck)
 {
-    View.clearTable();
     View.showFlopButton();
     deck.dealHands();
 };
@@ -141,6 +140,7 @@ Controller.joinGame = function(playerName)
     });
 
     this.socket.on('hand', function(hand){
+        View.clearTable();
         View.renderDownFacingHands();
         View.renderPlayerHand(Controller.playerId, hand);
     });
@@ -221,10 +221,11 @@ View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat'>" + title + "<br><span class='cards' id='player-" + playerId + "'></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat'><span class='name'>" + title + "</span><br><span class='cards' id='player-" + playerId + "'></span></div>";
 
     if ($(`#seat-${seat}`).length) {
-        $(`#seat-${seat}`).replaceWith(seatHtml);
+        //Update title
+        $(`#seat-${seat} .name`).html(title);
     } else {
         View.getHandsDiv(seat).append(seatHtml);
     }
@@ -234,10 +235,10 @@ View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat'>" + title + "<br><span></span></div>";
+    var seatHtml = "<div id='seat-" + seat + "' class='seat'><span class='name'>" + title + "</span><br><span></span></div>";
 
     if ($(`#seat-${seat}`).length) {
-        $(`#seat-${seat}`).replaceWith(seatHtml);
+        $(`#seat-${seat} .name`).html(title);
     } else {
         View.getHandsDiv(seat).append(seatHtml);
     }
