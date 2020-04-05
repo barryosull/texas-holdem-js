@@ -372,6 +372,7 @@ View.renderEmptySeat = function(seat)
     if ($(`#seat-${seat}`).length) {
         $(`#seat-${seat}`).addClass('empty');
         $(`#seat-${seat} .name`).html(title);
+        $(`#seat-${seat} .cards`).html('');
     } else {
         View.getHandsDiv(seat).append(seatHtml);
     }

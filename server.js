@@ -239,6 +239,13 @@ Round.prototype.getPlayerHand = function(playerId)
     }).pop();
 };
 
+Round.prototype.removePlayer = function(playerId)
+{
+    this.hands = this.hands.filter(hand => {
+        return hand.playerId !== playerId;
+    });
+};
+
 Round.prototype.chooseWinningHand = function()
 {
     var hands = this.activeHands();
@@ -429,6 +436,7 @@ Controller.removePlayer = function()
 
     var seat = Seats.getSeat(playerId);
     Seats.freeUpSeat(seat);
+    Controller.round.removePlayer(playerId);
 
     SocketsToPlayersMap.deassociate(socketId);
 
@@ -436,6 +444,11 @@ Controller.removePlayer = function()
         seats: Seats.makeSeatsViewModel(),
         emptiedSeat: seat,
     });
+
+    var activeHands = Controller.round.activeHands();
+    if (activeHands.length === 1) {
+        io.emit('winnerByDefault', activeHands[0].playerId);
+    }
 };
 
 Controller.foldHand = function(req, res)
