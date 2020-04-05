@@ -436,7 +436,6 @@ Controller.removePlayer = function()
 
     var seat = Seats.getSeat(playerId);
     Seats.freeUpSeat(seat);
-    Controller.round.removePlayer(playerId);
 
     SocketsToPlayersMap.deassociate(socketId);
 
@@ -444,6 +443,12 @@ Controller.removePlayer = function()
         seats: Seats.makeSeatsViewModel(),
         emptiedSeat: seat,
     });
+
+    if (!Controller.round) {
+        return;
+    }
+
+    Controller.round.removePlayer(playerId);
 
     var activeHands = Controller.round.activeHands();
     if (activeHands.length === 1) {
