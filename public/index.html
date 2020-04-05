@@ -320,12 +320,13 @@ $(function(){
 	});
 
 	var isValidName = false;
-    var playerName = "";
+    var playerName = Cookies.get('playerName');
 
-	while (!isValidName) {
+	while (!playerName && !isValidName) {
         playerName = prompt("What is your screen name?");
 
         if (playerName.length !== 0) {
+            Cookies.set('playerName', playerName);
             break;
         }
 
