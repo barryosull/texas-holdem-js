@@ -24,6 +24,10 @@ body {
     border: 1px solid #aaa;
     background-color: #fff;
     margin: 5px;
+
+    -webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.45);
+    -moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.45);
+    box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.45);
 }
 
 .card.grey {
@@ -185,7 +189,14 @@ Controller.joinGame = function(playerName)
 
     this.socket.on('winningHand', function(hand){
         View.renderPlayerHand(hand);
+        View.disableFoldButton();
         View.highlightWinner(hand.playerId);
+    });
+
+    this.socket.on('winnerByDefault', function(playerId){
+        View.hideCommunityCardsButtons();
+        View.disableFoldButton();
+        View.highlightWinner(playerId);
     });
 
     this.socket.on('flop', function(flop){

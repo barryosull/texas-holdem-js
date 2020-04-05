@@ -412,6 +412,11 @@ Controller.foldHand = function(req, res)
 
     io.emit('playerFolded', playerId);
 
+    var activeHands = Controller.round.activeHands();
+    if (activeHands.length === 1) {
+        io.emit('winnerByDefault', activeHands[0].playerId);
+    }
+
     res.send('');
 };
 
