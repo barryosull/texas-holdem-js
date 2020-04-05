@@ -393,10 +393,10 @@ Controller.addPlayer = function(player)
         return;
     }
 
-    Controller.broadcastInProgressRound();
+    Controller.broadcastInProgressRound(socketId, playerId);
 };
 
-Controller.broadcastInProgressRound = function(playerId)
+Controller.broadcastInProgressRound = function(socketId, playerId)
 {
     var playerHand = Controller.round.getPlayerHand(playerId);
 
@@ -406,13 +406,13 @@ Controller.broadcastInProgressRound = function(playerId)
 
     var cards = Controller.round.communityCards;
     if (cards.length > 2) {
-        io.emit('flop', [cards[0], cards[1], cards[2]]);
+        io.sockets.to(socketId).emit('flop', [cards[0], cards[1], cards[2]]);
     }
     if (cards.length > 3) {
-        io.emit('turn', cards[3]);
+        io.sockets.to(socketId).emit('turn', cards[3]);
     }
     if (cards.length > 4) {
-        io.emit('river', cards[4]);
+        io.sockets.to(socketId).emit('river', cards[4]);
     }
 };
 
