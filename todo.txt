@@ -75,7 +75,7 @@ Ideally I want it to handle it gracecfully.
     - Hosted on a bitly URL, good enough for now
 [x] Restart node process if it fails
     - Went with Supervisord, good enough
-[ ] Add concept of a game
+[x] Add concept of a game
 [ ] Chips system
     - Need a system to keep track of a players chips
     - Give everyone 1000 chips on start

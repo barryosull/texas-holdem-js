@@ -543,6 +543,7 @@ $(function()
     var gameId = Controller.getGameId();
     if (!gameId) {
         window.location.href = window.location.href + "?gameId=" + uuidv4();
+        return;
     }
 
     Round.gameId = gameId;

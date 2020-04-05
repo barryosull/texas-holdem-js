@@ -336,6 +336,7 @@ GameRepo.fetch = function(gameId)
 
 GameRepo.remove = function (game)
 {
+    console.log("Removing game + " +game.id );
     delete GameRepo.games[game.id];
 };
 
@@ -473,6 +474,8 @@ Controller.addPlayer = function(addPlayer)
     console.log('player "' + playerName + '" (' + playerId + ') connected');
 
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
+
+    console.log(existingSocketId);
 
     if (existingSocketId) {
         io.sockets.to(socketId).emit('existingSession');
