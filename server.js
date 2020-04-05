@@ -201,6 +201,13 @@ Round.prototype.foldHand = function(playerId)
     playerHand.hasFolded = true;
 };
 
+Round.prototype.activeHands = function()
+{
+    return this.hands.filter(hand => {
+        return !hand.hasFolded;
+    });
+};
+
 
 /*******************************
  * Scoket.io controller adapter
@@ -280,7 +287,7 @@ Controller.dealRiver = function (req, res)
 
 Controller.finish = function(req, res)
 {
-    Controller.round.hands.forEach(hand => {
+    Controller.round.activeHands().forEach(hand => {
         io.emit('hand', hand);
     });
     res.send('');

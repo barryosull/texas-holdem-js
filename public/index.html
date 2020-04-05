@@ -81,7 +81,7 @@ Round.prototype.dealRiver = function()
     this.jquery.post("api/river/");
 };
 
-Round.prototype.announceWinner = function()
+Round.prototype.finishRound = function()
 {
     this.jquery.post("api/finish/");
 };
@@ -139,9 +139,9 @@ Controller.dealRiver = function(round)
     View.showFinishButton();
 };
 
-Controller.announceWinner = function(round)
+Controller.finishRound = function(round)
 {
-    round.announceWinner();
+    round.finishRound();
     View.hideCommunityCardsButtons();
 };
 
@@ -411,7 +411,7 @@ $(function(){
         Controller.dealRiver(round);
 	});
     $("#finish").click(function(){
-        Controller.announceWinner(round);
+        Controller.finishRound(round);
     });
     $("#fold").click(function(){
         Controller.foldHand(round);
