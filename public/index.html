@@ -135,39 +135,36 @@ body {
 /************************************
  * Round interface, calls the HTTP API
  ************************************/
-var Round = function(jquery)
+var Round = {};
+
+Round.dealHands = function()
 {
-    this.jquery = jquery;
+    $.post("api/deal");
 };
 
-Round.prototype.dealHands = function()
+Round.dealFlop = function()
 {
-    this.jquery.post("api/deal");
+    $.post("api/flop/");
 };
 
-Round.prototype.dealFlop = function()
+Round.dealTurn = function()
 {
-    this.jquery.post("api/flop/");
+    $.post("api/turn/");
 };
 
-Round.prototype.dealTurn = function()
+Round.dealRiver = function()
 {
-    this.jquery.post("api/turn/");
+    $.post("api/river/");
 };
 
-Round.prototype.dealRiver = function()
+Round.finishRound = function()
 {
-    this.jquery.post("api/river/");
+    $.post("api/finish/");
 };
 
-Round.prototype.finishRound = function()
+Round.foldHand = function(playerId)
 {
-    this.jquery.post("api/finish/");
-};
-
-Round.prototype.foldHand = function(playerId)
-{
-    this.jquery.post("api/fold/" + playerId);
+    $.post("api/fold/" + playerId);
 };
 
 function uuidv4() {
@@ -178,119 +175,64 @@ function uuidv4() {
 }
 
 var Controller = {
-    socket: null,
     playerId: null
 };
 
-/**
- * @param round {Round}
- */
-Controller.startGame = function(round)
+Controller.startGame = function()
 {
+    Round.dealHands();
     View.showFlopButton();
-    round.dealHands();
 };
 
-/**
- * @param round {Round}
- */
-Controller.dealFlop = function(round)
+Controller.dealFlop = function()
 {
-    round.dealFlop();
+    Round.dealFlop();
     View.showTurnButton();
 };
 
-/**
- * @param round {Round}
- */
-Controller.dealTurn = function(round)
+Controller.dealTurn = function()
 {
-    round.dealTurn();
+    Round.dealTurn();
     View.showRiverButton();
 };
 
-/**
- * @param round {Round}
- */
-Controller.dealRiver = function(round)
+Controller.dealRiver = function()
 {
-    round.dealRiver();
+    Round.dealRiver();
     View.showFinishButton();
 };
 
-Controller.finishRound = function(round)
+Controller.finishRound = function()
 {
-    round.finishRound();
+    Round.finishRound();
     View.hideCommunityCardsButtons();
 };
 
-Controller.foldHand = function(round)
+Controller.foldHand = function()
 {
-    round.foldHand(Controller.playerId);
+    Round.foldHand(Controller.playerId);
     View.disableFoldButton();
 };
 
-Controller.joinGame = function(playerName)
+Controller.joinGame = function(socket)
 {
-    this.socket = io();
+    var isValidName = false;
+    var wantsToChangeName = Controller.wantsToChangeName();
+    var playerName = Cookies.get('playerName');
+
+    while ((!playerName || wantsToChangeName) && !isValidName) {
+        playerName = prompt("What is your screen name?");
+
+        if (playerName.length !== 0) {
+            Cookies.set('playerName', playerName);
+            break;
+        }
+        alert("Name cannot be empty.")
+    }
+
     this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
 
-    this.socket.emit('newPlayer', {playerId: this.playerId, playerName: playerName});
-
-    this.socket.on('seatFilled', function(seats){
-        if (Controller.isFirstPlayer(seats)) {
-            View.enableAdminControls();
-        } else {
-            View.disableAdminControls();
-        }
-        View.renderSeats(seats, Controller.playerId);
-    });
-
-    this.socket.on('seatEmptied', function(seats) {
-        if (Controller.isFirstPlayer(seats.seats)) {
-            View.enableAdminControls();
-        }
-        View.renderEmptySeat(seats.emptiedSeat);
-    });
-
-    this.socket.on('roundStarted', function(hand){
-        View.clearTable();
-        View.renderDownFacingHands();
-        View.enableFoldButton();
-        View.renderPlayerHand(hand);
-    });
-
-    this.socket.on('winningHand', function(hand){
-        View.renderPlayerHand(hand);
-        View.disableFoldButton();
-        View.highlightWinner(hand.playerId);
-    });
-
-    this.socket.on('winnerByDefault', function(playerId){
-        View.hideCommunityCardsButtons();
-        View.disableFoldButton();
-        View.highlightWinner(playerId);
-    });
-
-    this.socket.on('flop', function(flop){
-        View.renderFlop(flop);
-    });
-
-    this.socket.on('turn', function(turn){
-        View.renderTurn(turn);
-    });
-
-    this.socket.on('river', function(river){
-        View.renderRiver(river);
-    });
-
-    this.socket.on('playerFolded', function(playerId){
-        View.foldPlayerHand(playerId);
-    });
-
-    this.socket.on('existingSession', function(){
-        alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
-    });
+    socket.emit('newPlayer', {playerId: this.playerId, playerName: playerName});
 
     View.hideCommunityCardsButtons();
 };
@@ -324,11 +266,47 @@ Controller.wantsToChangeName = function()
     var url_string = window.location.href;
     var url = new URL(url_string);
     var c = url.searchParams.get("changeName");
-    if (c) {
-        return true;
-    }
+    return !!c;
+};
 
-    return false;
+Controller.seatFilled = function(seats)
+{
+    if (Controller.isFirstPlayer(seats)) {
+        View.enableAdminControls();
+    } else {
+        View.disableAdminControls();
+    }
+    View.renderSeats(seats, Controller.playerId);
+};
+
+Controller.seatEmptied = function(seats)
+{
+    if (Controller.isFirstPlayer(seats.seats)) {
+        View.enableAdminControls();
+    }
+    View.renderEmptySeat(seats.emptiedSeat);
+};
+
+Controller.roundStarted = function(hand)
+{
+    View.clearTable();
+    View.renderDownFacingHands();
+    View.enableFoldButton();
+    View.renderPlayerHand(hand);
+};
+
+Controller.winnerByDefault = function(playerId)
+{
+    View.hideCommunityCardsButtons();
+    View.disableFoldButton();
+    View.highlightWinner(playerId);
+};
+
+Controller.winningHand = function(hand)
+{
+    View.renderPlayerHand(hand);
+    View.disableFoldButton();
+    View.highlightWinner(hand.playerId);
 };
 
 var View = {};
@@ -500,46 +478,64 @@ View.enableFoldButton = function()
     $('#fold').removeAttr('disabled');
 };
 
-$(function(){
+$(function()
+{
+    var socket = io();
 
-	var round = new Round($);
+    Bootstrap.attachHtmlEventListeners();
+    Bootstrap.attachSocketEventListeners(socket);
 
-	$("#deal").click(function(){
-        Controller.startGame(round);
-	});
-	$("#flop").click(function(){
-        Controller.dealFlop(round);
-	});
-	$("#turn").click(function(){
-        Controller.dealTurn(round);
-	});
-	$("#river").click(function(){
-        Controller.dealRiver(round);
-	});
+	Controller.joinGame(socket);
+});
+
+var Bootstrap = {};
+
+Bootstrap.attachHtmlEventListeners = function()
+{
+    $("#deal").click(function(){
+        Controller.startGame();
+    });
+    $("#flop").click(function(){
+        Controller.dealFlop();
+    });
+    $("#turn").click(function(){
+        Controller.dealTurn();
+    });
+    $("#river").click(function(){
+        Controller.dealRiver();
+    });
     $("#finish").click(function(){
-        Controller.finishRound(round);
+        Controller.finishRound();
     });
     $("#fold").click(function(){
-        Controller.foldHand(round);
+        Controller.foldHand();
     });
+}
 
-	var isValidName = false;
-	var wantsToChangeName = Controller.wantsToChangeName();
-    var playerName = Cookies.get('playerName');
+Bootstrap.attachSocketEventListeners = function(socket)
+{
+    socket.on('seatFilled', Controller.seatFilled);
 
-	while ((!playerName || wantsToChangeName) && !isValidName) {
-        playerName = prompt("What is your screen name?");
+    socket.on('seatEmptied', Controller.seatEmptied);
 
-        if (playerName.length !== 0) {
-            Cookies.set('playerName', playerName);
-            break;
-        }
+    socket.on('roundStarted', Controller.roundStarted);
 
-        alert("Name cannot be empty.")
-    }
+    socket.on('winningHand', Controller.winningHand);
 
-	Controller.joinGame(playerName);
-});
+    socket.on('winnerByDefault', Controller.winnerByDefault);
+
+    socket.on('flop', View.renderFlop);
+
+    socket.on('turn', View.renderTurn);
+
+    socket.on('river', View.renderRiver);
+
+    socket.on('playerFolded', View.foldPlayerHand);
+
+    socket.on('existingSession', function(){
+        alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
+    });
+}
 
 </script>
 </head>
