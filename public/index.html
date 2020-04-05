@@ -171,6 +171,18 @@ Controller.isFirstPlayer = function(seats)
     return false;
 };
 
+Controller.wantsToChangeName = function()
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    var c = url.searchParams.get("changeName");
+    if (c) {
+        return true;
+    }
+
+    return false;
+};
+
 var View = {};
 
 View.renderSeats = function(seats, currentPlayerId)
@@ -320,9 +332,10 @@ $(function(){
 	});
 
 	var isValidName = false;
+	var wantsToChangeName = Controller.wantsToChangeName();
     var playerName = Cookies.get('playerName');
 
-	while (!playerName && !isValidName) {
+	while ((!playerName || wantsToChangeName) && !isValidName) {
         playerName = prompt("What is your screen name?");
 
         if (playerName.length !== 0) {
