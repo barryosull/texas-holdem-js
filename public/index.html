@@ -74,6 +74,7 @@ var Controller = {
 Controller.startGame = function(deck)
 {
     View.clearTable();
+    View.showFlopButton();
     deck.dealHands();
 };
 
@@ -83,6 +84,7 @@ Controller.startGame = function(deck)
 Controller.dealFlop = function(deck)
 {
     deck.dealFlop();
+    View.showTurnButton();
 };
 
 /**
@@ -91,6 +93,7 @@ Controller.dealFlop = function(deck)
 Controller.dealTurn = function(deck)
 {
     deck.dealTurn();
+    View.showRiverButton();
 };
 
 /**
@@ -99,6 +102,7 @@ Controller.dealTurn = function(deck)
 Controller.dealRiver = function(deck)
 {
     deck.dealRiver();
+    View.hideCommunityCardsButtons();
 };
 
 Controller.joinGame = function(playerName)
@@ -139,6 +143,8 @@ Controller.joinGame = function(playerName)
     this.socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
     });
+
+    View.hideCommunityCardsButtons();
 };
 
 Controller.getPlayerId = function()
@@ -272,6 +278,29 @@ View.enableControls = function()
     $("#controls").show();
 };
 
+View.showFlopButton = function()
+{
+    View.hideCommunityCardsButtons();
+    $('#flop').show();
+};
+
+View.showTurnButton = function()
+{
+    View.hideCommunityCardsButtons();
+    $('#turn').show();
+};
+
+View.showRiverButton = function()
+{
+    View.hideCommunityCardsButtons();
+    $('#river').show();
+};
+
+View.hideCommunityCardsButtons = function()
+{
+    $('#community-cards button').hide();
+};
+
 $(function(){
 
 	var deck;
@@ -308,14 +337,15 @@ $(function(){
 
 </script>
 </head>
-<body>
-<div class="table" style="background-color: #16840d; padding: 20px;">
+<body style="margin: 0; background-color: #16840d; ">
+<div class="table" style="padding: 20px;">
 
     <div id="hands-1-to-4" style="width: 940px; margin: 20px auto;">
 
     </div>
     <div style="clear:both"></div>
-    <div id="cards" style="margin: 20px auto; height: 130px; width: 500px; padding: 10px; border: 1px solid #aaa">
+
+    <div id="cards" style="margin: 20px auto; height: 130px; width: 460px; padding: 10px; border: 1px solid #aaa">
 
     </div>
 
@@ -325,13 +355,15 @@ $(function(){
     <div style="clear:both"></div>
 
     <br><br>
+
     <div style="display: none" id="controls">
         <button id="deal">Deal</button>
-        <button id="flop">Flop</button>
-        <button id="turn">Turn</button>
-        <button id="river">River</button>
+        <span id="community-cards">
+            <button id="flop">Flop</button>
+            <button id="turn">Turn</button>
+            <button id="river">River</button>
+        </span>
     </div>
-
 </div>
 </body>
 </html>
