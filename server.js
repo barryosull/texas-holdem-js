@@ -232,6 +232,13 @@ Round.prototype.activeHands = function()
     });
 };
 
+Round.prototype.getPlayerHand = function(playerId)
+{
+    return this.hands.filter(hand => {
+        return hand.playerId === playerId;
+    }).pop();
+};
+
 Round.prototype.chooseWinningHand = function()
 {
     var hands = this.activeHands();
@@ -381,6 +388,32 @@ Controller.addPlayer = function(player)
     Seats.takeSeat(playerId, playerName);
 
     io.emit('seatFilled', Seats.makeSeatsViewModel());
+
+    if (!Controller.round) {
+        return;
+    }
+
+    Controller.broadcastInProgressRound();
+};
+
+Controller.broadcastInProgressRound = function(playerId)
+{
+    var playerHand = Controller.round.getPlayerHand(playerId);
+
+    if (playerHand) {
+        io.sockets.to(socketId).emit('roundStarted', playerHand);
+    }
+
+    var cards = Controller.round.communityCards;
+    if (cards.length > 2) {
+        io.emit('flop', [cards[0], cards[1], cards[2]]);
+    }
+    if (cards.length > 3) {
+        io.emit('turn', cards[3]);
+    }
+    if (cards.length > 4) {
+        io.emit('river', cards[4]);
+    }
 };
 
 Controller.removePlayer = function()
@@ -399,7 +432,10 @@ Controller.removePlayer = function()
 
     SocketsToPlayersMap.deassociate(socketId);
 
-    io.emit('seatEmptied', seat);
+    io.emit('seatEmptied', {
+        seats: Seats.makeSeatsViewModel(),
+        emptiedSeat: seat,
+    });
 };
 
 Controller.foldHand = function(req, res)

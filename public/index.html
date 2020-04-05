@@ -239,13 +239,18 @@ Controller.joinGame = function(playerName)
 
     this.socket.on('seatFilled', function(seats){
         if (Controller.isFirstPlayer(seats)) {
-            View.enableControls();
+            View.enableAdminControls();
+        } else {
+            View.disableAdminControls();
         }
         View.renderSeats(seats, Controller.playerId);
     });
 
-    this.socket.on('seatEmptied', function(seat){
-        View.renderEmptySeat(seat);
+    this.socket.on('seatEmptied', function(seats) {
+        if (Controller.isFirstPlayer(seats.seats)) {
+            View.enableAdminControls();
+        }
+        View.renderEmptySeat(seats.emptiedSeat);
     });
 
     this.socket.on('roundStarted', function(hand){
@@ -445,9 +450,14 @@ View.highlightWinner = function(playerId)
     });
 };
 
-View.enableControls = function()
+View.enableAdminControls = function()
 {
     $("#admin-controls").show();
+};
+
+View.disableAdminControls = function()
+{
+    $("#admin-controls").hide();
 };
 
 View.showFlopButton = function()
