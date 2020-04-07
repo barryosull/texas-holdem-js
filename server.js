@@ -284,11 +284,12 @@ function isFaceCard(number)
     return number.length > 2;
 }
 
-var Game = function()
+var Game = function(id)
 {
-    this.round = null;
-
+    this.id = id;
     this.events = [];
+
+    this.round = null;
 
     // View Models
     this.seats = new SeatsViewModel(this);
