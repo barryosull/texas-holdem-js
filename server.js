@@ -4,6 +4,8 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var pokerTools = require("poker-tools");
 
+var ev = require('./domain/events');
+
 
 /*******************************
  * Domain concepts
@@ -324,7 +326,7 @@ GameRepo.store = function(game)
     GameRepo.games[game.id] = game;
 };
 
-GameRepo.fetch = function(gameId)
+GameRepo.fetchOrCreate = function(gameId)
 {
     var game = GameRepo.games[gameId];
     if (!game) {
@@ -405,10 +407,7 @@ var Controller = {
 
 Controller.dealCards = function (req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
 
     var hands = game.newRound();
     hands.forEach(hand => {
@@ -421,40 +420,32 @@ Controller.dealCards = function (req, res)
 
 Controller.dealFlop = function (req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
     io.emit('flop', game.round.dealFlop());
     res.send('');
 };
 
 Controller.dealTurn = function (req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
     io.emit('turn', game.round.dealTurn());
     res.send('');
 };
 
 Controller.dealRiver = function (req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
     io.emit('river', game.round.dealRiver());
     res.send('');
 };
 
 Controller.finish = function(req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
     var winningHand = game.round.chooseWinningHand();
     io.emit('winningHand', winningHand);
     res.send('');
@@ -462,10 +453,7 @@ Controller.finish = function(req, res)
 
 Controller.addPlayer = function(addPlayer)
 {
-    var game = GameRepo.fetch(addPlayer.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(addPlayer.gameId);
 
     var socketId = this.id;
     var playerId = addPlayer.playerId;
@@ -525,10 +513,7 @@ Controller.removePlayer = function()
     }
 
     var gameId = PlayerToGameMap.getGameIdForPlayer(playerId);
-    var game = GameRepo.fetch(gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(gameId);
 
     console.log('playerId ' + playerId + ' disconnected');
 
@@ -562,10 +547,7 @@ Controller.removePlayer = function()
 
 Controller.foldHand = function(req, res)
 {
-    var game = GameRepo.fetch(req.params.gameId);
-    if (!game) {
-        return res.send('');
-    }
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
 
     var playerId = req.params.playerId;
 
