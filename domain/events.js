@@ -1,9 +1,16 @@
 
 var Events = {};
 
-Events.GameStarted = function(id)
+Events.PlayerAdded = function(playerId)
 {
-    this.id = id;
+    this.playerId = playerId;
 };
+
+Events.PlayerNamed = function(playerId, name)
+{
+    this.playerId = playerId;
+    this.name = name;
+};
+
 
 module.exports = Events;

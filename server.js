@@ -98,8 +98,9 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
-var Seats = function ()
+var Seats = function (game)
 {
+    this.game = game;
     this.seats = [
         false,
         false,
@@ -110,10 +111,9 @@ var Seats = function ()
         false,
         false,
     ];
-    this.playerNames = {};
 };
 
-Seats.prototype.takeSeat = function(playerId, playerName)
+Seats.prototype.takeSeat = function(playerId)
 {
     for (var index in this.seats) {
         if (this.seats[index] === playerId) {
@@ -121,7 +121,6 @@ Seats.prototype.takeSeat = function(playerId, playerName)
         }
         if (this.seats[index] === false) {
             this.seats[index] = playerId;
-            this.playerNames[index] = playerName;
             return index;
         }
     }
@@ -145,7 +144,6 @@ Seats.prototype.freeUpSeat = function(seat)
         return;
     }
     this.seats[seat] = false;
-    delete this.playerNames[seat];
 };
 
 Seats.prototype.activePlayers = function()
@@ -161,7 +159,7 @@ Seats.prototype.makeSeatsViewModel = function()
     this.seats.forEach((playerId, seat) => {
         viewModel.push({
             playerId: playerId,
-            playerName: this.playerNames[seat],
+            playerName: View.getPlayerName(this.game, playerId),
             seat: seat
         });
     });
@@ -297,8 +295,19 @@ function isFaceCard(number)
 var Game = function(id)
 {
     this.id = id;
-    this.seats = new Seats();
+    this.seats = new Seats(this);
     this.round = null;
+
+    this.events = [];
+};
+
+Game.prototype.addPlayer = function(playerId, name)
+{
+    this.events.push(
+        new ev.PlayerNamed(playerId, name)
+    );
+
+    this.seats.takeSeat(playerId);
 };
 
 Game.prototype.newRound = function()
@@ -315,6 +324,23 @@ Game.prototype.newRound = function()
 Game.prototype.hasPlayers = function()
 {
     return this.seats.activePlayers().length != 0;
+};
+
+var View = {};
+
+View.getPlayerName = function(game, playerId)
+{
+    if (!playerId) {
+        return "";
+    }
+    return game.events.reduce((value, e) => {
+       if (e instanceof ev.PlayerNamed) {
+           if (e.playerId === playerId) {
+               return e.name;
+           }
+       }
+       return value;
+    }, "");
 };
 
 var GameRepo = {
@@ -463,8 +489,6 @@ Controller.addPlayer = function(addPlayer)
 
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
-    console.log(existingSocketId);
-
     if (existingSocketId) {
         io.sockets.to(socketId).emit('existingSession');
         return;
@@ -473,7 +497,7 @@ Controller.addPlayer = function(addPlayer)
     SocketsToPlayersMap.associate(socketId, playerId);
     PlayerToGameMap.associate(playerId, addPlayer.gameId);
 
-    game.seats.takeSeat(playerId, playerName);
+    game.addPlayer(playerId, playerName);
 
     io.emit('seatFilled', game.seats.makeSeatsViewModel());
 
