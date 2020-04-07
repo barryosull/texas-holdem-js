@@ -1,6 +1,7 @@
+## Done:
 [x] Deal hands to players
 [x] Deal cards
-[x] Basic visualtiation
+[x] Basic visualisation
 [x] Server
 	- Game stored on server
 		- PHP or JS?
@@ -17,10 +18,10 @@
 		- Triggered by button presses
 	[x] Changes one client are updated in another
 [x] Gracefully handle clients refreshing
-When a client disconnects they become a new player, player 2 becomes player 1, etc . . .
-Ideally I want it to handle it gracecfully.
-- Browser close causes player to leave
-- Refresh causes a new socket connection for the same player
+    - When a client disconnects they become a new player, player 2 becomes player 1, etc . . .
+    - Ideally I want it to handle it gracecfully.
+        - Browser close causes player to leave
+        - Refresh causes a new socket connection for the same player
 [x] Show other players
 	[x] Show new players
 	[x] Remove old players
@@ -76,13 +77,20 @@ Ideally I want it to handle it gracecfully.
 [x] Restart node process if it fails
     - Went with Supervisord, good enough
 [x] Add concept of a game
+
+## Todo:
+[ ] Write domain events (documentation)
+    - Documentation only
+    - Plan is to migrate to domain events internally, use them to build up game state
+[ ] Write broadcast events
+    - Documentation only
+    - Plan is to migrate to trigger broadcast on domain events
 [ ] Chips system
     - Need a system to keep track of a players chips
     - Give everyone 1000 chips on start
     - Players bet chips on a hand
     - Winner takes the pot
     - Player is no longer dealt in when they have zero chips
-
 [ ] Player can buy back in to a game
 [ ] Add basic security
 [ ] Show winning hand title 
