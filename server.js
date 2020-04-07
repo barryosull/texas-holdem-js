@@ -98,12 +98,12 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
-var Seats = function (game)
+var SeatsViewModel = function(game)
 {
     this.game = game;
 };
 
-Seats.prototype.getSeat = function(playerId)
+SeatsViewModel.prototype.getSeat = function(playerId)
 {
     return this.game.events.reduce((seat, e) => {
         if (e instanceof ev.SeatTaken) {
@@ -115,7 +115,7 @@ Seats.prototype.getSeat = function(playerId)
     }, false);
 };
 
-Seats.prototype.activePlayers = function()
+SeatsViewModel.prototype.activePlayers = function()
 {
     var playerIds = {};
     this.game.events.forEach(e => {
@@ -129,7 +129,7 @@ Seats.prototype.activePlayers = function()
     return Object.values(playerIds);
 };
 
-Seats.prototype.getPlayer = function(seat)
+SeatsViewModel.prototype.getPlayer = function(seat)
 {
     return this.game.events.reduce((playerId, e) => {
         if (e instanceof ev.SeatTaken) {
@@ -144,14 +144,14 @@ Seats.prototype.getPlayer = function(seat)
     }, null);
 };
 
-Seats.prototype.makeSeatsViewModel = function()
+SeatsViewModel.prototype.makeSeatsViewModel = function()
 {
     var viewModel = [];
     for (var seat = 0; seat < 8; seat++) {
         var playerId = this.getPlayer(seat);
         viewModel.push({
             playerId: playerId,
-            playerName: View.getPlayerName(this.game, playerId),
+            playerName: this.game.players.getPlayerName(playerId),
             seat: seat
         });
     }
@@ -284,13 +284,15 @@ function isFaceCard(number)
     return number.length > 2;
 }
 
-var Game = function(id)
+var Game = function()
 {
-    this.id = id;
-    this.seats = new Seats(this);
     this.round = null;
 
     this.events = [];
+
+    // View Models
+    this.seats = new SeatsViewModel(this);
+    this.players = new PlayersViewModel(this);
 };
 
 Game.prototype.addPlayer = function(playerId, name)
@@ -336,14 +338,17 @@ Game.prototype.hasPlayers = function()
     return this.seats.activePlayers().length !== 0;
 };
 
-var View = {};
+var PlayersViewModel = function(game)
+{
+    this.game = game;
+};
 
-View.getPlayerName = function(game, playerId)
+PlayersViewModel.prototype.getPlayerName = function(playerId)
 {
     if (!playerId) {
         return "";
     }
-    return game.events.reduce((value, e) => {
+    return this.game.events.reduce((value, e) => {
        if (e instanceof ev.PlayerNamed) {
            if (e.playerId === playerId) {
                return e.name;
