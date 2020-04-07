@@ -101,68 +101,60 @@ Deck.prototype.dealRiver = function()
 var Seats = function (game)
 {
     this.game = game;
-    this.seats = [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-    ];
-};
-
-Seats.prototype.takeSeat = function(playerId)
-{
-    for (var index in this.seats) {
-        if (this.seats[index] === playerId) {
-            return index;
-        }
-        if (this.seats[index] === false) {
-            this.seats[index] = playerId;
-            return index;
-        }
-    }
-    console.log("All seats taken, no room for player " + playerId);
-    return false;
 };
 
 Seats.prototype.getSeat = function(playerId)
 {
-    for (var index in this.seats) {
-        if (this.seats[index] === playerId) {
-            return parseInt(index);
+    return this.game.events.reduce((seat, e) => {
+        if (e instanceof ev.SeatTaken) {
+            if (e.playerId === playerId) {
+                return e.seat;
+            }
         }
-    }
-    return false;
-};
-
-Seats.prototype.freeUpSeat = function(seat)
-{
-    if (seat === false) {
-        return;
-    }
-    this.seats[seat] = false;
+        return seat;
+    }, false);
 };
 
 Seats.prototype.activePlayers = function()
 {
-    return this.seats.filter(seatOccupant => {
-        return seatOccupant !== false
+    var playerIds = {};
+    this.game.events.forEach(e => {
+        if (e instanceof ev.SeatTaken) {
+            playerIds[e.seat] = e.playerId;
+        }
+        if (e instanceof ev.SeatEmptied) {
+            delete playerIds[e.seat];
+        }
     });
+    return Object.values(playerIds);
+};
+
+Seats.prototype.getPlayer = function(seat)
+{
+    return this.game.events.reduce((playerId, e) => {
+        if (e instanceof ev.SeatTaken) {
+            if (e.seat === seat) {
+                return e.playerId;
+            }
+        }
+        if (e instanceof ev.SeatEmptied) {
+            return null;
+        }
+        return playerId;
+    }, null);
 };
 
 Seats.prototype.makeSeatsViewModel = function()
 {
     var viewModel = [];
-    this.seats.forEach((playerId, seat) => {
+    for (var seat = 0; seat < 8; seat++) {
+        var playerId = this.getPlayer(seat);
         viewModel.push({
             playerId: playerId,
             playerName: View.getPlayerName(this.game, playerId),
             seat: seat
         });
-    });
+    }
     return viewModel;
 };
 
@@ -307,7 +299,25 @@ Game.prototype.addPlayer = function(playerId, name)
         new ev.PlayerNamed(playerId, name)
     );
 
-    this.seats.takeSeat(playerId);
+    var freeSeat = this.events.reduce((value, e) => {
+        if (e instanceof ev.SeatTaken) {
+            return e.seat + 1;
+        }
+        return value;
+    }, 0);
+
+    if (freeSeat >= 8) {
+        console.log("All seats taken, no room for player " + playerId);
+    }
+
+    this.events.push(new ev.SeatTaken(freeSeat, playerId));
+};
+
+Game.prototype.removePlayer = function(playerId)
+{
+    var seat = this.seats.getSeat(playerId);
+    this.events.push(new ev.SeatEmptied(seat));
+    return seat;
 };
 
 Game.prototype.newRound = function()
@@ -323,7 +333,7 @@ Game.prototype.newRound = function()
 
 Game.prototype.hasPlayers = function()
 {
-    return this.seats.activePlayers().length != 0;
+    return this.seats.activePlayers().length !== 0;
 };
 
 var View = {};
@@ -541,8 +551,7 @@ Controller.removePlayer = function()
 
     console.log('playerId ' + playerId + ' disconnected');
 
-    var seat = game.seats.getSeat(playerId);
-    game.seats.freeUpSeat(seat);
+    var emptiedSeat = game.removePlayer(playerId);
 
     SocketsToPlayersMap.deassociate(socketId);
     PlayerToGameMap.deassociate(playerId);
@@ -554,7 +563,7 @@ Controller.removePlayer = function()
 
     io.emit('seatEmptied', {
         seats: game.seats.makeSeatsViewModel(),
-        emptiedSeat: seat,
+        emptiedSeat: emptiedSeat,
     });
 
     if (!game.round) {
