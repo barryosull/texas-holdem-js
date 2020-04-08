@@ -98,12 +98,12 @@ Deck.prototype.dealRiver = function()
     return this.cards.pop();
 };
 
-var SeatsViewModel = function(game)
+var SeatsProjection = function(game)
 {
     this.game = game;
 };
 
-SeatsViewModel.prototype.getSeat = function(playerId)
+SeatsProjection.prototype.getSeat = function(playerId)
 {
     return this.game.events.reduce((seat, e) => {
         if (e instanceof ev.SeatTaken) {
@@ -115,7 +115,7 @@ SeatsViewModel.prototype.getSeat = function(playerId)
     }, false);
 };
 
-SeatsViewModel.prototype.activePlayers = function()
+SeatsProjection.prototype.activePlayers = function()
 {
     var playerIds = {};
     this.game.events.forEach(e => {
@@ -129,7 +129,7 @@ SeatsViewModel.prototype.activePlayers = function()
     return Object.values(playerIds);
 };
 
-SeatsViewModel.prototype.getPlayer = function(seat)
+SeatsProjection.prototype.getPlayer = function(seat)
 {
     return this.game.events.reduce((playerId, e) => {
         if (e instanceof ev.SeatTaken) {
@@ -144,7 +144,7 @@ SeatsViewModel.prototype.getPlayer = function(seat)
     }, null);
 };
 
-SeatsViewModel.prototype.makeSeatsViewModel = function()
+SeatsProjection.prototype.makeSeatsViewModel = function()
 {
     var viewModel = [];
     for (var seat = 0; seat < 8; seat++) {
@@ -161,27 +161,37 @@ SeatsViewModel.prototype.makeSeatsViewModel = function()
 
 /**
  * @param deck {Deck}
+ * @param game {Game}
  * @constructor
  */
-var Round = function(deck)
+var Round = function(deck, game)
 {
+    this.game = game;
     this.deck = deck;
     this.communityCards = [];
-    this.hands = [];
 };
 
-Round.prototype.start = function(players)
+Round.prototype.hands = function()
 {
-    var hands = [];
-    var deck = this.deck;
-    players.forEach(playerId => {
-        hands.push({
-            playerId: playerId,
-            cards: deck.dealHand(),
-            hasFolded: false
-        });
+    var hands = {};
+    this.game.events.forEach(e => {
+        if (e instanceof ev.HandDealt) {
+            hands[e.playerId] = {
+                playerId: e.playerId,
+                cards: e.cards,
+                hasFolded: false
+            };
+        }
+        if (e instanceof ev.HandFolded) {
+            hands[e.playerId].hasFolded = true;
+        }
     });
-    this.hands = hands;
+
+    var activePlayers = this.game.seats.activePlayers();
+
+    return Object.values(hands).filter(hand => {
+        return activePlayers.indexOf(hand.playerId) !== -1;
+    });
 };
 
 Round.prototype.dealFlop = function()
@@ -205,38 +215,18 @@ Round.prototype.dealRiver = function()
     return river;
 };
 
-Round.prototype.foldHand = function(playerId)
-{
-    var playerHand = this.hands.filter(hand => {
-        return hand.playerId === playerId;
-    }).pop();
-
-    if (!playerHand) {
-        return;
-    }
-
-    playerHand.hasFolded = true;
-};
-
 Round.prototype.activeHands = function()
 {
-    return this.hands.filter(hand => {
+    return this.hands().filter(hand => {
         return !hand.hasFolded;
     });
 };
 
 Round.prototype.getPlayerHand = function(playerId)
 {
-    return this.hands.filter(hand => {
+    return this.hands().filter(hand => {
         return hand.playerId === playerId;
     }).pop();
-};
-
-Round.prototype.removePlayer = function(playerId)
-{
-    this.hands = this.hands.filter(hand => {
-        return hand.playerId !== playerId;
-    });
 };
 
 Round.prototype.chooseWinningHand = function()
@@ -292,8 +282,8 @@ var Game = function(id)
     this.round = null;
 
     // View Models
-    this.seats = new SeatsViewModel(this);
-    this.players = new PlayersViewModel(this);
+    this.seats = new SeatsProjection(this);
+    this.players = new PlayersProjection(this);
 };
 
 Game.prototype.addPlayer = function(playerId, name)
@@ -323,15 +313,18 @@ Game.prototype.removePlayer = function(playerId)
     return seat;
 };
 
-Game.prototype.newRound = function()
+Game.prototype.startNewRound = function()
 {
+    this.events.push(new ev.RoundStarted);
+
     var deck = Deck.makeNew();
 
-    this.round = new Round(deck);
+    this.round = new Round(deck, this);
 
-    this.round.start(this.seats.activePlayers());
-
-    return this.round.hands;
+    this.seats.activePlayers().forEach(playerId => {
+        var cards = deck.dealHand();
+        this.events.push(new ev.HandDealt(playerId, cards));
+    });
 };
 
 Game.prototype.hasPlayers = function()
@@ -339,12 +332,21 @@ Game.prototype.hasPlayers = function()
     return this.seats.activePlayers().length !== 0;
 };
 
-var PlayersViewModel = function(game)
+Game.prototype.foldHand = function(playerId)
+{
+    var playerHand = this.round.getPlayerHand(playerId);
+    if (!playerHand) {
+        return;
+    }
+    this.events.push(new ev.HandFolded(playerId));
+};
+
+var PlayersProjection = function(game)
 {
     this.game = game;
 };
 
-PlayersViewModel.prototype.getPlayerName = function(playerId)
+PlayersProjection.prototype.getPlayerName = function(playerId)
 {
     if (!playerId) {
         return "";
@@ -451,8 +453,9 @@ Controller.dealCards = function (req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    var hands = game.newRound();
-    hands.forEach(hand => {
+    game.startNewRound();
+
+    game.round.hands().forEach(hand => {
         var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
         io.sockets.to(socketId).emit('roundStarted', hand);
     });
@@ -576,8 +579,6 @@ Controller.removePlayer = function()
         return;
     }
 
-    game.round.removePlayer(playerId);
-
     var activeHands = game.round.activeHands();
     if (activeHands.length === 1) {
         io.emit('winnerByDefault', activeHands[0].playerId);
@@ -594,7 +595,7 @@ Controller.foldHand = function(req, res)
         return;
     }
 
-    game.round.foldHand(playerId);
+    game.foldHand(playerId);
 
     io.emit('playerFolded', playerId);
 
