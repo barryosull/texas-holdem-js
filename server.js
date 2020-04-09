@@ -34,6 +34,10 @@ var suits = [
     'spades'
 ];
 
+/*******************************
+ * Value Objects
+ *******************************/
+
 var Deck = function(cards)
 {
     this.cards = cards;
@@ -50,8 +54,7 @@ Deck.makeNew = function()
     });
 
     var deck = new Deck(cards);
-    deck.shuffle();
-    return deck;
+    return deck.shuffle();
 };
 
 Deck.prototype.shuffle = function()
@@ -70,19 +73,23 @@ Deck.prototype.shuffle = function()
         array[currentIndex] = array[randomIndex];
         array[randomIndex] = temporaryValue;
     }
-    this.cards = array;
+
+    return new Deck(array);
 };
 
-Deck.prototype.dealCard = function()
+Deck.prototype.getCards = function(number)
 {
-      return this.cards.pop();
+    return this.cards.slice(0, number);
 };
 
-var SeatsProjection = function(game)
+Deck.prototype.burnCards = function(number)
 {
-    this.game = game;
+    return new Deck(this.cards.slice(number));
 };
 
+/**************
+ * Aggregates
+ *************/
 
 var Game = function(id)
 {
@@ -129,7 +136,8 @@ Game.prototype.startNewRound = function()
     this.deck = Deck.makeNew();
 
     this.seats.activePlayers().forEach(playerId => {
-        var cards = [this.deck.dealCard(), this.deck.dealCard()];
+        var cards = this.deck.getCards(2);
+        this.deck = this.deck.burnCards(2);
         this.events.push(new ev.HandDealt(playerId, cards));
     });
 };
@@ -150,11 +158,8 @@ Game.prototype.foldHand = function(playerId)
 
 Game.prototype.dealFlop = function()
 {
-    var cards = [
-        this.deck.dealCard(),
-        this.deck.dealCard(),
-        this.deck.dealCard()
-    ];
+    var cards = this.deck.getCards(3);
+    this.deck = this.deck.burnCards(3);
 
     var event = new ev.FlopDealt(cards);
     this.events.push(event);
@@ -163,14 +168,19 @@ Game.prototype.dealFlop = function()
 
 Game.prototype.dealTurn = function()
 {
-    var event = new ev.TurnDealt(this.deck.dealCard());
+    var card = this.deck.getCards(1)[0];
+    this.deck = this.deck.burnCards(1);
+
+    var event = new ev.TurnDealt(card);
     this.events.push(event);
     return event;
 };
 
 Game.prototype.dealRiver = function()
 {
-    var event = new ev.RiverDealt(this.deck.dealCard());
+    var card = this.deck.getCards(1)[0];
+    this.deck = this.deck.burnCards(1);
+    var event = new ev.RiverDealt(card);
     this.events.push(event);
     return event;
 };
@@ -212,6 +222,11 @@ GameRepo.remove = function (game)
 /*******************************
  * Projections of a game
  *******************************/
+
+var SeatsProjection = function(game)
+{
+    this.game = game;
+};
 
 SeatsProjection.prototype.getSeat = function(playerId)
 {
