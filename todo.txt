@@ -79,9 +79,17 @@
 [x] Add concept of a game
 
 ## Todo:
-[ ] Write domain events (documentation)
+[x] Write domain events (documentation)
     - Documentation only
     - Plan is to migrate to domain events internally, use them to build up game state
+[x] Use domain events internally in system
+[ ] Convert deck from a VO with state into a projection
+    - How to do this?
+        1. Store a seed, spin up a newly shuffled deck from that seed each time a card is needed
+        2. Store an event with the shuffled deck
+        3. Store an event with the shuffled deck (series of ints)
+    - Gonna give "2" a try
+[ ] Write tests based on domain events
 [ ] Write broadcast events
     - Documentation only
     - Plan is to migrate to trigger broadcast on domain events
