@@ -34,5 +34,24 @@ Events.HandFolded = function(playerId)
     this.playerId = playerId;
 };
 
+Events.FlopDealt = function(cards)
+{
+    this.cards = cards;
+};
+
+Events.TurnDealt = function(card)
+{
+    this.card = card;
+};
+
+Events.RiverDealt = function(card)
+{
+    this.card = card;
+};
+
+Events.HandWon = function(playerId)
+{
+    this.playerId = playerId;
+};
 
 module.exports = Events;

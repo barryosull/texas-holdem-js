@@ -73,29 +73,9 @@ Deck.prototype.shuffle = function()
     this.cards = array;
 };
 
-Deck.prototype.dealHand = function()
+Deck.prototype.dealCard = function()
 {
-    var card1 = this.cards.pop();
-    var card2 = this.cards.pop();
-    return [card1, card2];
-};
-
-Deck.prototype.dealFlop = function()
-{
-    var card1 = this.cards.pop();
-    var card2 = this.cards.pop();
-    var card3 = this.cards.pop();
-    return [card1, card2, card3];
-};
-
-Deck.prototype.dealTurn = function()
-{
-    return this.cards.pop();
-};
-
-Deck.prototype.dealRiver = function()
-{
-    return this.cards.pop();
+      return this.cards.pop();
 };
 
 var SeatsProjection = function(game)
@@ -160,18 +140,15 @@ SeatsProjection.prototype.makeSeatsViewModel = function()
 
 
 /**
- * @param deck {Deck}
  * @param game {Game}
  * @constructor
  */
-var Round = function(deck, game)
+var RoundProjection = function(game)
 {
     this.game = game;
-    this.deck = deck;
-    this.communityCards = [];
 };
 
-Round.prototype.hands = function()
+RoundProjection.prototype.hands = function()
 {
     var hands = {};
     this.game.events.forEach(e => {
@@ -194,45 +171,42 @@ Round.prototype.hands = function()
     });
 };
 
-Round.prototype.dealFlop = function()
-{
-    var flop = this.deck.dealFlop();
-    this.communityCards = flop;
-    return flop;
-};
-
-Round.prototype.dealTurn = function()
-{
-    var turn = this.deck.dealTurn();
-    this.communityCards.push(turn);
-    return turn;
-};
-
-Round.prototype.dealRiver = function()
-{
-    var river = this.deck.dealRiver();
-    this.communityCards.push(river);
-    return river;
-};
-
-Round.prototype.activeHands = function()
+RoundProjection.prototype.activeHands = function()
 {
     return this.hands().filter(hand => {
         return !hand.hasFolded;
     });
 };
 
-Round.prototype.getPlayerHand = function(playerId)
+RoundProjection.prototype.getPlayerHand = function(playerId)
 {
     return this.hands().filter(hand => {
         return hand.playerId === playerId;
     }).pop();
 };
 
-Round.prototype.chooseWinningHand = function()
+RoundProjection.prototype.getCommunityCards = function()
+{
+    var flop = [], turn, river;
+    this.game.events.forEach(e => {
+        if (e instanceof ev.FlopDealt) {
+            flop = e.cards;
+        }
+        if (e instanceof ev.TurnDealt) {
+            turn = e.card;
+        }
+        if (e instanceof ev.RiverDealt) {
+            river = e.card;
+        }
+    });
+
+    return flop.concat([turn, river]);
+};
+
+RoundProjection.prototype.chooseWinningHand = function()
 {
     var hands = this.activeHands();
-    var communityCards = this.communityCards;
+    var communityCards = this.getCommunityCards();
 
     var pokerToolsHands = hands.map(hand => {
        return pokerTools.CardGroup.fromString(
@@ -274,16 +248,37 @@ function isFaceCard(number)
     return number.length > 2;
 }
 
+
+var PlayersProjection = function(game)
+{
+    this.game = game;
+};
+
+PlayersProjection.prototype.getPlayerName = function(playerId)
+{
+    if (!playerId) {
+        return "";
+    }
+    return this.game.events.reduce((value, e) => {
+        if (e instanceof ev.PlayerNamed) {
+            if (e.playerId === playerId) {
+                return e.name;
+            }
+        }
+        return value;
+    }, "");
+};
+
+
 var Game = function(id)
 {
     this.id = id;
     this.events = [];
 
-    this.round = null;
-
-    // View Models
+    // Projections
     this.seats = new SeatsProjection(this);
     this.players = new PlayersProjection(this);
+    this.round = new RoundProjection(this);
 };
 
 Game.prototype.addPlayer = function(playerId, name)
@@ -317,12 +312,10 @@ Game.prototype.startNewRound = function()
 {
     this.events.push(new ev.RoundStarted);
 
-    var deck = Deck.makeNew();
-
-    this.round = new Round(deck, this);
+    this.deck = Deck.makeNew();
 
     this.seats.activePlayers().forEach(playerId => {
-        var cards = deck.dealHand();
+        var cards = [this.deck.dealCard(), this.deck.dealCard()];
         this.events.push(new ev.HandDealt(playerId, cards));
     });
 };
@@ -341,24 +334,39 @@ Game.prototype.foldHand = function(playerId)
     this.events.push(new ev.HandFolded(playerId));
 };
 
-var PlayersProjection = function(game)
+Game.prototype.dealFlop = function()
 {
-    this.game = game;
+    var cards = [
+        this.deck.dealCard(),
+        this.deck.dealCard(),
+        this.deck.dealCard()
+    ];
+
+    var event = new ev.FlopDealt(cards);
+    this.events.push(event);
+    return event;
 };
 
-PlayersProjection.prototype.getPlayerName = function(playerId)
+Game.prototype.dealTurn = function()
 {
-    if (!playerId) {
-        return "";
-    }
-    return this.game.events.reduce((value, e) => {
-       if (e instanceof ev.PlayerNamed) {
-           if (e.playerId === playerId) {
-               return e.name;
-           }
-       }
-       return value;
-    }, "");
+    var event = new ev.TurnDealt(this.deck.dealCard());
+    this.events.push(event);
+    return event;
+};
+
+Game.prototype.dealRiver = function()
+{
+    var event = new ev.RiverDealt(this.deck.dealCard());
+    this.events.push(event);
+    return event;
+};
+
+Game.prototype.announceWinner = function()
+{
+    var winningHand = this.round.chooseWinningHand();
+    var event = new ev.HandWon(winningHand.playerId);
+    this.events.push(event);
+    return event;
 };
 
 var GameRepo = {
@@ -467,7 +475,9 @@ Controller.dealFlop = function (req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    io.emit('flop', game.round.dealFlop());
+    var event = game.dealFlop();
+
+    io.emit('flop', event.cards);
     res.send('');
 };
 
@@ -475,7 +485,9 @@ Controller.dealTurn = function (req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    io.emit('turn', game.round.dealTurn());
+    var event = game.dealTurn();
+    io.emit('turn', event.card);
+
     res.send('');
 };
 
@@ -483,15 +495,17 @@ Controller.dealRiver = function (req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    io.emit('river', game.round.dealRiver());
+    var event = game.dealRiver();
+
+    io.emit('river', event.card);
     res.send('');
 };
 
 Controller.finish = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
-
-    var winningHand = game.round.chooseWinningHand();
+    var event = game.announceWinner();
+    var winningHand = game.round.getPlayerHand(event.playerId);
     io.emit('winningHand', winningHand);
     res.send('');
 };
@@ -526,7 +540,7 @@ Controller.addPlayer = function(addPlayer)
 
     var playerHand = game.round.getPlayerHand(playerId);
 
-    Controller.broadcastInProgressRound(socketId, playerHand, game.round.communityCards);
+    Controller.broadcastInProgressRound(socketId, playerHand, game.round.getCommunityCards());
 };
 
 Controller.broadcastInProgressRound = function(socketId, playerHand, communityCards)
