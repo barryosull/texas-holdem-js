@@ -83,192 +83,6 @@ var SeatsProjection = function(game)
     this.game = game;
 };
 
-SeatsProjection.prototype.getSeat = function(playerId)
-{
-    return this.game.events.reduce((seat, e) => {
-        if (e instanceof ev.SeatTaken) {
-            if (e.playerId === playerId) {
-                return e.seat;
-            }
-        }
-        return seat;
-    }, false);
-};
-
-SeatsProjection.prototype.activePlayers = function()
-{
-    var playerIds = {};
-    this.game.events.forEach(e => {
-        if (e instanceof ev.SeatTaken) {
-            playerIds[e.seat] = e.playerId;
-        }
-        if (e instanceof ev.SeatEmptied) {
-            delete playerIds[e.seat];
-        }
-    });
-    return Object.values(playerIds);
-};
-
-SeatsProjection.prototype.getPlayer = function(seat)
-{
-    return this.game.events.reduce((playerId, e) => {
-        if (e instanceof ev.SeatTaken) {
-            if (e.seat === seat) {
-                return e.playerId;
-            }
-        }
-        if (e instanceof ev.SeatEmptied) {
-            return null;
-        }
-        return playerId;
-    }, null);
-};
-
-SeatsProjection.prototype.makeSeatsViewModel = function()
-{
-    var viewModel = [];
-    for (var seat = 0; seat < 8; seat++) {
-        var playerId = this.getPlayer(seat);
-        viewModel.push({
-            playerId: playerId,
-            playerName: this.game.players.getPlayerName(playerId),
-            seat: seat
-        });
-    }
-    return viewModel;
-};
-
-
-/**
- * @param game {Game}
- * @constructor
- */
-var RoundProjection = function(game)
-{
-    this.game = game;
-};
-
-RoundProjection.prototype.hands = function()
-{
-    var hands = {};
-    this.game.events.forEach(e => {
-        if (e instanceof ev.HandDealt) {
-            hands[e.playerId] = {
-                playerId: e.playerId,
-                cards: e.cards,
-                hasFolded: false
-            };
-        }
-        if (e instanceof ev.HandFolded) {
-            hands[e.playerId].hasFolded = true;
-        }
-    });
-
-    var activePlayers = this.game.seats.activePlayers();
-
-    return Object.values(hands).filter(hand => {
-        return activePlayers.indexOf(hand.playerId) !== -1;
-    });
-};
-
-RoundProjection.prototype.activeHands = function()
-{
-    return this.hands().filter(hand => {
-        return !hand.hasFolded;
-    });
-};
-
-RoundProjection.prototype.getPlayerHand = function(playerId)
-{
-    return this.hands().filter(hand => {
-        return hand.playerId === playerId;
-    }).pop();
-};
-
-RoundProjection.prototype.getCommunityCards = function()
-{
-    var flop = [], turn, river;
-    this.game.events.forEach(e => {
-        if (e instanceof ev.FlopDealt) {
-            flop = e.cards;
-        }
-        if (e instanceof ev.TurnDealt) {
-            turn = e.card;
-        }
-        if (e instanceof ev.RiverDealt) {
-            river = e.card;
-        }
-    });
-
-    return flop.concat([turn, river]);
-};
-
-RoundProjection.prototype.chooseWinningHand = function()
-{
-    var hands = this.activeHands();
-    var communityCards = this.getCommunityCards();
-
-    var pokerToolsHands = hands.map(hand => {
-       return pokerTools.CardGroup.fromString(
-            convertToPokerToolsString(hand.cards)
-       );
-    });
-    var board = pokerTools.CardGroup.fromString(
-        convertToPokerToolsString(communityCards)
-    );
-
-    const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
-
-    var winnerIndex = result[0][0].index;
-
-    return hands[winnerIndex];
-};
-
-function convertToPokerToolsString(cards)
-{
-    var convertedCards = cards.map(card => {
-       var parts = card.split('_of_');
-       var number = parts[0];
-        if (number === "10") {
-            number = "T";
-        }
-       if (isFaceCard(number)) {
-           number = number.charAt(0);
-       }
-
-       var suit = parts[1].charAt(0);
-       return number.toUpperCase().concat(suit);
-    });
-
-    return convertedCards.join("");
-}
-
-function isFaceCard(number)
-{
-    return number.length > 2;
-}
-
-
-var PlayersProjection = function(game)
-{
-    this.game = game;
-};
-
-PlayersProjection.prototype.getPlayerName = function(playerId)
-{
-    if (!playerId) {
-        return "";
-    }
-    return this.game.events.reduce((value, e) => {
-        if (e instanceof ev.PlayerNamed) {
-            if (e.playerId === playerId) {
-                return e.name;
-            }
-        }
-        return value;
-    }, "");
-};
-
 
 var Game = function(id)
 {
@@ -392,6 +206,203 @@ GameRepo.remove = function (game)
 {
     console.log("Removing game + " +game.id );
     delete GameRepo.games[game.id];
+};
+
+
+/*******************************
+ * Projections of a game
+ *******************************/
+
+SeatsProjection.prototype.getSeat = function(playerId)
+{
+    return this.game.events.reduce((seat, e) => {
+        if (e instanceof ev.SeatTaken) {
+            if (e.playerId === playerId) {
+                return e.seat;
+            }
+        }
+        return seat;
+    }, false);
+};
+
+SeatsProjection.prototype.activePlayers = function()
+{
+    var playerIds = {};
+    this.game.events.forEach(e => {
+        if (e instanceof ev.SeatTaken) {
+            playerIds[e.seat] = e.playerId;
+        }
+        if (e instanceof ev.SeatEmptied) {
+            delete playerIds[e.seat];
+        }
+    });
+    return Object.values(playerIds);
+};
+
+SeatsProjection.prototype.getPlayer = function(seat)
+{
+    return this.game.events.reduce((playerId, e) => {
+        if (e instanceof ev.SeatTaken) {
+            if (e.seat === seat) {
+                return e.playerId;
+            }
+        }
+        if (e instanceof ev.SeatEmptied) {
+            return null;
+        }
+        return playerId;
+    }, null);
+};
+
+SeatsProjection.prototype.makeSeatsViewModel = function()
+{
+    var viewModel = [];
+    for (var seat = 0; seat < 8; seat++) {
+        var playerId = this.getPlayer(seat);
+        viewModel.push({
+            playerId: playerId,
+            playerName: this.game.players.getPlayerName(playerId),
+            seat: seat
+        });
+    }
+    return viewModel;
+};
+
+
+var RoundProjection = function(game)
+{
+    this.game = game;
+};
+
+RoundProjection.prototype.hands = function()
+{
+    var hands = {};
+    this.game.events.forEach(e => {
+        if (e instanceof ev.HandDealt) {
+            hands[e.playerId] = {
+                playerId: e.playerId,
+                cards: e.cards,
+                hasFolded: false
+            };
+        }
+        if (e instanceof ev.HandFolded) {
+            hands[e.playerId].hasFolded = true;
+        }
+    });
+
+    var activePlayers = this.game.seats.activePlayers();
+
+    return Object.values(hands).filter(hand => {
+        return activePlayers.indexOf(hand.playerId) !== -1;
+    });
+};
+
+RoundProjection.prototype.activeHands = function()
+{
+    return this.hands().filter(hand => {
+        return !hand.hasFolded;
+    });
+};
+
+RoundProjection.prototype.getPlayerHand = function(playerId)
+{
+    return this.hands().filter(hand => {
+        return hand.playerId === playerId;
+    }).pop();
+};
+
+RoundProjection.prototype.getCommunityCards = function()
+{
+    var flop = [], turn = null, river = null;
+    this.game.events.forEach(e => {
+        if (e instanceof ev.FlopDealt) {
+            flop = e.cards;
+        }
+        if (e instanceof ev.TurnDealt) {
+            turn = e.card;
+        }
+        if (e instanceof ev.RiverDealt) {
+            river = e.card;
+        }
+        if (e instanceof ev.RoundStarted) {
+            flop = [], turn = null, river = null;
+        }
+    });
+
+    var cards = flop.concat([turn, river]);
+
+    return cards.filter(card => {
+        return card != null;
+    });
+};
+
+RoundProjection.prototype.chooseWinningHand = function()
+{
+    var hands = this.activeHands();
+    var communityCards = this.getCommunityCards();
+
+    var pokerToolsHands = hands.map(hand => {
+       return pokerTools.CardGroup.fromString(
+           PokerToolsAdapter.convertToPokerToolsString(hand.cards)
+       );
+    });
+    var board = pokerTools.CardGroup.fromString(
+        PokerToolsAdapter.convertToPokerToolsString(communityCards)
+    );
+
+    const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+
+    var winnerIndex = result[0][0].index;
+
+    return hands[winnerIndex];
+};
+
+
+var PokerToolsAdapter = {};
+
+PokerToolsAdapter.convertToPokerToolsString = function(cards)
+{
+    var convertedCards = cards.map(card => {
+       var parts = card.split('_of_');
+       var number = parts[0];
+        if (number === "10") {
+            number = "T";
+        }
+       if (PokerToolsAdapter.isFaceCard(number)) {
+           number = number.charAt(0);
+       }
+
+       var suit = parts[1].charAt(0);
+       return number.toUpperCase().concat(suit);
+    });
+
+    return convertedCards.join("");
+};
+
+PokerToolsAdapter.isFaceCard = function(number)
+{
+    return number.length > 2;
+};
+
+
+var PlayersProjection = function(game)
+{
+    this.game = game;
+};
+
+PlayersProjection.prototype.getPlayerName = function(playerId)
+{
+    if (!playerId) {
+        return "";
+    }
+    return this.game.events.reduce((value, e) => {
+        if (e instanceof ev.PlayerNamed) {
+            if (e.playerId === playerId) {
+                return e.name;
+            }
+        }
+        return value;
+    }, "");
 };
 
 
