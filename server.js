@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var seedrandom = require('seedrandom');
 var pokerTools = require("poker-tools");
 
 var ev = require('./domain/events');
@@ -43,7 +44,7 @@ var Deck = function(cards)
     this.cards = cards;
 };
 
-Deck.makeNew = function()
+Deck.makeNew = function(seed)
 {
     var cards = [];
 
@@ -54,19 +55,21 @@ Deck.makeNew = function()
     });
 
     var deck = new Deck(cards);
-    return deck.shuffle();
+    return deck.shuffle(seed);
 };
 
-Deck.prototype.shuffle = function()
+Deck.prototype.shuffle = function(seed)
 {
     var array = this.cards;
+
+    var rng = seedrandom(seed);
 
     var currentIndex = array.length;
     var temporaryValue, randomIndex;
 
     while (0 !== currentIndex) {
         // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
+        randomIndex = Math.floor(rng() * currentIndex);
         currentIndex -= 1;
 
         temporaryValue = array[currentIndex];
@@ -100,6 +103,7 @@ var Game = function(id)
     this.seats = new SeatsProjection(this);
     this.players = new PlayersProjection(this);
     this.round = new RoundProjection(this);
+    this.deck = new DeckProjection(this);
 };
 
 Game.prototype.addPlayer = function(playerId, name)
@@ -131,13 +135,12 @@ Game.prototype.removePlayer = function(playerId)
 
 Game.prototype.startNewRound = function()
 {
-    this.events.push(new ev.RoundStarted);
+    var deckSeend = Math.random().toString(36);
 
-    this.deck = Deck.makeNew();
+    this.events.push(new ev.RoundStarted(deckSeend));
 
     this.seats.activePlayers().forEach(playerId => {
         var cards = this.deck.getCards(2);
-        this.deck = this.deck.burnCards(2);
         this.events.push(new ev.HandDealt(playerId, cards));
     });
 };
@@ -159,8 +162,6 @@ Game.prototype.foldHand = function(playerId)
 Game.prototype.dealFlop = function()
 {
     var cards = this.deck.getCards(3);
-    this.deck = this.deck.burnCards(3);
-
     var event = new ev.FlopDealt(cards);
     this.events.push(event);
     return event;
@@ -169,8 +170,6 @@ Game.prototype.dealFlop = function()
 Game.prototype.dealTurn = function()
 {
     var card = this.deck.getCards(1)[0];
-    this.deck = this.deck.burnCards(1);
-
     var event = new ev.TurnDealt(card);
     this.events.push(event);
     return event;
@@ -179,7 +178,6 @@ Game.prototype.dealTurn = function()
 Game.prototype.dealRiver = function()
 {
     var card = this.deck.getCards(1)[0];
-    this.deck = this.deck.burnCards(1);
     var event = new ev.RiverDealt(card);
     this.events.push(event);
     return event;
@@ -222,6 +220,40 @@ GameRepo.remove = function (game)
 /*******************************
  * Projections of a game
  *******************************/
+
+var DeckProjection = function(game)
+{
+    this.game = game;
+};
+
+DeckProjection.prototype.getCards = function(number)
+{
+    var seed = 0;
+    var carsdDealt = 0;
+
+    this.game.events.forEach(e => {
+        if (e instanceof ev.RoundStarted) {
+            seed = e.deckSeed;
+            carsdDealt = 0;
+        }
+        if (e instanceof ev.HandDealt) {
+            carsdDealt += 2;
+        }
+        if (e instanceof ev.FlopDealt) {
+            carsdDealt += 3;
+        }
+        if (e instanceof ev.TurnDealt) {
+            carsdDealt += 1;
+        }
+        if (e instanceof ev.RiverDealt) {
+            carsdDealt += 1;
+        }
+    });
+
+    var deck = Deck.makeNew(seed).burnCards(carsdDealt);
+
+    return deck.getCards(number);
+};
 
 var SeatsProjection = function(game)
 {

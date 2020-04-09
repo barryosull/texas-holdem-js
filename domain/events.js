@@ -18,9 +18,9 @@ Events.SeatEmptied = function(seat)
     this.seat = seat;
 };
 
-Events.RoundStarted = function()
+Events.RoundStarted = function(deckSeed)
 {
-
+    this.deckSeed = deckSeed;
 };
 
 Events.HandDealt = function(playerId, cards)
