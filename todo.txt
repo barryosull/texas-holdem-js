@@ -91,6 +91,15 @@
     - Gonna give "1" a try
 [x] Refactor into subclasses
     - The file is getting quite large
+[x] Choose a dealer at the start of each round
+    - Choose the next active player to the left of the current dealer
+[ ] Bet a sum of money into the pot
+[ ] Can only bet during a round of betting
+[ ] Next round cannot start until everyone has put in the same amount
+[ ] Players have chips, betting subtracts from chips
+[ ] Winner takes the pot
+[ ] Once you're out of a chips you're out of the game
+    - Only occurs at the end of a round
 [ ] Sub-streams of events for faster projections
     - Don't need all events to figure out the current hands, only events from this hand
 [ ] Write tests based on domain events

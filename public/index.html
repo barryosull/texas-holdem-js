@@ -96,6 +96,10 @@ body {
     margin: 0 10px;
 }
 
+.seat.dealer {
+    border: 1px dashed #fff;
+}
+
 .name {
     background-color: #649c42;
     padding: 4px 10px;
@@ -133,40 +137,50 @@ body {
 <script type="text/javascript">
 
 /************************************
- * Round interface, calls the HTTP API
+ * Game interface, calls the HTTP API
  ************************************/
-var Round = {
+var Game = {
     gameId: null
 };
 
-Round.dealHands = function()
+Game.dealHands = function()
 {
-    $.post("api/game/" + Round.gameId + "/deal");
+    $.post("api/game/" + Game.gameId + "/deal");
 };
 
-Round.dealFlop = function()
+Game.dealFlop = function()
 {
-    $.post("api/game/" + Round.gameId + "/flop");
+    $.post("api/game/" + Game.gameId + "/flop");
 };
 
-Round.dealTurn = function()
+Game.dealTurn = function()
 {
-    $.post("api/game/" + Round.gameId + "/turn");
+    $.post("api/game/" + Game.gameId + "/turn");
 };
 
-Round.dealRiver = function()
+Game.dealRiver = function()
 {
-    $.post("api/game/" + Round.gameId + "/river");
+    $.post("api/game/" + Game.gameId + "/river");
 };
 
-Round.finishRound = function()
+Game.finishRound = function()
 {
-    $.post("api/game/" + Round.gameId + "/finish/");
+    $.post("api/game/" + Game.gameId + "/finish/");
 };
 
-Round.foldHand = function(playerId)
+Game.foldHand = function(playerId)
 {
-    $.post("api/game/" + Round.gameId + "/fold/" + playerId);
+    $.post("api/game/" + Game.gameId + "/fold/" + playerId);
+};
+
+Game.makeBet = function(playerId, amount)
+{
+    $.post(
+        "/api/game/" + Game.gameId + "/bet/" + playerId,
+        {amount: amount},
+        d => {},
+        "json"
+    );
 };
 
 function uuidv4() {
@@ -182,38 +196,44 @@ var Controller = {
 
 Controller.startGame = function()
 {
-    Round.dealHands();
+    Game.dealHands();
     View.showFlopButton();
 };
 
 Controller.dealFlop = function()
 {
-    Round.dealFlop();
+    Game.dealFlop();
     View.showTurnButton();
 };
 
 Controller.dealTurn = function()
 {
-    Round.dealTurn();
+    Game.dealTurn();
     View.showRiverButton();
 };
 
 Controller.dealRiver = function()
 {
-    Round.dealRiver();
+    Game.dealRiver();
     View.showFinishButton();
 };
 
 Controller.finishRound = function()
 {
-    Round.finishRound();
+    Game.finishRound();
     View.hideCommunityCardsButtons();
 };
 
 Controller.foldHand = function()
 {
-    Round.foldHand(Controller.playerId);
+    Game.foldHand(Controller.playerId);
     View.disableFoldButton();
+};
+
+Controller.makeBet = function()
+{
+    var amount = parseInt($('#amount').val());
+    Game.makeBet(Controller.playerId, amount);
 };
 
 Controller.joinGame = function(socket)
@@ -234,7 +254,7 @@ Controller.joinGame = function(socket)
 
     this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
 
-    socket.emit('newPlayer', {gameId: Round.gameId, playerId: this.playerId, playerName: playerName});
+    socket.emit('newPlayer', {gameId: Game.gameId, playerId: this.playerId, playerName: playerName});
 
     View.hideCommunityCardsButtons();
 };
@@ -296,12 +316,13 @@ Controller.seatEmptied = function(seats)
     View.renderEmptySeat(seats.emptiedSeat);
 };
 
-Controller.roundStarted = function(hand)
+Controller.roundStarted = function(round)
 {
     View.clearTable();
     View.renderDownFacingHands();
     View.enableFoldButton();
-    View.renderPlayerHand(hand);
+    View.renderPlayerHand(round.hand);
+    View.highlightDealer(round.dealer);
 };
 
 Controller.winnerByDefault = function(playerId)
@@ -438,6 +459,12 @@ View.highlightWinner = function(playerId)
     });
 };
 
+View.highlightDealer = function(playerId)
+{
+    $('.dealer').removeClass('dealer');
+    $('#player-' + playerId).parent('.seat').addClass('dealer');
+};
+
 View.enableAdminControls = function()
 {
     $("#admin-controls").show();
@@ -487,6 +514,12 @@ View.enableFoldButton = function()
     $('#fold').removeAttr('disabled');
 };
 
+View.showBet = function(bet)
+{
+    var seat = $('#player-' +bet. playerId).parent('.seat').addClass('dealer');
+    seat.append('<div class=bet">' + bet.amount+ '</div>')
+};
+
 var Bootstrap = {};
 
 Bootstrap.attachHtmlEventListeners = function()
@@ -508,6 +541,9 @@ Bootstrap.attachHtmlEventListeners = function()
     });
     $("#fold").click(function(){
         Controller.foldHand();
+    });
+    $('#bet').click(function(){
+        Controller.makeBet();
     });
 };
 
@@ -531,6 +567,8 @@ Bootstrap.attachSocketEventListeners = function(socket)
 
     socket.on('playerFolded', View.foldPlayerHand);
 
+    socket.on('betMade', View.showBet);
+
     socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
     });
@@ -546,7 +584,7 @@ $(function()
         return;
     }
 
-    Round.gameId = gameId;
+    Game.gameId = gameId;
 
     Bootstrap.attachHtmlEventListeners();
     Bootstrap.attachSocketEventListeners(socket);
@@ -578,6 +616,10 @@ $(function()
     <div id="player-controls" class="controls" style="position: absolute; top: 212px; right: 30px;">
         <div class="title">Player</div>
         <button id="fold" disabled="disabled">Fold</button>
+        <div style="display: none;">
+            <input type="number" id="amount" placeholder="20" style="font-size: 16px; width: 80px;">
+            <button id="bet">Bet</button>
+        </div>
     </div>
 
     <div id="admin-controls" class="controls" style="display: none; position: absolute; top: 212px; left: 22px;">

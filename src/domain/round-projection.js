@@ -27,7 +27,7 @@ RoundProjection.prototype.hands = function()
         }
     });
 
-    var activePlayers = this.game.seats.activePlayers();
+    var activePlayers = this.game.seats.getActivePlayers();
 
     return Object.values(hands).filter(hand => {
         return activePlayers.indexOf(hand.playerId) !== -1;

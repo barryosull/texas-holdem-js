@@ -48,9 +48,11 @@ Game.prototype.startNewRound = function()
 {
     var deckSeed = Math.random().toString(36);
 
-    this.events.push(new events.RoundStarted(deckSeed));
+    var dealer = this.seats.getNextDealer();
 
-    this.seats.activePlayers().forEach(playerId => {
+    this.events.push(new events.RoundStarted(deckSeed, dealer));
+
+    this.seats.getActivePlayers().forEach(playerId => {
         var cards = this.deck.getCards(2);
         this.events.push(new events.HandDealt(playerId, cards));
     });
@@ -58,7 +60,7 @@ Game.prototype.startNewRound = function()
 
 Game.prototype.hasPlayers = function()
 {
-    return this.seats.activePlayers().length !== 0;
+    return this.seats.getActivePlayers().length !== 0;
 };
 
 Game.prototype.foldHand = function(playerId)
@@ -100,6 +102,11 @@ Game.prototype.announceWinner = function()
     var event = new events.HandWon(winningHand.playerId);
     this.events.push(event);
     return event;
+};
+
+Game.prototype.makeBet = function(playerId, amount)
+{
+    this.events.push(new events.BetMade(playerId, amount));
 };
 
 module.exports = Game;

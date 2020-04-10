@@ -18,9 +18,10 @@ Events.SeatEmptied = function(seat)
     this.seat = seat;
 };
 
-Events.RoundStarted = function(deckSeed)
+Events.RoundStarted = function(deckSeed, dealer)
 {
     this.deckSeed = deckSeed;
+    this.dealer = dealer;
 };
 
 Events.HandDealt = function(playerId, cards)
@@ -52,6 +53,12 @@ Events.RiverDealt = function(card)
 Events.HandWon = function(playerId)
 {
     this.playerId = playerId;
+};
+
+Events.BetMade = function(playerId, amount)
+{
+    this.playerId = playerId;
+    this.amount = amount;
 };
 
 module.exports = Events;

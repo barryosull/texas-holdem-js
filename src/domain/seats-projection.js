@@ -22,19 +22,25 @@ SeatsProjection.prototype.getSeat = function(playerId)
     }, false);
 };
 
-SeatsProjection.prototype.activePlayers = function()
+SeatsProjection.prototype.getActivePlayers = function()
 {
-    var playerIds = {};
-    this.game.events.forEach(e => {
+    var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
+    return Object.values(seatsToPlayerIds);
+};
+
+function mapSeatsToPlayerIds(game)
+{
+    var seatsToPlayerIds = {};
+    game.events.forEach(e => {
         if (e instanceof events.SeatTaken) {
-            playerIds[e.seat] = e.playerId;
+            seatsToPlayerIds[e.seat] = e.playerId;
         }
         if (e instanceof events.SeatEmptied) {
-            delete playerIds[e.seat];
+            delete seatsToPlayerIds[e.seat];
         }
     });
-    return Object.values(playerIds);
-};
+    return seatsToPlayerIds;
+}
 
 SeatsProjection.prototype.getPlayer = function(seat)
 {
@@ -63,6 +69,36 @@ SeatsProjection.prototype.makeSeatsViewModel = function()
         });
     }
     return viewModel;
+};
+
+SeatsProjection.prototype.getDealer = function()
+{
+    return this.game.events.reduce((value, e) => {
+        if (e instanceof events.RoundStarted) {
+            return e.dealer;
+        }
+        return value;
+    }, null);
+};
+
+SeatsProjection.prototype.getNextDealer = function()
+{
+    var currentDealer = this.getDealer();
+    if (!currentDealer) {
+        return this.getActivePlayers()[0];
+    }
+
+    var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
+
+    var seat = this.getSeat(currentDealer);
+    var numberOfSeats = Object.keys(seatsToPlayerIds).length;
+
+    for (var i = 0; i < numberOfSeats; i++) {
+        var nextSeat = ((seat + 1) + i)%numberOfSeats;
+        if (seatsToPlayerIds[nextSeat]) {
+            return seatsToPlayerIds[nextSeat];
+        }
+    }
 };
 
 

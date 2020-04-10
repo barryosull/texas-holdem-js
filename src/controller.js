@@ -15,9 +15,14 @@ Controller.dealCards = function(req, res)
 
     game.startNewRound();
 
+    var dealer = game.seats.getDealer();
+
     game.round.hands().forEach(hand => {
         var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
-        Controller.io.sockets.to(socketId).emit('roundStarted', hand);
+        Controller.io.sockets.to(socketId).emit('roundStarted', {
+            hand: hand,
+            dealer: dealer
+        });
     });
 
     res.send('');
@@ -169,6 +174,21 @@ Controller.foldHand = function(req, res)
     if (activeHands.length === 1) {
         Controller.io.emit('winnerByDefault', activeHands[0].playerId);
     }
+
+    res.send('');
+};
+
+Controller.makeBet = function(req, res)
+{
+    console.log(req.body);
+    var data = JSON.parse(req.body);
+    var playerId = req.params.playerId;
+    var amount = data.amount;
+
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    game.makeBet(playerId, amount);
+
+    Controller.io.emit('betMade', {playerId: playerId, amount: amount});
 
     res.send('');
 };
