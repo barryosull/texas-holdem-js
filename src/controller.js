@@ -1,0 +1,228 @@
+
+var Server = require('socket.io');
+var GameRepo = require('./domain/game-repository');
+
+/**
+ * @type {{io: Server}}
+ */
+var Controller = {
+    io: null
+};
+
+Controller.dealCards = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    game.startNewRound();
+
+    game.round.hands().forEach(hand => {
+        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
+        Controller.io.sockets.to(socketId).emit('roundStarted', hand);
+    });
+
+    res.send('');
+};
+
+Controller.dealFlop = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    var event = game.dealFlop();
+
+    Controller.io.emit('flop', event.cards);
+    res.send('');
+};
+
+Controller.dealTurn = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    var event = game.dealTurn();
+    Controller.io.emit('turn', event.card);
+
+    res.send('');
+};
+
+Controller.dealRiver = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    var event = game.dealRiver();
+
+    Controller.io.emit('river', event.card);
+    res.send('');
+};
+
+Controller.finish = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    var event = game.announceWinner();
+    var winningHand = game.round.getPlayerHand(event.playerId);
+    Controller.io.emit('winningHand', winningHand);
+    res.send('');
+};
+
+Controller.addPlayer = function(addPlayer)
+{
+    var game = GameRepo.fetchOrCreate(addPlayer.gameId);
+
+    var socketId = this.id;
+    var playerId = addPlayer.playerId;
+    var playerName = addPlayer.playerName;
+
+    console.log('player "' + playerName + '" (' + playerId + ') connected');
+
+    var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
+
+    if (existingSocketId) {
+        Controller.io.sockets.to(socketId).emit('existingSession');
+        return;
+    }
+
+    SocketsToPlayersMap.associate(socketId, playerId);
+    PlayerToGameMap.associate(playerId, addPlayer.gameId);
+
+    game.addPlayer(playerId, playerName);
+
+    Controller.io.emit('seatFilled', game.seats.makeSeatsViewModel());
+
+    if (!game.round) {
+        return;
+    }
+
+    var playerHand = game.round.getPlayerHand(playerId);
+
+    Controller.broadcastInProgressRound(socketId, playerHand, game.round.getCommunityCards());
+};
+
+Controller.broadcastInProgressRound = function(socketId, playerHand, communityCards)
+{
+    if (playerHand) {
+        Controller.io.sockets.to(socketId).emit('roundStarted', playerHand);
+    }
+
+    var cards = communityCards;
+    if (cards.length > 2) {
+        Controller.io.sockets.to(socketId).emit('flop', [cards[0], cards[1], cards[2]]);
+    }
+    if (cards.length > 3) {
+        this.io.sockets.to(socketId).emit('turn', cards[3]);
+    }
+    if (cards.length > 4) {
+        Controller.io.sockets.to(socketId).emit('river', cards[4]);
+    }
+};
+
+Controller.removePlayer = function()
+{
+    var socketId = this.id;
+    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
+    if (!playerId) {
+        return;
+    }
+
+    var gameId = PlayerToGameMap.getGameIdForPlayer(playerId);
+    var game = GameRepo.fetchOrCreate(gameId);
+
+    console.log('playerId ' + playerId + ' disconnected');
+
+    var emptiedSeat = game.removePlayer(playerId);
+
+    SocketsToPlayersMap.deassociate(socketId);
+    PlayerToGameMap.deassociate(playerId);
+
+    if (!game.hasPlayers()) {
+        GameRepo.remove(game);
+        return;
+    }
+
+    Controller.io.emit('seatEmptied', {
+        seats: game.seats.makeSeatsViewModel(),
+        emptiedSeat: emptiedSeat,
+    });
+
+    if (!game.round) {
+        return;
+    }
+
+    var activeHands = game.round.activeHands();
+    if (activeHands.length === 1) {
+        Controller.io.emit('winnerByDefault', activeHands[0].playerId);
+    }
+};
+
+Controller.foldHand = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    var playerId = req.params.playerId;
+
+    if (!game.round) {
+        return;
+    }
+
+    game.foldHand(playerId);
+
+    Controller.io.emit('playerFolded', playerId);
+
+    var activeHands = game.round.activeHands();
+    if (activeHands.length === 1) {
+        Controller.io.emit('winnerByDefault', activeHands[0].playerId);
+    }
+
+    res.send('');
+};
+
+
+var SocketsToPlayersMap =
+{
+    map: {},
+
+    associate: function(socketId, playerId)
+    {
+        SocketsToPlayersMap.map[socketId] = playerId;
+    },
+
+    deassociate: function(socketId)
+    {
+        delete SocketsToPlayersMap.map[socketId];
+    },
+
+    getPlayerIdForSocket: function(socketId)
+    {
+        return SocketsToPlayersMap.map[socketId];
+    },
+
+    getSocketIdForPlayer: function(playerId)
+    {
+        for (var socketId in SocketsToPlayersMap.map) {
+            if (SocketsToPlayersMap.map[socketId] === playerId) {
+                return socketId;
+            }
+        }
+        return undefined;
+    }
+};
+
+var PlayerToGameMap = {
+
+    map: {},
+
+    associate: function(playerId, gameId)
+    {
+        PlayerToGameMap.map[playerId] = gameId;
+    },
+
+    deassociate: function(playerId)
+    {
+        delete PlayerToGameMap.map[playerId];
+    },
+
+    getGameIdForPlayer: function(playerId)
+    {
+        return PlayerToGameMap.map[playerId];
+    },
+};
+
+
+module.exports = Controller;

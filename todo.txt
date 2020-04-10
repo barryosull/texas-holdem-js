@@ -83,12 +83,16 @@
     - Documentation only
     - Plan is to migrate to domain events internally, use them to build up game state
 [x] Use domain events internally in system
-[ ] Convert deck from a VO with state into a projection
+[x] Convert deck from a VO with state into a projection
     - How to do this?
         1. Store a seed, spin up a newly shuffled deck from that seed each time a card is needed
         2. Store an event with the shuffled deck
         3. Store an event with the shuffled deck (series of ints)
-    - Gonna give "2" a try
+    - Gonna give "1" a try
+[x] Refactor into subclasses
+    - The file is getting quite large
+[ ] Sub-streams of events for faster projections
+    - Don't need all events to figure out the current hands, only events from this hand
 [ ] Write tests based on domain events
 [ ] Write broadcast events
     - Documentation only
