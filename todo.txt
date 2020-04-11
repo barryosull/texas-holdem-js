@@ -110,7 +110,7 @@
 [x] Pot is updated on bet, not on round completion
     - There's currently a bug were you can only win a pot if a round of betting has finished
     - This is a bit rubbish
-[ ] Show Total player bet, not the amount they just bet
+[x] Show Total player bet, not the amount they just bet
     - It currently shows the last amount bet, not the total bet in this round
 [ ] Refactor game into aggregates
     - This thing is getting messy internally

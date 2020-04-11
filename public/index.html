@@ -576,7 +576,7 @@ View.showBet = function(bet)
     var $seat = $('#player-' + bet.playerId).parent('.seat').addClass('dealer');
     $seat.find('.stack').text(bet.remainingChips);
     $seat.find('.bet').remove();
-    $seat.append('<div class="chips bet">' + bet.amount+ '</div>')
+    $seat.append('<div class="chips bet">' + bet.total+ '</div>')
 };
 
 View.updatePlayerStack = function(playerId, chips)

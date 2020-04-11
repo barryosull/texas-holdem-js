@@ -174,9 +174,7 @@ Game.prototype.placeBet = function(playerId, amount)
 {
     var playerChips = this.seats.getPlayerChips(playerId);
     amount = (amount > playerChips) ? playerChips : amount;
-    var event = new events.BetPlaced(playerId, amount);
-    this.push(event);
-    return event;
+    this.push(new events.BetPlaced(playerId, amount));
 };
 
 module.exports = Game;

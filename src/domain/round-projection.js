@@ -107,6 +107,21 @@ RoundProjection.prototype.getPot = function()
     }, 0);
 };
 
+RoundProjection.prototype.getPlayerBet = function(playerId)
+{
+    return this.game.events.reduce((bet, e) => {
+        if (e instanceof events.BettingRoundClosed) {
+            return 0;
+        }
+        if (e instanceof events.BetPlaced) {
+            if (e.playerId === playerId) {
+                return bet + e.amount;
+            }
+        }
+        return bet;
+    }, 0);
+};
+
 var PokerToolsAdapter = {};
 
 PokerToolsAdapter.convertToPokerToolsString = function(cards)
