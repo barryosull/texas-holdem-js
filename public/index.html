@@ -373,6 +373,15 @@ Controller.winningHand = function(hand)
     View.showDealButton();
 };
 
+Controller.disableLosers = function(losers)
+{
+    losers.forEach(playerId => {
+        if (Controller.playerId === playerId) {
+
+        }
+    });
+};
+
 var View = {};
 
 View.renderSeats = function(seats, currentPlayerId)
@@ -662,6 +671,8 @@ Bootstrap.attachSocketEventListeners = function(socket)
     socket.on('betMade', View.showBet);
 
     socket.on('pot', View.updatePot);
+
+    socket.on('losers', Controller.disableLosers);
 
     socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");

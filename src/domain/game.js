@@ -148,6 +148,12 @@ Game.prototype.announceWinner = function()
     return announceWinner(this, winningHand);
 };
 
+Game.prototype.announceLosers = function()
+{
+    this.round.getPlayersBankrupedInRound().forEach(playerId => {
+        this.push(new events.PlayerBankrupted(playerId));
+    });
+};
 
 Game.prototype.closeRoundOfBetting = function()
 {

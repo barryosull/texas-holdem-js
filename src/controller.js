@@ -69,11 +69,18 @@ Controller.finish = function(req, res)
     var game = GameRepo.fetchOrCreate(req.params.gameId);
     game.closeRoundOfBetting();
     var events = game.announceWinner();
+    game.announceLosers();
 
     var winningPlayerId = events[0].playerId;
     var winningHand = game.round.getPlayerHand(winningPlayerId);
     winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
     Controller.io.emit('winningHand', winningHand);
+
+    var losers = game.round.losersInLastRound();
+    if (losers.length > 0) {
+        Controller.io.emit('losers', losers);
+    }
+
     res.send('');
 };
 

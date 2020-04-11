@@ -122,6 +122,32 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
     }, 0);
 };
 
+
+RoundProjection.prototype.getPlayersBankrupedInRound = function()
+{
+    var playersToChips = {};
+    this.game.events.forEach(e => {
+        if (e instanceof events.PlayerGivenChips) {
+            playersToChips[e.playerId] += e.amount;
+        }
+        if (e instanceof events.BetPlaced) {
+            playersToChips[e.playerId] -= e.amount;
+        }
+        if (e instanceof events.PlayerBankrupted) {
+            delete playersToChips[e.playerId];
+        }
+    }, 0);
+
+    var bankruptPlayers = [];
+    Object.keys(playersToChips).forEach(playerId => {
+        if (playersToChips[playerId] === 0) {
+            bankruptPlayers.push(playerId);
+        }
+    });
+
+    return bankruptPlayers;
+};
+
 var PokerToolsAdapter = {};
 
 PokerToolsAdapter.convertToPokerToolsString = function(cards)
@@ -141,6 +167,21 @@ PokerToolsAdapter.convertToPokerToolsString = function(cards)
     });
 
     return convertedCards.join("");
+};
+
+RoundProjection.prototype.losersInLastRound = function()
+{
+    var losers = {};
+    this.game.forEach(e => {
+        if (e instanceof events.PlayerBankrupted) {
+            losers[e.playerId] = true;
+        }
+        if (e instanceof events.HandWon) {
+            losers = {};
+        }
+    });
+
+    return Object.keys(losers);
 };
 
 PokerToolsAdapter.isFaceCard = function(number)

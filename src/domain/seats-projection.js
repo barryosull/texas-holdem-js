@@ -135,5 +135,4 @@ SeatsProjection.prototype.getNextDealer = function()
     }
 };
 
-
 module.exports = SeatsProjection;

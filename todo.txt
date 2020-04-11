@@ -112,6 +112,21 @@
     - This is a bit rubbish
 [x] Show Total player bet, not the amount they just bet
     - It currently shows the last amount bet, not the total bet in this round
+[ ] Once you're out of a chips you're out of the game
+    - Only occurs at the end of a round
+    - Controls are disabled
+    - Can only watch the current game
+    - Is not dealt cards
+    - At the HTML level, figuring out what this looks like there
+        - Rendering facedown cards should be done based on playerIds passed in the message
+        - Allows the server side to control it, at the moment it's relying to DOM state, which is bad
+[ ] Admin allows people into the game
+[ ] Add basic security
+    - Can't pretend to be another player
+    - Generate ID server side
+        - Stored in JWT
+        - Only needed for HTTP requests
+
 [ ] Refactor game into aggregates
     - This thing is getting messy internally
     - I need to create aggregates for write operations
@@ -120,22 +135,15 @@
 
 [ ] Next round cannot start until everyone has put in the same amount
     - Or a player has put in all their chips
-[ ] Once you're out of a chips you're out of the game
-    - Only occurs at the end of a round
+
 [ ] Sub-streams of events for faster projections
     - Don't need all events to figure out the current hands, only events from this hand
 [ ] Write tests based on domain events
 [ ] Write broadcast events
     - Documentation only
     - Plan is to migrate to trigger broadcast on domain events
-[ ] Chips system
-    - Need a system to keep track of a players chips
-    - Give everyone 1000 chips on start
-    - Players bet chips on a hand
-    - Winner takes the pot
-    - Player is no longer dealt in when they have zero chips
 [ ] Player can buy back in to a game
-[ ] Add basic security
+
 [ ] Show winning hand title 
 [ ] Handle draws
 	- Currently defaults to the first handle winning
