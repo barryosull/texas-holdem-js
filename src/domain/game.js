@@ -17,30 +17,33 @@ var Game = function(id)
     this.deck = new DeckProjection(this);
 };
 
+Game.prototype.push = function(...args)
+{
+    this.events.push(...args);
+    for (var i = 0; i< arguments.length; i++) {
+        console.log(arguments[i]);
+    }
+};
+
 Game.prototype.addPlayer = function(playerId, name)
 {
-    this.events.push(
+    this.push(
         new events.PlayerNamed(playerId, name)
     );
 
-    var freeSeat = this.events.reduce((value, e) => {
-        if (e instanceof events.SeatTaken) {
-            return e.seat + 1;
-        }
-        return value;
-    }, 0);
+    var freeSeat = this.seats.getFreeSeat();
 
-    if (freeSeat >= 8) {
+    if (freeSeat == null) {
         console.log("All seats taken, no room for player " + playerId);
     }
 
-    this.events.push(new events.SeatTaken(freeSeat, playerId));
+    this.push(new events.SeatTaken(freeSeat, playerId));
 };
 
 Game.prototype.removePlayer = function(playerId)
 {
-    var seat = this.seats.getSeat(playerId);
-    this.events.push(new events.SeatEmptied(seat));
+    var seat = this.seats.getPlayersSeat(playerId);
+    this.push(new events.SeatEmptied(seat));
     return seat;
 };
 
@@ -50,11 +53,11 @@ Game.prototype.startNewRound = function()
 
     var dealer = this.seats.getNextDealer();
 
-    this.events.push(new events.RoundStarted(deckSeed, dealer));
+    this.push(new events.RoundStarted(deckSeed, dealer));
 
     this.seats.getActivePlayers().forEach(playerId => {
         var cards = this.deck.getCards(2);
-        this.events.push(new events.HandDealt(playerId, cards));
+        this.push(new events.HandDealt(playerId, cards));
     });
 };
 
@@ -69,14 +72,14 @@ Game.prototype.foldHand = function(playerId)
     if (!playerHand) {
         return;
     }
-    this.events.push(new events.HandFolded(playerId));
+    this.push(new events.HandFolded(playerId));
 };
 
 Game.prototype.dealFlop = function()
 {
     var cards = this.deck.getCards(3);
     var event = new events.FlopDealt(cards);
-    this.events.push(event);
+    this.push(event);
     return event;
 };
 
@@ -84,7 +87,7 @@ Game.prototype.dealTurn = function()
 {
     var card = this.deck.getCards(1)[0];
     var event = new events.TurnDealt(card);
-    this.events.push(event);
+    this.push(event);
     return event;
 };
 
@@ -92,7 +95,7 @@ Game.prototype.dealRiver = function()
 {
     var card = this.deck.getCards(1)[0];
     var event = new events.RiverDealt(card);
-    this.events.push(event);
+    this.push(event);
     return event;
 };
 
@@ -100,13 +103,13 @@ Game.prototype.announceWinner = function()
 {
     var winningHand = this.round.chooseWinningHand();
     var event = new events.HandWon(winningHand.playerId);
-    this.events.push(event);
+    this.push(event);
     return event;
 };
 
 Game.prototype.makeBet = function(playerId, amount)
 {
-    this.events.push(new events.BetMade(playerId, amount));
+    this.push(new events.BetMade(playerId, amount));
 };
 
 module.exports = Game;

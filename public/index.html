@@ -89,6 +89,7 @@ body {
 }
 
 .seat {
+    position: relative;
     float: left;
     width: 190px;
     height: 160px;
@@ -98,6 +99,20 @@ body {
 
 .seat.dealer {
     border: 1px dashed #fff;
+}
+
+.chips {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    padding: 2px;
+    border-radius: 10px;
+    color: #333;
+    background: #ffd742;
+    border: 1px solid #ffaa22;
+    line-height: 17px;
+    text-align: center;
+    min-width: 15px;
 }
 
 .name {
@@ -232,7 +247,8 @@ Controller.foldHand = function()
 
 Controller.makeBet = function()
 {
-    var amount = parseInt($('#amount').val());
+    var amountVal = $('#amount').val();
+    var amount = amountVal === "" ? 0 : parseInt($('#amount').val());
     Game.makeBet(Controller.playerId, amount);
 };
 
@@ -516,8 +532,9 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
-    var seat = $('#player-' +bet. playerId).parent('.seat').addClass('dealer');
-    seat.append('<div class=bet">' + bet.amount+ '</div>')
+    var $seat = $('#player-' +bet.playerId).parent('.seat').addClass('dealer');
+    $seat.find('.bet').remove();
+    $seat.append('<div class="chips">' + bet.amount+ '</div>')
 };
 
 var Bootstrap = {};
@@ -616,7 +633,7 @@ $(function()
     <div id="player-controls" class="controls" style="position: absolute; top: 212px; right: 30px;">
         <div class="title">Player</div>
         <button id="fold" disabled="disabled">Fold</button>
-        <div style="display: none;">
+        <div>
             <input type="number" id="amount" placeholder="20" style="font-size: 16px; width: 80px;">
             <button id="bet">Bet</button>
         </div>

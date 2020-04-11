@@ -1,64 +1,74 @@
 
-var Events = {};
-
-Events.PlayerNamed = function(playerId, name)
+function PlayerNamed(playerId, name)
 {
     this.playerId = playerId;
     this.name = name;
-};
+}
 
-Events.SeatTaken = function(seat, playerId)
+function SeatTaken(seat, playerId)
 {
     this.seat = seat;
     this.playerId = playerId;
-};
+}
 
-Events.SeatEmptied = function(seat)
+function SeatEmptied(seat)
 {
     this.seat = seat;
-};
+}
 
-Events.RoundStarted = function(deckSeed, dealer)
+function RoundStarted(deckSeed, dealer)
 {
     this.deckSeed = deckSeed;
     this.dealer = dealer;
-};
+}
 
-Events.HandDealt = function(playerId, cards)
+function HandDealt(playerId, cards)
 {
     this.playerId = playerId;
     this.cards = cards;
-};
+}
 
-Events.HandFolded = function(playerId)
+function HandFolded(playerId)
 {
     this.playerId = playerId;
-};
+}
 
-Events.FlopDealt = function(cards)
+function FlopDealt(cards)
 {
     this.cards = cards;
-};
+}
 
-Events.TurnDealt = function(card)
+function TurnDealt(card)
 {
     this.card = card;
-};
+}
 
-Events.RiverDealt = function(card)
+function RiverDealt(card)
 {
     this.card = card;
-};
+}
 
-Events.HandWon = function(playerId)
+function HandWon(playerId)
 {
     this.playerId = playerId;
-};
+}
 
-Events.BetMade = function(playerId, amount)
+function BetMade(playerId, amount)
 {
     this.playerId = playerId;
     this.amount = amount;
-};
+}
 
-module.exports = Events;
+module.exports = {
+    PlayerNamed,
+    SeatTaken,
+    SeatEmptied,
+    RoundStarted,
+    HandDealt,
+    HandFolded,
+    FlopDealt,
+    TurnDealt,
+    RiverDealt,
+    HandWon,
+    BetMade
+};

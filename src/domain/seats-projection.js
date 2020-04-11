@@ -2,6 +2,8 @@
 var Game = require('./game');
 var events = require('./events');
 
+const SEAT_COUNT = 8;
+
 /**
  * @param game {Game}
  */
@@ -10,7 +12,7 @@ var SeatsProjection = function(game)
     this.game = game;
 };
 
-SeatsProjection.prototype.getSeat = function(playerId)
+SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
     return this.game.events.reduce((seat, e) => {
         if (e instanceof events.SeatTaken) {
@@ -20,6 +22,17 @@ SeatsProjection.prototype.getSeat = function(playerId)
         }
         return seat;
     }, false);
+};
+
+SeatsProjection.prototype.getFreeSeat = function()
+{
+    var seatsToPlayers = mapSeatsToPlayerIds(this.game);
+    for (var seat = 0; seat < SEAT_COUNT; seat++) {
+        if (seatsToPlayers[seat] === undefined) {
+            return seat;
+        }
+    }
+    return null;
 };
 
 SeatsProjection.prototype.getActivePlayers = function()
@@ -42,7 +55,7 @@ function mapSeatsToPlayerIds(game)
     return seatsToPlayerIds;
 }
 
-SeatsProjection.prototype.getPlayer = function(seat)
+SeatsProjection.prototype.getPlayerInSeat = function(seat)
 {
     return this.game.events.reduce((playerId, e) => {
         if (e instanceof events.SeatTaken) {
@@ -51,7 +64,9 @@ SeatsProjection.prototype.getPlayer = function(seat)
             }
         }
         if (e instanceof events.SeatEmptied) {
-            return null;
+            if (e.seat === seat) {
+                return null;
+            }
         }
         return playerId;
     }, null);
@@ -60,8 +75,8 @@ SeatsProjection.prototype.getPlayer = function(seat)
 SeatsProjection.prototype.makeSeatsViewModel = function()
 {
     var viewModel = [];
-    for (var seat = 0; seat < 8; seat++) {
-        var playerId = this.getPlayer(seat);
+    for (var seat = 0; seat < SEAT_COUNT; seat++) {
+        var playerId = this.getPlayerInSeat(seat);
         viewModel.push({
             playerId: playerId,
             playerName: this.game.players.getPlayerName(playerId),
@@ -90,7 +105,7 @@ SeatsProjection.prototype.getNextDealer = function()
 
     var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
 
-    var seat = this.getSeat(currentDealer);
+    var seat = this.getPlayersSeat(currentDealer);
     var numberOfSeats = Object.keys(seatsToPlayerIds).length;
 
     for (var i = 0; i < numberOfSeats; i++) {

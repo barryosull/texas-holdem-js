@@ -75,8 +75,6 @@ Controller.addPlayer = function(addPlayer)
     var playerId = addPlayer.playerId;
     var playerName = addPlayer.playerName;
 
-    console.log('player "' + playerName + '" (' + playerId + ') connected');
-
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
     if (existingSocketId) {
@@ -90,14 +88,6 @@ Controller.addPlayer = function(addPlayer)
     game.addPlayer(playerId, playerName);
 
     Controller.io.emit('seatFilled', game.seats.makeSeatsViewModel());
-
-    if (!game.round) {
-        return;
-    }
-
-    var playerHand = game.round.getPlayerHand(playerId);
-
-    Controller.broadcastInProgressRound(socketId, playerHand, game.round.getCommunityCards());
 };
 
 Controller.broadcastInProgressRound = function(socketId, playerHand, communityCards)
@@ -129,8 +119,6 @@ Controller.removePlayer = function()
     var gameId = PlayerToGameMap.getGameIdForPlayer(playerId);
     var game = GameRepo.fetchOrCreate(gameId);
 
-    console.log('playerId ' + playerId + ' disconnected');
-
     var emptiedSeat = game.removePlayer(playerId);
 
     SocketsToPlayersMap.deassociate(socketId);
@@ -146,10 +134,6 @@ Controller.removePlayer = function()
         emptiedSeat: emptiedSeat,
     });
 
-    if (!game.round) {
-        return;
-    }
-
     var activeHands = game.round.activeHands();
     if (activeHands.length === 1) {
         Controller.io.emit('winnerByDefault', activeHands[0].playerId);
@@ -161,10 +145,6 @@ Controller.foldHand = function(req, res)
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
     var playerId = req.params.playerId;
-
-    if (!game.round) {
-        return;
-    }
 
     game.foldHand(playerId);
 
@@ -180,10 +160,8 @@ Controller.foldHand = function(req, res)
 
 Controller.makeBet = function(req, res)
 {
-    console.log(req.body);
-    var data = JSON.parse(req.body);
     var playerId = req.params.playerId;
-    var amount = data.amount;
+    var amount = parseInt(req.body.amount);
 
     var game = GameRepo.fetchOrCreate(req.params.gameId);
     game.makeBet(playerId, amount);

@@ -93,7 +93,12 @@
     - The file is getting quite large
 [x] Choose a dealer at the start of each round
     - Choose the next active player to the left of the current dealer
-[ ] Bet a sum of money into the pot
+[x] Bet a sum of money
+    - Display this to everyone
+    - Express JS does not come with request body parsing enabled by default
+        - Have to install middleware for this
+        - Really strange decision
+[ ] Chips are put into the pot once the next cards are placed
 [ ] Can only bet during a round of betting
 [ ] Next round cannot start until everyone has put in the same amount
 [ ] Players have chips, betting subtracts from chips
