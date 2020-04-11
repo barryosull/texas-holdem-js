@@ -114,8 +114,8 @@ body {
 
 .stack {
     position: absolute;
-    bottom: -10px;
-    left: -10px;
+    top: -10px;
+    right: -10px;
 }
 
 .bet, .pot {
@@ -282,6 +282,7 @@ Controller.joinGame = function(socket)
 
     View.hideCommunityCardsButtons();
     View.disableBetting();
+    View.emptyPot();
 };
 
 Controller.getPlayerId = function()
