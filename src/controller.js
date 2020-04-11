@@ -73,7 +73,6 @@ Controller.finish = function(req, res)
     var winningPlayerId = events[0].playerId;
     var winningHand = game.round.getPlayerHand(winningPlayerId);
     winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
-    console.log(winningHand);
     Controller.io.emit('winningHand', winningHand);
     res.send('');
 };
@@ -145,10 +144,7 @@ Controller.removePlayer = function()
         emptiedSeat: emptiedSeat,
     });
 
-    var activeHands = game.round.activeHands();
-    if (activeHands.length === 1) {
-        Controller.io.emit('winnerByDefault', activeHands[0].playerId);
-    }
+    checkForWinnerByDefault(game);
 };
 
 Controller.foldHand = function(req, res)
@@ -161,13 +157,20 @@ Controller.foldHand = function(req, res)
 
     Controller.io.emit('playerFolded', playerId);
 
-    var activeHands = game.round.activeHands();
-    if (activeHands.length === 1) {
-        Controller.io.emit('winnerByDefault', activeHands[0].playerId);
-    }
+    checkForWinnerByDefault(game);
 
     res.send('');
 };
+
+function checkForWinnerByDefault(game)
+{
+    var activeHands = game.round.activeHands();
+    if (activeHands.length === 1) {
+        var winningHand = activeHands[0];
+        winningHand.playerChips = game.seats.getPlayerChips(winningHand.playerId);
+        Controller.io.emit('winnerByDefault', winningHand);
+    }
+}
 
 Controller.makeBet = function(req, res)
 {

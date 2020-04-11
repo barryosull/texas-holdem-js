@@ -58,6 +58,12 @@ Game.prototype.removePlayer = function(playerId)
 {
     var seat = this.seats.getPlayersSeat(playerId);
     this.push(new events.SeatEmptied(seat));
+
+    var winnerByDefaultGand = getWinnerDyDefaultHand(this);
+    if (winnerByDefaultGand) {
+        announceWinner(this, winnerByDefaultGand);
+    }
+
     return seat;
 };
 
@@ -87,7 +93,30 @@ Game.prototype.foldHand = function(playerId)
         return;
     }
     this.push(new events.HandFolded(playerId));
+
+    var winnerByDefaultGand = getWinnerDyDefaultHand(this);
+    if (winnerByDefaultGand) {
+        return announceWinner(this, winnerByDefaultGand);
+    }
 };
+
+function getWinnerDyDefaultHand(game)
+{
+    var activeHands = game.round.activeHands();
+    if (activeHands.length > 1) {
+        return null;
+    }
+    return activeHands[0];
+}
+
+function announceWinner(game, winningHand)
+{
+    var handWonEvent = new events.HandWon(winningHand.playerId);
+    var pot = game.round.getPot();
+    var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
+    game.push(handWonEvent, playerGivenChipsEvent);
+    return [handWonEvent, playerGivenChipsEvent];
+}
 
 Game.prototype.dealFlop = function()
 {
@@ -116,12 +145,9 @@ Game.prototype.dealRiver = function()
 Game.prototype.announceWinner = function()
 {
     var winningHand = this.round.chooseWinningHand();
-    var handWonEvent = new events.HandWon(winningHand.playerId);
-    var pot = this.round.getPot();
-    var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
-    this.push(handWonEvent, playerGivenChipsEvent);
-    return [handWonEvent, playerGivenChipsEvent];
+    return announceWinner(this, winningHand);
 };
+
 
 Game.prototype.closeRoundOfBetting = function()
 {

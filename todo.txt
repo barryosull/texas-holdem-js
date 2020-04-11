@@ -102,9 +102,13 @@
 [x] Players have chips, betting subtracts from chips
 [x] Winner takes the pot
 [x] Can only bet the number of chips you currently have
-[ ] Hide deal button in middle of round
+[x] Hide deal button in middle of round
+[x] Can only bet during a round of betting
+    - Disable betting once a winner is announced
+    - Enable once the cards are dealt
+[x] WinningByDefault also results in winning chips
 [ ] Next round cannot start until everyone has put in the same amount
-[ ] Can only bet during a round of betting
+    - Or a player has put in all their chips
 [ ] Once you're out of a chips you're out of the game
     - Only occurs at the end of a round
 [ ] Sub-streams of events for faster projections
