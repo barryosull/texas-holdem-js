@@ -116,9 +116,11 @@ Game.prototype.dealRiver = function()
 Game.prototype.announceWinner = function()
 {
     var winningHand = this.round.chooseWinningHand();
-    var event = new events.HandWon(winningHand.playerId);
-    this.push(event);
-    return event;
+    var handWonEvent = new events.HandWon(winningHand.playerId);
+    var pot = this.round.getPot();
+    var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
+    this.push(handWonEvent, playerGivenChipsEvent);
+    return [handWonEvent, playerGivenChipsEvent];
 };
 
 Game.prototype.closeRoundOfBetting = function()

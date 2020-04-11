@@ -362,6 +362,8 @@ Controller.winningHand = function(hand)
     View.renderPlayerHand(hand);
     View.disableFoldButton();
     View.highlightWinner(hand.playerId);
+    View.updatePlayerStack(hand.playerId, hand.playerChips);
+    View.updatePot(0);
 };
 
 var View = {};
@@ -558,10 +560,16 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
-    var $seat = $('#player-' +bet.playerId).parent('.seat').addClass('dealer');
+    var $seat = $('#player-' + bet.playerId).parent('.seat').addClass('dealer');
     $seat.find('.stack').text(bet.remainingChips);
     $seat.find('.bet').remove();
     $seat.append('<div class="chips bet">' + bet.amount+ '</div>')
+};
+
+View.updatePlayerStack = function(playerId, chips)
+{
+    var $seat = $('#player-' + playerId).parent('.seat').addClass('dealer');
+    $seat.find('.stack').text(chips);
 };
 
 View.clearBets = function()
@@ -571,8 +579,13 @@ View.clearBets = function()
 
 View.updatePot = function(pot)
 {
+    var $pot = $('#pot');
+    if (pot === 0) {
+        $pot.hide();
+        return;
+    }
     View.clearBets();
-    $('#pot').text(pot);
+    $pot.show().text(pot);
 };
 
 

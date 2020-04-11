@@ -68,10 +68,13 @@ Controller.finish = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
     game.closeRoundOfBetting();
-    var event = game.announceWinner();
-    var winningHand = game.round.getPlayerHand(event.playerId);
+    var events = game.announceWinner();
+
+    var winningPlayerId = events[0].playerId;
+    var winningHand = game.round.getPlayerHand(winningPlayerId);
+    winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
+    console.log(winningHand);
     Controller.io.emit('winningHand', winningHand);
-    Controller.io.emit('pot', game.round.getPot());
     res.send('');
 };
 

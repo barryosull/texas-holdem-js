@@ -100,7 +100,9 @@
         - Really strange decision
 [x] Chips are put into the pot once the next cards are placed
 [x] Players have chips, betting subtracts from chips
-[ ] Winner takes the pot
+[x] Winner takes the pot
+
+[ ] Hide deal button in middle of round
 [ ] Next round cannot start until everyone has put in the same amount
 [ ] Can only bet during a round of betting
 [ ] Once you're out of a chips you're out of the game
