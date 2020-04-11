@@ -100,24 +100,6 @@ Controller.addPlayer = function(addPlayer)
     Controller.io.emit('seatFilled', game.seats.makeSeatsViewModel());
 };
 
-Controller.broadcastInProgressRound = function(socketId, playerHand, communityCards)
-{
-    if (playerHand) {
-        Controller.io.sockets.to(socketId).emit('roundStarted', playerHand);
-    }
-
-    var cards = communityCards;
-    if (cards.length > 2) {
-        Controller.io.sockets.to(socketId).emit('flop', [cards[0], cards[1], cards[2]]);
-    }
-    if (cards.length > 3) {
-        this.io.sockets.to(socketId).emit('turn', cards[3]);
-    }
-    if (cards.length > 4) {
-        Controller.io.sockets.to(socketId).emit('river', cards[4]);
-    }
-};
-
 Controller.removePlayer = function()
 {
     var socketId = this.id;
