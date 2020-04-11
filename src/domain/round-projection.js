@@ -94,6 +94,18 @@ RoundProjection.prototype.chooseWinningHand = function()
     return hands[winnerIndex];
 };
 
+RoundProjection.prototype.getPot = function()
+{
+    return this.game.events.reduce((pot, e) => {
+        if (e instanceof events.RoundStarted) {
+            return 0;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            return pot + e.amount;
+        }
+        return pot;
+    }, 0);
+};
 
 var PokerToolsAdapter = {};
 

@@ -59,6 +59,11 @@ function BetMade(playerId, amount)
     this.amount = amount;
 }
 
+function BettingRoundClosed(amount)
+{
+    this.amount = amount;
+}
+
 module.exports = {
     PlayerNamed,
     SeatTaken,
@@ -70,5 +75,6 @@ module.exports = {
     TurnDealt,
     RiverDealt,
     HandWon,
-    BetMade
+    BetMade,
+    BettingRoundClosed
 };

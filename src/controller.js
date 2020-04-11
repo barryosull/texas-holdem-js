@@ -32,9 +32,11 @@ Controller.dealFlop = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    game.closeRoundOfBetting();
     var event = game.dealFlop();
 
     Controller.io.emit('flop', event.cards);
+    Controller.io.emit('pot', game.round.getPot());
     res.send('');
 };
 
@@ -42,8 +44,10 @@ Controller.dealTurn = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    game.closeRoundOfBetting();
     var event = game.dealTurn();
     Controller.io.emit('turn', event.card);
+    Controller.io.emit('pot', game.round.getPot());
 
     res.send('');
 };
@@ -52,18 +56,22 @@ Controller.dealRiver = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    game.closeRoundOfBetting();
     var event = game.dealRiver();
 
     Controller.io.emit('river', event.card);
+    Controller.io.emit('pot', game.round.getPot());
     res.send('');
 };
 
 Controller.finish = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
+    game.closeRoundOfBetting();
     var event = game.announceWinner();
     var winningHand = game.round.getPlayerHand(event.playerId);
     Controller.io.emit('winningHand', winningHand);
+    Controller.io.emit('pot', game.round.getPot());
     res.send('');
 };
 

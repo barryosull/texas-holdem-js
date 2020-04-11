@@ -537,6 +537,18 @@ View.showBet = function(bet)
     $seat.append('<div class="chips">' + bet.amount+ '</div>')
 };
 
+View.clearBets = function()
+{
+    $('.seat .chips').remove();
+};
+
+View.updatePot = function(pot)
+{
+    View.clearBets();
+    $('#pot').text(pot);
+};
+
+
 var Bootstrap = {};
 
 Bootstrap.attachHtmlEventListeners = function()
@@ -586,6 +598,8 @@ Bootstrap.attachSocketEventListeners = function(socket)
 
     socket.on('betMade', View.showBet);
 
+    socket.on('pot', View.updatePot);
+
     socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
     });
@@ -623,6 +637,7 @@ $(function()
     <div style="margin: 20px auto; height: 150px; width: 480px; border: 1px solid #aaa; position: relative">
         <div style="z-index: 1; width: 460px; font-size: 45px; text-align: center; padding-top: 50px; font-family: 'Great Vibes', cursive; color: #5c8a38; position: absolute; top: 0; left: 0;">Texas Holdem</div>
         <div id="cards"></div>
+        <div id="pot" class="chips">0</div>
     </div>
 
     <div id="hands-5-to-8" style="width: 860px; margin: 20px auto;">

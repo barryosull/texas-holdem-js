@@ -107,6 +107,27 @@ Game.prototype.announceWinner = function()
     return event;
 };
 
+Game.prototype.closeRoundOfBetting = function()
+{
+    var amount = getAmountBetInBettingRound(this);
+    var event = new events.BettingRoundClosed(amount);
+    this.push(event);
+    return event;
+};
+
+var getAmountBetInBettingRound = function(game)
+{
+    return game.events.reduce((amount, e) => {
+        if (e instanceof events.BettingRoundClosed) {
+            return 0;
+        }
+        if (e instanceof events.BetMade) {
+            return amount + e.amount;
+        }
+        return amount;
+    }, 0);
+};
+
 Game.prototype.makeBet = function(playerId, amount)
 {
     this.push(new events.BetMade(playerId, amount));

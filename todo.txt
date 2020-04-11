@@ -98,11 +98,11 @@
     - Express JS does not come with request body parsing enabled by default
         - Have to install middleware for this
         - Really strange decision
-[ ] Chips are put into the pot once the next cards are placed
-[ ] Can only bet during a round of betting
+[x] Chips are put into the pot once the next cards are placed
 [ ] Next round cannot start until everyone has put in the same amount
 [ ] Players have chips, betting subtracts from chips
 [ ] Winner takes the pot
+[ ] Can only bet during a round of betting
 [ ] Once you're out of a chips you're out of the game
     - Only occurs at the end of a round
 [ ] Sub-streams of events for faster projections
@@ -123,5 +123,7 @@
 [ ] Handle draws
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
+[ ] Broadcast inprogress hand on refresh
+    - Old implementation was broken, so it's been deleted
 
 
