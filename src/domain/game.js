@@ -38,8 +38,21 @@ Game.prototype.addPlayer = function(playerId, name)
     }
 
     this.push(new events.SeatTaken(freeSeat, playerId));
-    this.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
+
+    if (isNewPlayer(this, playerId)) {
+        this.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
+    }
 };
+
+/**
+ * @param game {Game}
+ * @param playerId {string}
+ * @returns {boolean}
+ */
+function isNewPlayer(game, playerId)
+{
+    return game.seats.getPlayerChips(playerId) === 0;
+}
 
 Game.prototype.removePlayer = function(playerId)
 {

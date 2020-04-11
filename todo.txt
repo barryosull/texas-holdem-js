@@ -99,7 +99,7 @@
         - Have to install middleware for this
         - Really strange decision
 [x] Chips are put into the pot once the next cards are placed
-[ ] Players have chips, betting subtracts from chips
+[x] Players have chips, betting subtracts from chips
 [ ] Winner takes the pot
 [ ] Next round cannot start until everyone has put in the same amount
 [ ] Can only bet during a round of betting

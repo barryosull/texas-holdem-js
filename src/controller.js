@@ -173,8 +173,9 @@ Controller.makeBet = function(req, res)
 
     var game = GameRepo.fetchOrCreate(req.params.gameId);
     game.makeBet(playerId, amount);
+    var playerChips = game.seats.getPlayerChips(playerId);
 
-    Controller.io.emit('betMade', {playerId: playerId, amount: amount});
+    Controller.io.emit('betMade', {playerId: playerId, amount: amount, remainingChips: playerChips});
 
     res.send('');
 };
