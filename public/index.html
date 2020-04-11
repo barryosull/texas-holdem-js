@@ -573,7 +573,7 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
-    var $seat = $('#player-' + bet.playerId).parent('.seat').addClass('dealer');
+    var $seat = $('#player-' + bet.playerId).parent('.seat');
     $seat.find('.stack').text(bet.remainingChips);
     $seat.find('.bet').remove();
     $seat.append('<div class="chips bet">' + bet.total+ '</div>')
