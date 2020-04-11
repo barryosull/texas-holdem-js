@@ -106,7 +106,7 @@ SeatsProjection.prototype.getPlayerChips = function(playerId)
                 return chips + e.amount;
             }
         }
-        if (e instanceof events.BetMade) {
+        if (e instanceof events.BetPlaced) {
             if (e.playerId === playerId) {
                 return chips - e.amount;
             }

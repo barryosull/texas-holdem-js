@@ -26,7 +26,7 @@ function boot(app, io)
 
     app.post('/api/game/:gameId/fold/:playerId', Controller.foldHand);
 
-    app.post('/api/game/:gameId/bet/:playerId', Controller.makeBet);
+    app.post('/api/game/:gameId/bet/:playerId', Controller.placeBet);
 }
 
 module.exports = boot;

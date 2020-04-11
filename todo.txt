@@ -107,6 +107,18 @@
     - Disable betting once a winner is announced
     - Enable once the cards are dealt
 [x] WinningByDefault also results in winning chips
+[ ] Total player bet is shown, not the amount they just bet
+    - It currently shows the last amount bet, not the total bet in this round
+[ ] Pot is updated on bet, not on round completion
+    - There's currently a bug were you can only win a pot if a round of betting has finished
+    - This is a bit rubbish
+
+[ ] Refactor game into aggregates
+    - This thing is getting messy internally
+    - I need to create aggregates for write operations
+    - Query projections are not isolated, listening to too many events
+    - Have query projections that are only used external to the domain
+    
 [ ] Next round cannot start until everyone has put in the same amount
     - Or a player has put in all their chips
 [ ] Once you're out of a chips you're out of the game

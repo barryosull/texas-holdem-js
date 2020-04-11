@@ -82,6 +82,6 @@ module.exports = {
     RiverDealt,
     HandWon,
     PlayerGivenChips,
-    BetMade,
+    BetPlaced: BetMade,
     BettingRoundClosed
 };

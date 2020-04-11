@@ -253,7 +253,7 @@ Controller.foldHand = function()
     View.disableFoldButton();
 };
 
-Controller.makeBet = function()
+Controller.placeBet = function()
 {
     var amountVal = $('#amount').val();
     var amount = amountVal === "" ? 0 : parseInt($('#amount').val());
@@ -634,7 +634,7 @@ Bootstrap.attachHtmlEventListeners = function()
         Controller.foldHand();
     });
     $('#bet').click(function(){
-        Controller.makeBet();
+        Controller.placeBet();
     });
 };
 

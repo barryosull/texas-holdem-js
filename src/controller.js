@@ -154,13 +154,13 @@ function checkForWinnerByDefault(game)
     }
 }
 
-Controller.makeBet = function(req, res)
+Controller.placeBet = function(req, res)
 {
     var playerId = req.params.playerId;
     var amount = parseInt(req.body.amount);
 
     var game = GameRepo.fetchOrCreate(req.params.gameId);
-    var event = game.makeBet(playerId, amount);
+    var event = game.placeBet(playerId, amount);
     var playerChips = game.seats.getPlayerChips(playerId);
 
     Controller.io.emit('betMade', {playerId: playerId, amount: event.amount, remainingChips: playerChips});

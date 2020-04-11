@@ -163,18 +163,18 @@ var getAmountBetInBettingRound = function(game)
         if (e instanceof events.BettingRoundClosed) {
             return 0;
         }
-        if (e instanceof events.BetMade) {
+        if (e instanceof events.BetPlaced) {
             return amount + e.amount;
         }
         return amount;
     }, 0);
 };
 
-Game.prototype.makeBet = function(playerId, amount)
+Game.prototype.placeBet = function(playerId, amount)
 {
     var playerChips = this.seats.getPlayerChips(playerId);
     amount = (amount > playerChips) ? playerChips : amount;
-    var event = new events.BetMade(playerId, amount);
+    var event = new events.BetPlaced(playerId, amount);
     this.push(event);
     return event;
 };
