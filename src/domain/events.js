@@ -65,9 +65,9 @@ function BetMade(playerId, amount)
     this.amount = amount;
 }
 
-function BettingRoundClosed(amount)
+function BettingRoundClosed()
 {
-    this.amount = amount;
+
 }
 
 module.exports = {
