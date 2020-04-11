@@ -101,7 +101,7 @@
 [x] Chips are put into the pot once the next cards are placed
 [x] Players have chips, betting subtracts from chips
 [x] Winner takes the pot
-
+[x] Can only bet the number of chips you currently have
 [ ] Hide deal button in middle of round
 [ ] Next round cannot start until everyone has put in the same amount
 [ ] Can only bet during a round of betting

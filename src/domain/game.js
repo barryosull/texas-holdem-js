@@ -146,7 +146,11 @@ var getAmountBetInBettingRound = function(game)
 
 Game.prototype.makeBet = function(playerId, amount)
 {
-    this.push(new events.BetMade(playerId, amount));
+    var playerChips = this.seats.getPlayerChips(playerId);
+    amount = (amount > playerChips) ? playerChips : amount;
+    var event = new events.BetMade(playerId, amount);
+    this.push(event);
+    return event;
 };
 
 module.exports = Game;

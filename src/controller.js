@@ -175,10 +175,10 @@ Controller.makeBet = function(req, res)
     var amount = parseInt(req.body.amount);
 
     var game = GameRepo.fetchOrCreate(req.params.gameId);
-    game.makeBet(playerId, amount);
+    var event = game.makeBet(playerId, amount);
     var playerChips = game.seats.getPlayerChips(playerId);
 
-    Controller.io.emit('betMade', {playerId: playerId, amount: amount, remainingChips: playerChips});
+    Controller.io.emit('betMade', {playerId: playerId, amount: event.amount, remainingChips: playerChips});
 
     res.send('');
 };
