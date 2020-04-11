@@ -102,9 +102,6 @@ body {
 }
 
 .chips {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
     padding: 2px;
     border-radius: 10px;
     color: #333;
@@ -113,6 +110,18 @@ body {
     line-height: 17px;
     text-align: center;
     min-width: 15px;
+}
+
+.stack {
+    position: absolute;
+    bottom: -10px;
+    left: -10px;
+}
+
+.bet, .pot {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
 }
 
 .name {
@@ -362,44 +371,61 @@ View.renderSeats = function(seats, currentPlayerId)
     for (var index in seats) {
         var seat = seats[index];
         if (seat.playerId) {
-            View.renderSeat(seat.seat, seat.playerId, seat.playerName, currentPlayerId);
+            View.renderSeat(seat.seat, seat.playerId, seat.playerName, seat.chips, currentPlayerId);
         } else {
             View.renderEmptySeat(seat.seat);
         }
     }
 };
 
-View.renderSeat = function(seat, playerId, playerName, currentPlayerId)
+View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 {
     var title = "Seat " + (seat + 1) + ": " + playerName;
     if (playerId === currentPlayerId) {
         title = "<b>" + title + "</b>";
     }
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat'><div class='name'>" + title + "</div><span class='cards' id='player-" + playerId + "'></span></div>";
-
-    if ($(`#seat-${seat}`).length) {
-        $(`#seat-${seat}`).removeClass('empty');
-        $(`#seat-${seat} .name`).html(title);
-        $(`#seat-${seat} .cards`).attr('id', 'player-' + playerId);
-    } else {
-        View.getHandsDiv(seat).append(seatHtml);
+    var $seat = $(`#seat-${seat}`);
+    if ($seat.length) {
+        $seat.removeClass('empty');
+        $seat.find('.name').html(title);
+        $seat.find('.cards').attr('id', 'player-' + playerId);
+        $seat.removeClass('empty');
+        $seat.find('.stack').show().text(chips);
+        return;
     }
+
+    var seatHtml =
+        "<div id='seat-" + seat + "' class='seat'>" +
+            "<div class='name'>" + title + "</div>" +
+            "<span class='cards' id='player-" + playerId + "'></span>" +
+            "<span class='chips stack'>" + chips + "</span>" +
+        "</div>";
+
+    View.getHandsDiv(seat).append(seatHtml);
 };
 
 View.renderEmptySeat = function(seat)
 {
     var title = "Seat " + (seat + 1) + " (empty)";
 
-    var seatHtml = "<div id='seat-" + seat + "' class='seat empty'><div class='name'>" + title + "</div><span class='cards'></span></div>";
-
-    if ($(`#seat-${seat}`).length) {
-        $(`#seat-${seat}`).addClass('empty');
-        $(`#seat-${seat} .name`).html(title);
-        $(`#seat-${seat} .cards`).html('');
-    } else {
-        View.getHandsDiv(seat).append(seatHtml);
+    var $seat = $(`#seat-${seat}`);
+    if ($seat.length) {
+        $seat.addClass('empty');
+        $seat.find('.name').html(title);
+        $seat.find('.cards').html('');
+        $seat.find('.stack').hide();
+        return;
     }
+
+    var seatHtml =
+        "<div id='seat-" + seat + "' class='seat empty'>" +
+            "<div class='name'>" + title + "</div>" +
+            "<span class='cards'></span>" +
+            "<span class='chips stack' style='display: none'></span>" +
+        "</div>";
+
+    View.getHandsDiv(seat).append(seatHtml);
 };
 
 View.getHandsDiv = function(seat)
@@ -534,12 +560,12 @@ View.showBet = function(bet)
 {
     var $seat = $('#player-' +bet.playerId).parent('.seat').addClass('dealer');
     $seat.find('.bet').remove();
-    $seat.append('<div class="chips">' + bet.amount+ '</div>')
+    $seat.append('<div class="chips bet">' + bet.amount+ '</div>')
 };
 
 View.clearBets = function()
 {
-    $('.seat .chips').remove();
+    $('.seat .bet').remove();
 };
 
 View.updatePot = function(pot)
@@ -637,7 +663,7 @@ $(function()
     <div style="margin: 20px auto; height: 150px; width: 480px; border: 1px solid #aaa; position: relative">
         <div style="z-index: 1; width: 460px; font-size: 45px; text-align: center; padding-top: 50px; font-family: 'Great Vibes', cursive; color: #5c8a38; position: absolute; top: 0; left: 0;">Texas Holdem</div>
         <div id="cards"></div>
-        <div id="pot" class="chips">0</div>
+        <div id="pot" class="chips pot">0</div>
     </div>
 
     <div id="hands-5-to-8" style="width: 860px; margin: 20px auto;">

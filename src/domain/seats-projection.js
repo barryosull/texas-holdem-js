@@ -77,9 +77,11 @@ SeatsProjection.prototype.makeSeatsViewModel = function()
     var viewModel = [];
     for (var seat = 0; seat < SEAT_COUNT; seat++) {
         var playerId = this.getPlayerInSeat(seat);
+        var chips = this.getPlayerChips(playerId);
         viewModel.push({
             playerId: playerId,
             playerName: this.game.players.getPlayerName(playerId),
+            chips: chips,
             seat: seat
         });
     }
@@ -94,6 +96,23 @@ SeatsProjection.prototype.getDealer = function()
         }
         return value;
     }, null);
+};
+
+SeatsProjection.prototype.getPlayerChips = function(playerId)
+{
+    return this.game.events.reduce((chips, e) => {
+        if (e instanceof events.PlayerGivenChips) {
+            if (e.playerId === playerId) {
+                return chips + e.amount;
+            }
+        }
+        if (e instanceof events.BetMade) {
+            if (e.playerId === playerId) {
+                return chips - e.amount;
+            }
+        }
+        return chips;
+    }, 0);
 };
 
 SeatsProjection.prototype.getNextDealer = function()

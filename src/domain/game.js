@@ -25,11 +25,11 @@ Game.prototype.push = function(...args)
     }
 };
 
+const STARTING_CHIPS_COUNT = 1000;
+
 Game.prototype.addPlayer = function(playerId, name)
 {
-    this.push(
-        new events.PlayerNamed(playerId, name)
-    );
+    this.push(new events.PlayerNamed(playerId, name));
 
     var freeSeat = this.seats.getFreeSeat();
 
@@ -38,6 +38,7 @@ Game.prototype.addPlayer = function(playerId, name)
     }
 
     this.push(new events.SeatTaken(freeSeat, playerId));
+    this.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
 };
 
 Game.prototype.removePlayer = function(playerId)

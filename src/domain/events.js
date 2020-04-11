@@ -53,6 +53,12 @@ function HandWon(playerId)
     this.playerId = playerId;
 }
 
+function PlayerGivenChips(playerId, amount)
+{
+    this.playerId = playerId;
+    this.amount = amount;
+}
+
 function BetMade(playerId, amount)
 {
     this.playerId = playerId;
@@ -75,6 +81,7 @@ module.exports = {
     TurnDealt,
     RiverDealt,
     HandWon,
+    PlayerGivenChips,
     BetMade,
     BettingRoundClosed
 };
