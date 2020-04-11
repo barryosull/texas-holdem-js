@@ -100,7 +100,7 @@ RoundProjection.prototype.getPot = function()
         if (e instanceof events.RoundStarted) {
             return 0;
         }
-        if (e instanceof events.BettingRoundClosed) {
+        if (e instanceof events.BetPlaced) {
             return pot + e.amount;
         }
         return pot;
