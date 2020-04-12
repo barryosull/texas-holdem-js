@@ -126,7 +126,7 @@
 [x] Add basic security
     - Can't pretend to be another player
 [x] Only admin can deal cards
-[ ] Auto small/big blinds
+[x] Auto small/big blinds
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
         - Good enough for now
