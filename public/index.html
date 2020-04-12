@@ -184,7 +184,7 @@ Game.bootClient = function(gameId, socketId)
     Game.socketId = socketId;
 
     $.ajaxSetup({
-        beforeSend: function (xhr)
+        beforeSend: function(xhr)
         {
             xhr.setRequestHeader("Authorization", "Bearer " + socketId);
         }
@@ -297,6 +297,7 @@ Controller.placeBet = function()
     var amountVal = $('#amount').val();
     var amount = amountVal === "" ? 0 : parseInt($('#amount').val());
     Game.makeBet(Controller.playerId, amount);
+    $('#amount').val('');
 };
 
 Controller.joinGame = function()
