@@ -164,7 +164,36 @@ body {
  * Game interface, calls the HTTP API
  ************************************/
 var Game = {
-    gameId: null
+    gameId: null,
+    socketId: null
+};
+
+Game.bootClient = function(gameId, socketId)
+{
+    Game.gameId = gameId;
+    Game.socketId = socketId;
+
+    console.log(Game.socketId);
+
+    $.ajaxSetup({
+        beforeSend: function (xhr)
+        {
+            xhr.setRequestHeader("Authorization", "Bearer " + socketId);
+        }
+    });
+};
+
+Game.join = function(playerId, playerName)
+{
+    $.post(
+        "api/game/" + Game.gameId + "/join",
+        {
+            playerId: playerId,
+            playerName: playerName
+        },
+        d => {},
+        "json"
+    );
 };
 
 Game.dealHands = function()
@@ -201,7 +230,9 @@ Game.makeBet = function(playerId, amount)
 {
     $.post(
         "/api/game/" + Game.gameId + "/bet/" + playerId,
-        {amount: amount},
+        {
+            amount: amount
+        },
         d => {},
         "json"
     );
@@ -260,7 +291,7 @@ Controller.placeBet = function()
     Game.makeBet(Controller.playerId, amount);
 };
 
-Controller.joinGame = function(socket)
+Controller.joinGame = function()
 {
     var isValidName = false;
     var wantsToChangeName = Controller.wantsToChangeName();
@@ -276,9 +307,9 @@ Controller.joinGame = function(socket)
         alert("Name cannot be empty.")
     }
 
-    this.playerId = Controller.getPlayerId() ?? Controller.createPlayerId();
+    Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
-    socket.emit('newPlayer', {gameId: Game.gameId, playerId: this.playerId, playerName: playerName});
+    Game.join(Controller.playerId, playerName);
 
     View.hideCommunityCardsButtons();
     View.disableBetting();
@@ -305,7 +336,6 @@ Controller.isFirstPlayer = function(seats)
             return seat.playerId === Controller.playerId;
         }
     }
-
     return false;
 };
 
@@ -688,12 +718,15 @@ $(function()
 
     var socket = io(window.location.href);
 
-    Game.gameId = gameId;
+    socket.on('connect', function() {
 
-    Bootstrap.attachHtmlEventListeners();
-    Bootstrap.attachSocketEventListeners(socket);
+        Game.bootClient(gameId, socket.id);
 
-    Controller.joinGame(socket);
+        Bootstrap.attachHtmlEventListeners();
+        Bootstrap.attachSocketEventListeners(socket);
+
+        Controller.joinGame();
+    });
 });
 
 </script>

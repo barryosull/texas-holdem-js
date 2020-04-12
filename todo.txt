@@ -112,7 +112,7 @@
     - This is a bit rubbish
 [x] Show Total player bet, not the amount they just bet
     - It currently shows the last amount bet, not the total bet in this round
-[x] Once you're out of a chips you're out of the game
+[x] Once you're out of chips you're out of the game
     - Only occurs at the end of a round
     - Controls are disabled
     - Can only watch the current game
@@ -123,13 +123,12 @@
     - Hide bankrupted players on the next game start
     - Also bankrupt players when winning by default happens
 [x] Use rooms for each game, allows multiple games to work simultaneously
-[ ] Admin allows people into the game
-[ ] Player can buy back in to a game
-[ ] Add basic security
+[x] Add basic security
     - Can't pretend to be another player
-    - Generate ID server side
-        - Stored in JWT
-        - Only needed for HTTP requests
+[x] Only admin can deal cards
+[ ] Admin allows a player to buy back into the game
+    - 
+[ ] Admin allows people into the game
 
 [ ] Refactor game into aggregates
     - This thing is getting messy internally

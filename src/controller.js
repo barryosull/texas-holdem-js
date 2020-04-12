@@ -9,13 +9,13 @@ var Controller = {
     io: null
 };
 
-Controller.addPlayer = function(addPlayer)
+Controller.addPlayer = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(addPlayer.gameId);
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    var socketId = this.id;
-    var playerId = addPlayer.playerId;
-    var playerName = addPlayer.playerName;
+    var socketId = req.header('Authorization').replace("Bearer ", "");
+    var playerId = req.body.playerId;
+    var playerName = req.body.playerName;
 
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
@@ -25,11 +25,13 @@ Controller.addPlayer = function(addPlayer)
     }
 
     SocketsToPlayersMap.associate(socketId, playerId);
-    SocketsToGameMap.associate(socketId, addPlayer.gameId);
+    SocketsToGameMap.associate(socketId, game.id);
 
     game.addPlayer(playerId, playerName);
 
     Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
+
+    res.send('');
 };
 
 Controller.removePlayer = function()
@@ -65,6 +67,11 @@ Controller.dealCards = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('');
+        return;
+    }
+
     game.startNewRound();
 
     var players = game.seats.getPlayers();
@@ -91,9 +98,22 @@ Controller.dealCards = function(req, res)
     res.send('');
 };
 
+Controller.isGameAdmin = function(game, req)
+{
+    var socketId = req.header('Authorization').replace("Bearer ", "");
+    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
+
+    return game.seats.isAdmin(playerId);
+};
+
 Controller.dealFlop = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('');
+        return;
+    }
 
     game.closeRoundOfBetting();
     var event = game.dealFlop();
@@ -107,6 +127,11 @@ Controller.dealTurn = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('');
+        return;
+    }
+
     game.closeRoundOfBetting();
     var event = game.dealTurn();
     Controller.sendToEveryoneInGame(game.id, 'turn', event.card);
@@ -119,6 +144,11 @@ Controller.dealRiver = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('');
+        return;
+    }
+
     game.closeRoundOfBetting();
     var event = game.dealRiver();
 
@@ -130,6 +160,12 @@ Controller.dealRiver = function(req, res)
 Controller.finish = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('');
+        return;
+    }
+
     game.closeRoundOfBetting();
     var events = game.finish();
 
@@ -145,7 +181,8 @@ Controller.foldHand = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
-    var playerId = req.params.playerId;
+    var socketId = req.header('Authorization').replace("Bearer ", "");
+    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
 
     game.foldHand(playerId);
 
@@ -168,7 +205,8 @@ function checkForWinnerByDefault(game)
 
 Controller.placeBet = function(req, res)
 {
-    var playerId = req.params.playerId;
+    var socketId = req.header('Authorization').replace("Bearer ", "");
+    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
     var amount = parseInt(req.body.amount);
 
     var game = GameRepo.fetchOrCreate(req.params.gameId);

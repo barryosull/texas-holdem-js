@@ -14,6 +14,8 @@ function boot(app, io)
     // Serve public files
     app.use(express.static('public'));
 
+    app.post('/api/game/:gameId/join', Controller.addPlayer);
+
     app.post('/api/game/:gameId/deal', Controller.dealCards);
 
     app.post('/api/game/:gameId/flop', Controller.dealFlop);
