@@ -19,7 +19,7 @@ Controller.addPlayer = function(req, res)
 
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
-    if (existingSocketId) {
+    if (existingSocketId && existingSocketId !== socketId) {
         Controller.sendToPlayerInGame(playerId, 'existingSession');
         return;
     }
@@ -28,8 +28,6 @@ Controller.addPlayer = function(req, res)
     SocketsToGameMap.associate(socketId, game.id);
 
     game.addPlayer(playerId, playerName);
-
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
 
     res.send('');
 };

@@ -29,6 +29,11 @@ const STARTING_CHIPS_COUNT = 1000;
 
 Game.prototype.addPlayer = function(playerId, name)
 {
+    var seat = this.seats.getPlayersSeat(playerId);
+
+    if (seat !== false) {
+        return;
+    }
     this.push(new events.PlayerNamed(playerId, name));
 
     var freeSeat = this.seats.getFreeSeat();
