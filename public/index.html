@@ -386,7 +386,6 @@ Controller.seatEmptied = function(seats)
     if (Controller.isFirstPlayer(seats.seats)) {
         View.enableAdminControls();
     }
-    View.renderEmptySeat(seats.emptiedSeat);
 };
 
 Controller.roundStarted = function(round)

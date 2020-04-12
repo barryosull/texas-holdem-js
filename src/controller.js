@@ -72,6 +72,8 @@ Controller.dealCards = function(req, res)
         return;
     }
 
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
+
     game.startNewRound();
 
     var players = game.seats.getPlayers();
