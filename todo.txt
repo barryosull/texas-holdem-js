@@ -122,7 +122,9 @@
         - Allows the server side to control it, at the moment it's relying to DOM state, which is bad
     - Hide bankrupted players on the next game start
     - Also bankrupt players when winning by default happens
+[x] Use rooms for each game, allows multiple games to work simultaneously
 [ ] Admin allows people into the game
+[ ] Player can buy back in to a game
 [ ] Add basic security
     - Can't pretend to be another player
     - Generate ID server side
@@ -144,7 +146,7 @@
 [ ] Write broadcast events
     - Documentation only
     - Plan is to migrate to trigger broadcast on domain events
-[ ] Player can buy back in to a game
+
 
 [ ] Show winning hand title 
 [ ] Handle draws

@@ -680,13 +680,13 @@ Bootstrap.attachSocketEventListeners = function(socket)
 
 $(function()
 {
-    var socket = io();
-
     var gameId = Controller.getGameId();
     if (!gameId) {
         window.location.href = window.location.href + "?gameId=" + uuidv4();
         return;
     }
+
+    var socket = io(window.location.href);
 
     Game.gameId = gameId;
 
