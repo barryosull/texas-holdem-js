@@ -35,11 +35,31 @@ SeatsProjection.prototype.getFreeSeat = function()
     return null;
 };
 
+SeatsProjection.prototype.getPlayers = function()
+{
+    return Object.values(mapSeatsToPlayerIds(this.game));
+};
+
 SeatsProjection.prototype.getActivePlayers = function()
 {
-    var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
-    return Object.values(seatsToPlayerIds);
+    var playersInSeats = Object.values(mapSeatsToPlayerIds(this.game));
+    var bankruptedPlayersIds = bankruptedPlayers(this.game);
+
+    return playersInSeats.filter(playerId => {
+        return !bankruptedPlayersIds.includes(playerId)
+    });
 };
+
+function bankruptedPlayers(game)
+{
+    var playerIds = [];
+    game.events.forEach(e => {
+        if (e instanceof events.PlayerBankrupted) {
+            playerIds.push(e.playerId);
+        }
+    });
+    return playerIds;
+}
 
 function mapSeatsToPlayerIds(game)
 {
@@ -117,19 +137,20 @@ SeatsProjection.prototype.getPlayerChips = function(playerId)
 
 SeatsProjection.prototype.getNextDealer = function()
 {
-    var currentDealer = this.getDealer();
+    let currentDealer = this.getDealer();
+    var activePlayers = this.getActivePlayers();
     if (!currentDealer) {
-        return this.getActivePlayers()[0];
+        return activePlayers[0];
     }
 
     var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
 
     var seat = this.getPlayersSeat(currentDealer);
-    var numberOfSeats = Object.keys(seatsToPlayerIds).length;
 
-    for (var i = 0; i < numberOfSeats; i++) {
-        var nextSeat = ((seat + 1) + i)%numberOfSeats;
-        if (seatsToPlayerIds[nextSeat]) {
+    for (let i = 0; i < SEAT_COUNT; i++) {
+        let nextSeat = ((seat + 1) + i) % SEAT_COUNT;
+        let playerId = seatsToPlayerIds[nextSeat];
+        if (playerId && activePlayers.indexOf(playerId) !== -1) {
             return seatsToPlayerIds[nextSeat];
         }
     }

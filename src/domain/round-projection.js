@@ -11,7 +11,7 @@ var RoundProjection = function(game)
     this.game = game;
 };
 
-RoundProjection.prototype.hands = function()
+RoundProjection.prototype.getHands = function()
 {
     var hands = {};
     this.game.events.forEach(e => {
@@ -36,14 +36,14 @@ RoundProjection.prototype.hands = function()
 
 RoundProjection.prototype.activeHands = function()
 {
-    return this.hands().filter(hand => {
+    return this.getHands().filter(hand => {
         return !hand.hasFolded;
     });
 };
 
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
-    return this.hands().filter(hand => {
+    return this.getHands().filter(hand => {
         return hand.playerId === playerId;
     }).pop();
 };
@@ -127,7 +127,9 @@ RoundProjection.prototype.getPlayersBankrupedInRound = function()
 {
     var playersToChips = {};
     this.game.events.forEach(e => {
+
         if (e instanceof events.PlayerGivenChips) {
+            playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
         }
         if (e instanceof events.BetPlaced) {
@@ -136,7 +138,9 @@ RoundProjection.prototype.getPlayersBankrupedInRound = function()
         if (e instanceof events.PlayerBankrupted) {
             delete playersToChips[e.playerId];
         }
-    }, 0);
+    });
+
+    console.log(playersToChips);
 
     var bankruptPlayers = [];
     Object.keys(playersToChips).forEach(playerId => {
@@ -169,19 +173,19 @@ PokerToolsAdapter.convertToPokerToolsString = function(cards)
     return convertedCards.join("");
 };
 
-RoundProjection.prototype.losersInLastRound = function()
+RoundProjection.prototype.bankruptedInLastRound = function()
 {
-    var losers = {};
-    this.game.forEach(e => {
-        if (e instanceof events.PlayerBankrupted) {
-            losers[e.playerId] = true;
-        }
+    var bankrupted = {};
+    this.game.events.forEach(e => {
         if (e instanceof events.HandWon) {
-            losers = {};
+            bankrupted = {};
+        }
+        if (e instanceof events.PlayerBankrupted) {
+            bankrupted[e.playerId] = true;
         }
     });
 
-    return Object.keys(losers);
+    return Object.keys(bankrupted);
 };
 
 PokerToolsAdapter.isFaceCard = function(number)

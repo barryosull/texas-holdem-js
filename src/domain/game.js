@@ -61,7 +61,7 @@ Game.prototype.removePlayer = function(playerId)
 
     var winnerByDefaultGand = getWinnerDyDefaultHand(this);
     if (winnerByDefaultGand) {
-        announceWinner(this, winnerByDefaultGand);
+        winRound(this, winnerByDefaultGand);
     }
 
     return seat;
@@ -96,7 +96,8 @@ Game.prototype.foldHand = function(playerId)
 
     var winnerByDefaultGand = getWinnerDyDefaultHand(this);
     if (winnerByDefaultGand) {
-        return announceWinner(this, winnerByDefaultGand);
+        winRound(this, winnerByDefaultGand);
+        this.bankruptPlayersWithNoChips();
     }
 };
 
@@ -109,7 +110,7 @@ function getWinnerDyDefaultHand(game)
     return activeHands[0];
 }
 
-function announceWinner(game, winningHand)
+function winRound(game, winningHand)
 {
     var handWonEvent = new events.HandWon(winningHand.playerId);
     var pot = game.round.getPot();
@@ -142,13 +143,15 @@ Game.prototype.dealRiver = function()
     return event;
 };
 
-Game.prototype.announceWinner = function()
+Game.prototype.finish = function()
 {
     var winningHand = this.round.chooseWinningHand();
-    return announceWinner(this, winningHand);
+    var winnerEvents = winRound(this, winningHand);
+    this.bankruptPlayersWithNoChips();
+    return winnerEvents;
 };
 
-Game.prototype.announceLosers = function()
+Game.prototype.bankruptPlayersWithNoChips = function()
 {
     this.round.getPlayersBankrupedInRound().forEach(playerId => {
         this.push(new events.PlayerBankrupted(playerId));

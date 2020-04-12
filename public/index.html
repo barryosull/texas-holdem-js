@@ -345,9 +345,12 @@ Controller.seatEmptied = function(seats)
 Controller.roundStarted = function(round)
 {
     View.clearTable();
-    View.renderDownFacingHands();
+    View.renderDownFacingHands(round.activePlayers);
+    View.removeCards(round.bankruptedPlayers);
     View.enableFoldButton();
-    View.renderPlayerHand(round.hand);
+    if (round.hand) {
+        View.renderPlayerHand(round.hand);
+    }
     View.highlightDealer(round.dealer);
     View.enableBetting();
 };
@@ -371,15 +374,6 @@ Controller.winningHand = function(hand)
     View.emptyPot();
     View.disableBetting();
     View.showDealButton();
-};
-
-Controller.disableLosers = function(losers)
-{
-    losers.forEach(playerId => {
-        if (Controller.playerId === playerId) {
-
-        }
-    });
 };
 
 var View = {};
@@ -460,6 +454,13 @@ View.renderPlayerHand = function(hand)
     $('#player-' + hand.playerId).html(handHtml);
 };
 
+View.removeCards = function(playerIds)
+{
+    playerIds.map(playerId => {
+        $('#player-' + playerId + ' .card').remove();
+    });
+};
+
 View.foldPlayerHand = function(playerId)
 {
     $('#player-' + playerId + ' .card').each(function(){
@@ -467,11 +468,11 @@ View.foldPlayerHand = function(playerId)
     });
 };
 
-View.renderDownFacingHands = function()
+View.renderDownFacingHands = function(playerIds)
 {
-    $('.seat:not(.empty) .cards').each(function(){
+    playerIds.map(playerId => {
         var hand = [View.renderDownFacingCard(), View.renderDownFacingCard()];
-        $(this).html(hand);
+        $('#player-' + playerId).html(hand);
     });
 };
 
@@ -671,8 +672,6 @@ Bootstrap.attachSocketEventListeners = function(socket)
     socket.on('betMade', View.showBet);
 
     socket.on('pot', View.updatePot);
-
-    socket.on('losers', Controller.disableLosers);
 
     socket.on('existingSession', function(){
         alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");

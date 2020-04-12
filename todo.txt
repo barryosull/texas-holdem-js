@@ -112,7 +112,7 @@
     - This is a bit rubbish
 [x] Show Total player bet, not the amount they just bet
     - It currently shows the last amount bet, not the total bet in this round
-[ ] Once you're out of a chips you're out of the game
+[x] Once you're out of a chips you're out of the game
     - Only occurs at the end of a round
     - Controls are disabled
     - Can only watch the current game
@@ -120,6 +120,8 @@
     - At the HTML level, figuring out what this looks like there
         - Rendering facedown cards should be done based on playerIds passed in the message
         - Allows the server side to control it, at the moment it's relying to DOM state, which is bad
+    - Hide bankrupted players on the next game start
+    - Also bankrupt players when winning by default happens
 [ ] Admin allows people into the game
 [ ] Add basic security
     - Can't pretend to be another player

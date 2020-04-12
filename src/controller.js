@@ -15,13 +15,26 @@ Controller.dealCards = function(req, res)
 
     game.startNewRound();
 
+    var players = game.seats.getPlayers();
     var dealer = game.seats.getDealer();
 
-    game.round.hands().forEach(hand => {
-        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(hand.playerId);
+    var playersToHands = game.round.getHands().reduce((map, hand) => {
+        map[hand.playerId] = hand;
+        return map;
+    }, {});
+
+    var activePlayers = Object.keys(playersToHands);
+    var bankruptedPlayers = game.round.bankruptedInLastRound();
+
+    players.forEach(playerId => {
+        var socketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
+        var hand = playersToHands[playerId];
+
         Controller.io.sockets.to(socketId).emit('roundStarted', {
             hand: hand,
-            dealer: dealer
+            dealer: dealer,
+            activePlayers: activePlayers,
+            bankruptedPlayers: bankruptedPlayers
         });
     });
 
@@ -68,18 +81,12 @@ Controller.finish = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
     game.closeRoundOfBetting();
-    var events = game.announceWinner();
-    game.announceLosers();
+    var events = game.finish();
 
     var winningPlayerId = events[0].playerId;
     var winningHand = game.round.getPlayerHand(winningPlayerId);
     winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
     Controller.io.emit('winningHand', winningHand);
-
-    var losers = game.round.losersInLastRound();
-    if (losers.length > 0) {
-        Controller.io.emit('losers', losers);
-    }
 
     res.send('');
 };

@@ -72,7 +72,7 @@ function BettingRoundClosed()
 
 function PlayerBankrupted(playerId)
 {
-    this.playerId;
+    this.playerId = playerId;
 }
 
 module.exports = {
