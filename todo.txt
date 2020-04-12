@@ -130,7 +130,8 @@
 [x] Clear betting input after bet
 [x] Fix bug with number of chips displayed
     - Fold causing that issue
-[ ] Fix bug when person joins it resets the current game
+[x] Do not allow negative bets
+[ ] Fix bug when person joins or refreshes it resets the current game
 
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode

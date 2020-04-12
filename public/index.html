@@ -90,11 +90,18 @@ body {
 
 .seat {
     position: relative;
-    float: left;
-    width: 190px;
+    width: 193px;
     height: 160px;
     border: 1px solid #aaa;
     margin: 0 10px;
+}
+
+#hands-1-to-4 .seat {
+    float: left;
+}
+
+#hands-5-to-8 .seat {
+    float: right;
 }
 
 .seat .dealer {
@@ -323,6 +330,7 @@ Controller.joinGame = function()
     View.hideCommunityCardsButtons();
     View.disableBetting();
     View.emptyPot();
+    View.showDealButton();
 };
 
 Controller.getPlayerId = function()
@@ -569,7 +577,6 @@ View.highlightDealer = function(playerId)
 View.enableAdminControls = function()
 {
     $("#admin-controls").show();
-    View.showDealButton();
 };
 
 View.disableAdminControls = function()
@@ -624,10 +631,11 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
+    var betTotal = bet.total === 0 ? "check" : bet.total;
     var $seat = $('#player-' + bet.playerId).parent('.seat');
     $seat.find('.stack').text(bet.remainingChips);
     $seat.find('.bet').remove();
-    $seat.append('<div class="chips bet">' + bet.total+ '</div>')
+    $seat.append('<div class="chips bet">' + betTotal + '</div>')
 };
 
 View.updatePlayerStack = function(playerId, chips)
@@ -765,7 +773,7 @@ $(function()
         <div class="title">Player</div>
         <button id="fold" disabled="disabled">Fold</button>
         <div>
-            <input type="number" id="amount" placeholder="20" style="font-size: 16px; width: 80px;">
+            <input type="number" id="amount" placeholder="check" style="font-size: 16px; width: 80px;">
             <button id="bet">Bet</button>
         </div>
     </div>
