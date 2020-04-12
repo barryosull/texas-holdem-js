@@ -97,6 +97,9 @@ RoundProjection.prototype.chooseWinningHand = function()
 RoundProjection.prototype.getPot = function()
 {
     return this.game.events.reduce((pot, e) => {
+        if (e instanceof events.HandWon) {
+            return 0;
+        }
         if (e instanceof events.RoundStarted) {
             return 0;
         }
@@ -111,6 +114,9 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
 {
     return this.game.events.reduce((bet, e) => {
         if (e instanceof events.BettingRoundClosed) {
+            return 0;
+        }
+        if (e instanceof events.HandWon) {
             return 0;
         }
         if (e instanceof events.BetPlaced) {

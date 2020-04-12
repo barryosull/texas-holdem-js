@@ -128,8 +128,9 @@
 [x] Only admin can deal cards
 [x] Auto small/big blinds
 [x] Clear betting input after bet
+[x] Fix bug with number of chips displayed
+    - Fold causing that issue
 [ ] Fix bug when person joins it resets the current game
-[ ] Fix bug with number of chips displayed
 
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
