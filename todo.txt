@@ -127,7 +127,6 @@
     - Can't pretend to be another player
 [x] Only admin can deal cards
 [ ] Admin allows a player to buy back into the game
-    - 
 [ ] Admin allows people into the game
 
 [ ] Refactor game into aggregates

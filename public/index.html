@@ -97,8 +97,18 @@ body {
     margin: 0 10px;
 }
 
-.seat.dealer {
-    border: 1px dashed #fff;
+.seat .dealer {
+    display: inline-block;
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    color: #000;
+    background-color: #ff8e4d;
+    border-radius: 10px;
+    border: 1px solid #ff553a;
+    line-height: 17px;
+    text-align: center;
+    min-width: 15px;
 }
 
 .chips {
@@ -552,8 +562,9 @@ View.highlightWinner = function(playerId)
 
 View.highlightDealer = function(playerId)
 {
-    $('.dealer').removeClass('dealer');
-    $('#player-' + playerId).parent('.seat').addClass('dealer');
+    $('.dealer').remove();
+    var dealerHtml = "<div class='dealer'>D</div>";
+    $('#player-' + playerId).parent('.seat').append(dealerHtml);
 };
 
 View.enableAdminControls = function()
