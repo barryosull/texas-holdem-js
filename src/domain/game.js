@@ -71,9 +71,13 @@ Game.prototype.startNewRound = function()
 {
     var deckSeed = Math.random().toString(36);
 
-    var dealer = this.seats.getNextDealer();
+    var players = this.seats.getNextThreePlayersAfterDealer();
 
-    this.push(new events.RoundStarted(deckSeed, dealer));
+    var dealer = players[0],
+        smallBlind = players[1],
+        bigBlind = players[2];
+
+    this.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
     this.seats.getActivePlayers().forEach(playerId => {
         var cards = this.deck.getCards(2);

@@ -183,8 +183,6 @@ Game.bootClient = function(gameId, socketId)
     Game.gameId = gameId;
     Game.socketId = socketId;
 
-    console.log(Game.socketId);
-
     $.ajaxSetup({
         beforeSend: function (xhr)
         {

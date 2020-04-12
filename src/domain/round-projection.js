@@ -140,8 +140,6 @@ RoundProjection.prototype.getPlayersBankrupedInRound = function()
         }
     });
 
-    console.log(playersToChips);
-
     var bankruptPlayers = [];
     Object.keys(playersToChips).forEach(playerId => {
         if (playersToChips[playerId] === 0) {

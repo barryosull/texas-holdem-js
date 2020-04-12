@@ -16,10 +16,12 @@ function SeatEmptied(seat)
     this.seat = seat;
 }
 
-function RoundStarted(deckSeed, dealer)
+function RoundStarted(deckSeed, dealer, smallBlind, bigBlind)
 {
     this.deckSeed = deckSeed;
     this.dealer = dealer;
+    this.smallBlind = smallBlind;
+    this.bigBlind = bigBlind;
 }
 
 function HandDealt(playerId, cards)

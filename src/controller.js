@@ -75,7 +75,7 @@ Controller.dealCards = function(req, res)
     game.startNewRound();
 
     var players = game.seats.getPlayers();
-    var dealer = game.seats.getDealer();
+    var roundStarted = game.seats.getRoundStarted();
 
     var playersToHands = game.round.getHands().reduce((map, hand) => {
         map[hand.playerId] = hand;
@@ -89,11 +89,16 @@ Controller.dealCards = function(req, res)
         var hand = playersToHands[playerId];
         Controller.sendToPlayerInGame(playerId, 'roundStarted', {
             hand: hand,
-            dealer: dealer,
+            dealer: roundStarted.dealer,
             activePlayers: activePlayers,
             bankruptedPlayers: bankruptedPlayers
         });
     });
+
+    var smallBlind = 20;
+    var bigBlind = 40;
+    placeBet(game, roundStarted.smallBlind, smallBlind);
+    placeBet(game, roundStarted.bigBlind, bigBlind);
 
     res.send('');
 };
@@ -205,11 +210,19 @@ function checkForWinnerByDefault(game)
 
 Controller.placeBet = function(req, res)
 {
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
     var socketId = req.header('Authorization').replace("Bearer ", "");
     var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
     var amount = parseInt(req.body.amount);
 
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    placeBet(game, playerId, amount);
+
+    res.send('');
+};
+
+function placeBet(game, playerId, amount)
+{
     game.placeBet(playerId, amount);
     var playerChips = game.seats.getPlayerChips(playerId);
     var amountBetInBettingRound = game.round.getPlayerBet(playerId);
@@ -219,9 +232,7 @@ Controller.placeBet = function(req, res)
         total: amountBetInBettingRound,
         remainingChips: playerChips
     });
-
-    res.send('');
-};
+}
 
 Controller.sendToEveryoneInGame = function(gameId, type, message)
 {

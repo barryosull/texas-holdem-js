@@ -121,11 +121,11 @@ SeatsProjection.prototype.makeSeatsViewModel = function()
     return viewModel;
 };
 
-SeatsProjection.prototype.getDealer = function()
+SeatsProjection.prototype.getRoundStarted = function()
 {
     return this.game.events.reduce((value, e) => {
         if (e instanceof events.RoundStarted) {
-            return e.dealer;
+            return e;
         }
         return value;
     }, null);
@@ -148,25 +148,37 @@ SeatsProjection.prototype.getPlayerChips = function(playerId)
     }, 0);
 };
 
-SeatsProjection.prototype.getNextDealer = function()
+SeatsProjection.prototype.getNextThreePlayersAfterDealer = function()
 {
-    let currentDealer = this.getDealer();
+    let lastRound = this.getRoundStarted();
     var activePlayers = this.getActivePlayers();
-    if (!currentDealer) {
-        return activePlayers[0];
+    var seat = -1;
+    if (lastRound) {
+        seat = this.getPlayersSeat(lastRound.dealer);
     }
 
     var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
 
-    var seat = this.getPlayersSeat(currentDealer);
+    var nextDealerSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat);
+    var smallBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, nextDealerSeat);
+    var bigBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, smallBlindSeat);
 
+    return [
+        seatsToPlayerIds[nextDealerSeat],
+        seatsToPlayerIds[smallBlindSeat],
+        seatsToPlayerIds[bigBlindSeat],
+    ];
+};
+
+function getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat)
+{
     for (let i = 0; i < SEAT_COUNT; i++) {
         let nextSeat = ((seat + 1) + i) % SEAT_COUNT;
         let playerId = seatsToPlayerIds[nextSeat];
         if (playerId && activePlayers.indexOf(playerId) !== -1) {
-            return seatsToPlayerIds[nextSeat];
+            return nextSeat;
         }
     }
-};
+}
 
 module.exports = SeatsProjection;

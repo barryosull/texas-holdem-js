@@ -126,9 +126,12 @@
 [x] Add basic security
     - Can't pretend to be another player
 [x] Only admin can deal cards
+[ ] Auto small/big blinds
 [ ] Admin allows a player to buy back into the game
+    - Workaround is to leave the game and rejoin in incognito mode
+        - Good enough for now
 [ ] Admin allows people into the game
-
+    - Not need for Beta
 [ ] Refactor game into aggregates
     - This thing is getting messy internally
     - I need to create aggregates for write operations
