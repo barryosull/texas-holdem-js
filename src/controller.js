@@ -95,10 +95,12 @@ Controller.dealCards = function(req, res)
         });
     });
 
+    /*
     var smallBlind = 20;
     var bigBlind = 40;
     placeBet(game, roundStarted.smallBlind, smallBlind);
     placeBet(game, roundStarted.bigBlind, bigBlind);
+    */
 
     res.send('');
 };
