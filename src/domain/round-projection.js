@@ -94,6 +94,16 @@ RoundProjection.prototype.chooseWinningHand = function()
     return hands[winnerIndex];
 };
 
+RoundProjection.prototype.getWinner = function()
+{
+    return this.game.events.reduce((playerId, e) => {
+        if (e instanceof events.HandWon) {
+            return e.playerId;
+        }
+        return playerId;
+    }, null);
+};
+
 RoundProjection.prototype.getPot = function()
 {
     return this.game.events.reduce((pot, e) => {

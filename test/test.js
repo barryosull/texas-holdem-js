@@ -66,7 +66,7 @@ describe('Game', () => {
         var events = game.finish();
 
         // Player A wins
-        var winningPlayer = events[0].playerId;
+        var winningPlayer = game.round.getWinner();
         var winningHand = game.round.getPlayerHand(winningPlayer);
         assert.equal(playerA, winningPlayer);
         assert.deepEqual(playerAHand, winningHand);
@@ -96,8 +96,10 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         // Player A wins by default
+        var winningPlayer = game.round.getWinner();
         var playerAChips = game.seats.getPlayerChips(playerA);
         var playerBChips = game.seats.getPlayerChips(playerB);
+        assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
     });
@@ -120,8 +122,10 @@ describe('Game', () => {
         game.removePlayer(playerB);
 
         // Player A wins by default
+        var winningPlayer = game.round.getWinner();
         var playerAChips = game.seats.getPlayerChips(playerA);
         var playerBChips = game.seats.getPlayerChips(playerB);
+        assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
     });
