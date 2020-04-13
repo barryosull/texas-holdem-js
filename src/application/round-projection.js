@@ -13,8 +13,7 @@ var RoundProjection = function(game)
 
 RoundProjection.prototype.getHands = function()
 {
-    var hands = {};
-    this.game.events.forEach(e => {
+    let hands = this.game.events.reduce((hands, e) => {
         if (e instanceof events.HandDealt) {
             hands[e.playerId] = {
                 playerId: e.playerId,
@@ -25,22 +24,10 @@ RoundProjection.prototype.getHands = function()
         if (e instanceof events.HandFolded) {
             hands[e.playerId].hasFolded = true;
         }
-    });
+        return hands;
+    }, {});
 
-    var seatsProjection = new SeatsProjection(this.game);
-
-    var activePlayers = seatsProjection.getActivePlayers();
-
-    return Object.values(hands).filter(hand => {
-        return activePlayers.indexOf(hand.playerId) !== -1;
-    });
-};
-
-RoundProjection.prototype.activeHands = function()
-{
-    return this.getHands().filter(hand => {
-        return !hand.hasFolded;
-    });
+    return Object.values(hands);
 };
 
 RoundProjection.prototype.getPlayerHand = function(playerId)
@@ -78,6 +65,9 @@ RoundProjection.prototype.getCommunityCards = function()
 RoundProjection.prototype.getWinner = function()
 {
     return this.game.events.reduce((playerId, e) => {
+        if (e instanceof events.RoundStarted) {
+            return null;
+        }
         if (e instanceof events.HandWon) {
             return e.playerId;
         }

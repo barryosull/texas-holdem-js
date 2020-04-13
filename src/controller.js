@@ -246,14 +246,13 @@ function checkForWinnerByDefault(game)
 {
     var roundProjection = new RoundProjection(game);
 
-    var activeHands = roundProjection.activeHands();
-    if (activeHands.length !== 1) {
+    var winningHand = roundProjection.getWinner();
+    if (!winningHand) {
         return;
     }
 
     var chipsProjection = new ChipsProjection(game);
 
-    var winningHand = activeHands[0];
     winningHand.playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
     Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
 

@@ -56,14 +56,13 @@ Game.prototype.addPlayer = function(playerId, name)
  */
 function isNewPlayer(game, playerId)
 {
-    var chipsProjection = new ChipsProjection(this);
+    var chipsProjection = new ChipsProjection(game);
     return chipsProjection.getPlayerChips(playerId) === 0;
 }
 
 Game.prototype.removePlayer = function(playerId)
 {
     var seatsProjection = new SeatsProjection(this);
-
 
     var seat = seatsProjection.getPlayersSeat(playerId);
 

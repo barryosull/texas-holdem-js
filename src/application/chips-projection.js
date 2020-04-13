@@ -2,7 +2,6 @@
 var Game = require('../domain/game');
 var events = require('../domain/events');
 
-
 /**
  * @param game {Game}
  */
