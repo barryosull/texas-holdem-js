@@ -80,9 +80,9 @@ Game.prototype.removePlayer = function(playerId)
     return seat;
 };
 
-Game.prototype.startNewRound = function()
+Game.prototype.startNewRound = function(deckSeed)
 {
-    var deckSeed = Math.random().toString(36);
+    deckSeed = deckSeed || Math.random().toString(36);
 
     var players = this.seats.getNextThreePlayersAfterDealer();
 
@@ -138,6 +138,8 @@ function winRound(game, winningHand)
 
 Game.prototype.dealFlop = function()
 {
+    this.closeRoundOfBetting();
+
     var cards = this.deck.getCards(3);
     var event = new events.FlopDealt(cards);
     this.push(event);
@@ -146,6 +148,8 @@ Game.prototype.dealFlop = function()
 
 Game.prototype.dealTurn = function()
 {
+    this.closeRoundOfBetting();
+
     var card = this.deck.getCards(1)[0];
     var event = new events.TurnDealt(card);
     this.push(event);
@@ -154,6 +158,8 @@ Game.prototype.dealTurn = function()
 
 Game.prototype.dealRiver = function()
 {
+    this.closeRoundOfBetting();
+
     var card = this.deck.getCards(1)[0];
     var event = new events.RiverDealt(card);
     this.push(event);
@@ -162,6 +168,8 @@ Game.prototype.dealRiver = function()
 
 Game.prototype.finish = function()
 {
+    this.closeRoundOfBetting();
+
     var winningHand = this.round.chooseWinningHand();
     var winnerEvents = winRound(this, winningHand);
     this.bankruptPlayersWithNoChips();

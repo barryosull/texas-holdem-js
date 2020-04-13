@@ -33,4 +33,48 @@ describe('Game', () => {
 
         assert.deepEqual([playerA], players);
     });
+
+    it ('players can play a game of poker', () => {
+        let game = makeGame();
+        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
+        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
+        game.addPlayer(playerA, "Name A");
+        game.addPlayer(playerB, "Name B");
+
+        game.startNewRound('test-seed');
+
+        var playerAHand = game.round.getPlayerHand(playerA);
+
+        game.placeBet(playerA, 40);
+        game.placeBet(playerB, 40);
+
+        game.dealFlop();
+
+        game.placeBet(playerA, 0);
+        game.placeBet(playerB, 0);
+
+        game.dealTurn();
+
+        game.placeBet(playerA, 80);
+        game.placeBet(playerB, 80);
+
+        game.dealRiver();
+
+        game.placeBet(playerA, 40);
+        game.placeBet(playerB, 40);
+
+        var events = game.finish();
+
+        // Player A wins
+        var winningPlayer = events[0].playerId;
+        var winningHand = game.round.getPlayerHand(winningPlayer);
+        assert.equal(playerA, winningPlayer);
+        assert.deepEqual(playerAHand, winningHand);
+
+        // Winner gets chips
+        var playerAChips = game.seats.getPlayerChips(playerA);
+        var playerBChips = game.seats.getPlayerChips(playerB);
+        assert.equal(1160, playerAChips);
+        assert.equal(840, playerBChips);
+    });
 });

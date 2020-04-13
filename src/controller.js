@@ -122,7 +122,6 @@ Controller.dealFlop = function(req, res)
         return;
     }
 
-    game.closeRoundOfBetting();
     var event = game.dealFlop();
 
     Controller.sendToEveryoneInGame(game.id, 'flop', event.cards);
@@ -139,7 +138,6 @@ Controller.dealTurn = function(req, res)
         return;
     }
 
-    game.closeRoundOfBetting();
     var event = game.dealTurn();
     Controller.sendToEveryoneInGame(game.id, 'turn', event.card);
     Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
@@ -156,7 +154,6 @@ Controller.dealRiver = function(req, res)
         return;
     }
 
-    game.closeRoundOfBetting();
     var event = game.dealRiver();
 
     Controller.sendToEveryoneInGame(game.id, 'river', event.card);
@@ -173,7 +170,6 @@ Controller.finish = function(req, res)
         return;
     }
 
-    game.closeRoundOfBetting();
     var events = game.finish();
 
     var winningPlayerId = events[0].playerId;
