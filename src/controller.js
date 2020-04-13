@@ -45,19 +45,18 @@ Controller.removePlayer = function()
     var gameId = SocketsToGameMap.getGameIdForSocket(socketId);
     var game = GameRepo.fetchOrCreate(gameId);
 
-    var emptiedSeat = game.removePlayer(playerId);
+    game.removePlayer(playerId);
 
     SocketsToPlayersMap.deassociate(socketId);
     SocketsToGameMap.deassociate(socketId);
 
-    if (!game.hasPlayers()) {
+    if (!game.seats.hasPlayers()) {
         GameRepo.remove(game);
         return;
     }
 
     Controller.sendToEveryoneInGame(game.id, 'seatEmptied', {
         seats: game.seats.makeSeatsViewModel(),
-        emptiedSeat: emptiedSeat,
     });
 
     checkForWinnerByDefault(game);
@@ -122,9 +121,11 @@ Controller.dealFlop = function(req, res)
         return;
     }
 
-    var event = game.dealFlop();
+    game.dealFlop();
 
-    Controller.sendToEveryoneInGame(game.id, 'flop', event.cards);
+    var flop = game.round.getCommunityCards().slice(0, 3);
+
+    Controller.sendToEveryoneInGame(game.id, 'flop', flop);
     Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
     res.send('');
 };
@@ -138,8 +139,11 @@ Controller.dealTurn = function(req, res)
         return;
     }
 
-    var event = game.dealTurn();
-    Controller.sendToEveryoneInGame(game.id, 'turn', event.card);
+    game.dealTurn();
+
+    var turn = game.round.getCommunityCards().slice(-1).pop();
+
+    Controller.sendToEveryoneInGame(game.id, 'turn', turn);
     Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
 
     res.send('');
@@ -154,9 +158,11 @@ Controller.dealRiver = function(req, res)
         return;
     }
 
-    var event = game.dealRiver();
+    game.dealRiver();
 
-    Controller.sendToEveryoneInGame(game.id, 'river', event.card);
+    var river = game.round.getCommunityCards().slice(-1).pop();
+
+    Controller.sendToEveryoneInGame(game.id, 'river', river);
     Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
     res.send('');
 };

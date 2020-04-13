@@ -35,6 +35,11 @@ SeatsProjection.prototype.getFreeSeat = function()
     return null;
 };
 
+SeatsProjection.prototype.hasPlayers = function()
+{
+    return this.getActivePlayers().length !== 0;
+};
+
 SeatsProjection.prototype.isAdmin = function(playerId)
 {
     var seatsToPlayers = mapSeatsToPlayerIds(this.game);
