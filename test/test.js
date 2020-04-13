@@ -1,7 +1,8 @@
 
 var assert = require('assert');
 var Game = require('../src/domain/game');
-var SeatsProjection1 = require('../src/application/seats-projection-1');
+var SeatsProjection = require('../src/application/seats-projection');
+var RoundProjection = require('../src/application/round-projection');
 
 function makeGame()
 {
@@ -18,7 +19,7 @@ describe('Game', () => {
         game.addPlayer(playerA, "Name");
         game.addPlayer(playerB, "Name");
 
-        var players = (new SeatsProjection1(game)).getPlayers();
+        var players = (new SeatsProjection(game)).getPlayers();
 
         assert.deepEqual([playerA, playerB], players);
     });
@@ -30,7 +31,7 @@ describe('Game', () => {
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
 
-        var players = (new SeatsProjection1(game)).getPlayers();
+        var players = (new SeatsProjection(game)).getPlayers();
 
         assert.deepEqual([playerA], players);
     });
@@ -44,7 +45,7 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        var playerAHand = game.round.getPlayerHand(playerA);
+        var playerAHand = (new RoundProjection(game)).getPlayerHand(playerA);
 
         game.placeBet(playerA, 40);
         game.placeBet(playerB, 40);
@@ -67,14 +68,14 @@ describe('Game', () => {
         game.finish();
 
         // Player A wins
-        var winningPlayer = game.round.getWinner();
-        var winningHand = game.round.getPlayerHand(winningPlayer);
+        var winningPlayer = (new RoundProjection(game)).getWinner();
+        var winningHand = (new RoundProjection(game)).getPlayerHand(winningPlayer);
         assert.equal(playerA, winningPlayer);
         assert.deepEqual(playerAHand, winningHand);
 
         // Winner gets chips
-        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
+        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
         assert.equal(1160, playerAChips);
         assert.equal(840, playerBChips);
     });
@@ -97,9 +98,9 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         // Player A wins by default
-        var winningPlayer = game.round.getWinner();
-        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
+        var winningPlayer = (new RoundProjection(game)).getWinner();
+        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -123,9 +124,9 @@ describe('Game', () => {
         game.removePlayer(playerB);
 
         // Player A wins by default
-        var winningPlayer = game.round.getWinner();
-        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
+        var winningPlayer = (new RoundProjection(game)).getWinner();
+        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);

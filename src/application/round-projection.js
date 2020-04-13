@@ -1,7 +1,6 @@
 
-var Game = require('./game');
-var events = require('./events');
-var pokerTools = require('poker-tools');
+var Game = require('../domain/game');
+var events = require('../domain/events');
 
 /**
  * @param game {Game}
@@ -73,27 +72,6 @@ RoundProjection.prototype.getCommunityCards = function()
     });
 };
 
-RoundProjection.prototype.chooseWinningHand = function()
-{
-    var hands = this.activeHands();
-    var communityCards = this.getCommunityCards();
-
-    var pokerToolsHands = hands.map(hand => {
-        return pokerTools.CardGroup.fromString(
-            PokerToolsAdapter.convertToPokerToolsString(hand.cards)
-        );
-    });
-    var board = pokerTools.CardGroup.fromString(
-        PokerToolsAdapter.convertToPokerToolsString(communityCards)
-    );
-
-    const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
-
-    var winnerIndex = result[0][0].index;
-
-    return hands[winnerIndex];
-};
-
 RoundProjection.prototype.getWinner = function()
 {
     return this.game.events.reduce((playerId, e) => {
@@ -120,57 +98,37 @@ RoundProjection.prototype.getPot = function()
     }, 0);
 };
 
-RoundProjection.prototype.getPlayersBankrupedInRound = function()
+RoundProjection.prototype.getPlayerBet = function(playerId)
 {
-    var playersToChips = {};
-    this.game.events.forEach(e => {
-
-        if (e instanceof events.PlayerGivenChips) {
-            playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
-            playersToChips[e.playerId] += e.amount;
+    return this.game.events.reduce((bet, e) => {
+        if (e instanceof events.BettingRoundClosed) {
+            return 0;
+        }
+        if (e instanceof events.HandWon) {
+            return 0;
         }
         if (e instanceof events.BetPlaced) {
-            playersToChips[e.playerId] -= e.amount;
+            if (e.playerId === playerId) {
+                return bet + e.amount;
+            }
+        }
+        return bet;
+    }, 0);
+};
+
+RoundProjection.prototype.bankruptedInLastRound = function()
+{
+    var bankrupted = {};
+    this.game.events.forEach(e => {
+        if (e instanceof events.HandWon) {
+            bankrupted = {};
         }
         if (e instanceof events.PlayerBankrupted) {
-            delete playersToChips[e.playerId];
+            bankrupted[e.playerId] = true;
         }
     });
 
-    var bankruptPlayers = [];
-    Object.keys(playersToChips).forEach(playerId => {
-        if (playersToChips[playerId] === 0) {
-            bankruptPlayers.push(playerId);
-        }
-    });
-
-    return bankruptPlayers;
-};
-
-var PokerToolsAdapter = {};
-
-PokerToolsAdapter.convertToPokerToolsString = function(cards)
-{
-    var convertedCards = cards.map(card => {
-        var parts = card.split('_of_');
-        var number = parts[0];
-        if (number === "10") {
-            number = "T";
-        }
-        if (PokerToolsAdapter.isFaceCard(number)) {
-            number = number.charAt(0);
-        }
-
-        var suit = parts[1].charAt(0);
-        return number.toUpperCase().concat(suit);
-    });
-
-    return convertedCards.join("");
-};
-
-PokerToolsAdapter.isFaceCard = function(number)
-{
-    return number.length > 2;
+    return Object.keys(bankrupted);
 };
 
 module.exports = RoundProjection;

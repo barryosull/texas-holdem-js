@@ -2,6 +2,7 @@
 var Server = require('socket.io');
 var GameRepo = require('./domain/game-repository');
 var SeatsProjection = require('./application/seats-projection');
+var RoundProjection = require('./application/round-projection');
 
 /**
  * @type {{io: Server}}
@@ -77,6 +78,7 @@ Controller.dealCards = function(req, res)
     }
 
     var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
 
     Controller.sendToEveryoneInGame(game.id, 'seatFilled', seatsProjection.makeSeatsViewModel());
 
@@ -85,13 +87,13 @@ Controller.dealCards = function(req, res)
     var players = seatsProjection.getPlayers();
     var roundStarted = seatsProjection.getRoundStarted();
 
-    var playersToHands = game.round.getHands().reduce((map, hand) => {
+    var playersToHands = roundProjection.getHands().reduce((map, hand) => {
         map[hand.playerId] = hand;
         return map;
     }, {});
 
     var activePlayers = Object.keys(playersToHands);
-    var bankruptedPlayers = game.round.bankruptedInLastRound();
+    var bankruptedPlayers = roundProjection.bankruptedInLastRound();
 
     players.forEach(playerId => {
         var hand = playersToHands[playerId];
@@ -132,10 +134,12 @@ Controller.dealFlop = function(req, res)
 
     game.dealFlop();
 
-    var flop = game.round.getCommunityCards().slice(0, 3);
+    var roundProjection = new RoundProjection(game);
+
+    var flop = roundProjection.getCommunityCards().slice(0, 3);
 
     Controller.sendToEveryoneInGame(game.id, 'flop', flop);
-    Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
     res.send('');
 };
 
@@ -150,10 +154,12 @@ Controller.dealTurn = function(req, res)
 
     game.dealTurn();
 
-    var turn = game.round.getCommunityCards().slice(-1).pop();
+    var roundProjection = new RoundProjection(game);
+
+    var turn = roundProjection.getCommunityCards().slice(-1).pop();
 
     Controller.sendToEveryoneInGame(game.id, 'turn', turn);
-    Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
 
     res.send('');
 };
@@ -169,10 +175,12 @@ Controller.dealRiver = function(req, res)
 
     game.dealRiver();
 
-    var river = game.round.getCommunityCards().slice(-1).pop();
+    var roundProjection = new RoundProjection(game);
+
+    var river = roundProjection.getCommunityCards().slice(-1).pop();
 
     Controller.sendToEveryoneInGame(game.id, 'river', river);
-    Controller.sendToEveryoneInGame(game.id, 'pot', game.round.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
     res.send('');
 };
 
@@ -188,9 +196,10 @@ Controller.finish = function(req, res)
     game.finish();
 
     var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
 
-    var winningPlayerId = game.round.getWinner();
-    var winningHand = game.round.getPlayerHand(winningPlayerId);
+    var winningPlayerId = roundProjection.getWinner();
+    var winningHand = roundProjection.getPlayerHand(winningPlayerId);
     winningHand.playerChips = seatsProjection.getPlayerChips(winningPlayerId);
     Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);
 
@@ -215,7 +224,9 @@ Controller.foldHand = function(req, res)
 
 function checkForWinnerByDefault(game)
 {
-    var activeHands = game.round.activeHands();
+    var roundProjection = new RoundProjection(game);
+
+    var activeHands = roundProjection.activeHands();
     if (activeHands.length !== 1) {
         return;
     }
@@ -246,9 +257,10 @@ function placeBet(game, playerId, amount)
     game.placeBet(playerId, amount);
 
     var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
 
     var playerChips = seatsProjection.getPlayerChips(playerId);
-    var amountBetInBettingRound = game.round.getPlayerBet(playerId);
+    var amountBetInBettingRound = roundProjection.getPlayerBet(playerId);
 
     Controller.sendToEveryoneInGame(game.id, 'betMade', {
         playerId: playerId,
