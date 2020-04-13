@@ -38,27 +38,21 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 
 RoundProjection.prototype.getCommunityCards = function()
 {
-    var flop = [], turn = null, river = null;
-    this.game.events.forEach(e => {
+    return this.game.events.reduce((cards, e) => {
         if (e instanceof events.FlopDealt) {
-            flop = e.cards;
+            cards = e.cards;
         }
         if (e instanceof events.TurnDealt) {
-            turn = e.card;
+            cards.push(e.card);
         }
         if (e instanceof events.RiverDealt) {
-            river = e.card;
+            cards.push(e.card);
         }
         if (e instanceof events.RoundStarted) {
-            flop = [], turn = null, river = null;
+            cards = [];
         }
-    });
-
-    var cards = flop.concat([turn, river]);
-
-    return cards.filter(card => {
-        return card != null;
-    });
+        return cards;
+    }, []);
 };
 
 RoundProjection.prototype.chooseWinningHand = function()
@@ -117,10 +111,9 @@ RoundProjection.prototype.getPot = function()
     }, 0);
 };
 
-RoundProjection.prototype.getPlayersBankrupedInRound = function()
+RoundProjection.prototype.getPlayersBankruptedInRound = function()
 {
-    var playersToChips = {};
-    this.game.events.forEach(e => {
+    let playersToChips = this.game.events.reduce((playersToChips, e) => {
 
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
@@ -132,16 +125,15 @@ RoundProjection.prototype.getPlayersBankrupedInRound = function()
         if (e instanceof events.PlayerBankrupted) {
             delete playersToChips[e.playerId];
         }
-    });
+        return playersToChips;
+    }, {});
 
-    var bankruptPlayers = [];
-    Object.keys(playersToChips).forEach(playerId => {
+    return Object.keys(playersToChips).reduce((bankruptPlayers, playerId) => {
         if (playersToChips[playerId] === 0) {
             bankruptPlayers.push(playerId);
         }
-    });
-
-    return bankruptPlayers;
+        return bankruptPlayers;
+    }, []);
 };
 
 var PokerToolsAdapter = {};

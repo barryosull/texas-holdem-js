@@ -14,28 +14,28 @@ var DeckProjection = function(game)
 DeckProjection.prototype.getCards = function(number)
 {
     var seed = 0;
-    var carsdDealt = 0;
 
-    this.game.events.forEach(e => {
+    let cardsDealt = this.game.events.reduce((cardsDealt, e) => {
         if (e instanceof events.RoundStarted) {
             seed = e.deckSeed;
-            carsdDealt = 0;
+            cardsDealt = 0;
         }
         if (e instanceof events.HandDealt) {
-            carsdDealt += 2;
+            cardsDealt += 2;
         }
         if (e instanceof events.FlopDealt) {
-            carsdDealt += 3;
+            cardsDealt += 3;
         }
         if (e instanceof events.TurnDealt) {
-            carsdDealt += 1;
+            cardsDealt += 1;
         }
         if (e instanceof events.RiverDealt) {
-            carsdDealt += 1;
+            cardsDealt += 1;
         }
-    });
+        return cardsDealt;
+    }, 0);
 
-    var deck = Deck.makeNew(seed).burnCards(carsdDealt);
+    var deck = Deck.makeNew(seed).burnCards(cardsDealt);
 
     return deck.getCards(number);
 };

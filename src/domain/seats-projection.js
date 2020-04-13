@@ -48,27 +48,25 @@ SeatsProjection.prototype.getActivePlayers = function()
 
 function bankruptedPlayers(game)
 {
-    var playerIds = [];
-    game.events.forEach(e => {
+    return game.events.reduce((playerIds, e) => {
         if (e instanceof events.PlayerBankrupted) {
             playerIds.push(e.playerId);
         }
-    });
-    return playerIds;
+        return playerIds;
+    }, []);
 }
 
 function mapSeatsToPlayerIds(game)
 {
-    var seatsToPlayerIds = {};
-    game.events.forEach(e => {
+    return game.events.reduce((seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }
         if (e instanceof events.SeatEmptied) {
             delete seatsToPlayerIds[e.seat];
         }
-    });
-    return seatsToPlayerIds;
+        return seatsToPlayerIds;
+    }, {});
 }
 
 SeatsProjection.prototype.getRoundStarted = function()

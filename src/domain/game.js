@@ -170,7 +170,7 @@ Game.prototype.bankruptPlayersWithNoChips = function()
 {
     var roundProjection = new RoundProjection(this);
 
-    roundProjection.getPlayersBankrupedInRound().forEach(playerId => {
+    roundProjection.getPlayersBankruptedInRound().forEach(playerId => {
         this.push(new events.PlayerBankrupted(playerId));
     });
 };

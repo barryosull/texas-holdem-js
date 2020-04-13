@@ -52,7 +52,7 @@ function bankruptedPlayers(game)
             playerIds.push(e.playerId);
         }
         return playerIds;
-    });
+    }, []);
 }
 
 function mapSeatsToPlayerIds(game)
