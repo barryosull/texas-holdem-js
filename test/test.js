@@ -63,7 +63,7 @@ describe('Game', () => {
         game.placeBet(playerA, 40);
         game.placeBet(playerB, 40);
 
-        var events = game.finish();
+        game.finish();
 
         // Player A wins
         var winningPlayer = game.round.getWinner();

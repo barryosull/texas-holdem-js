@@ -170,9 +170,9 @@ Controller.finish = function(req, res)
         return;
     }
 
-    var events = game.finish();
+    game.finish();
 
-    var winningPlayerId = events[0].playerId;
+    var winningPlayerId = game.round.getWinner();
     var winningHand = game.round.getPlayerHand(winningPlayerId);
     winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
     Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);

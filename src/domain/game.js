@@ -133,7 +133,6 @@ function winRound(game, winningHand)
     var pot = game.round.getPot();
     var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
     game.push(handWonEvent, playerGivenChipsEvent);
-    return [handWonEvent, playerGivenChipsEvent];
 }
 
 Game.prototype.dealFlop = function()
@@ -169,11 +168,9 @@ Game.prototype.dealRiver = function()
 Game.prototype.finish = function()
 {
     this.closeRoundOfBetting();
-
     var winningHand = this.round.chooseWinningHand();
-    var winnerEvents = winRound(this, winningHand);
+    winRound(this, winningHand);
     this.bankruptPlayersWithNoChips();
-    return winnerEvents;
 };
 
 Game.prototype.bankruptPlayersWithNoChips = function()
