@@ -105,10 +105,8 @@ Controller.dealCards = function(req, res)
         });
     });
 
-    var smallBlind = 20;
-    var bigBlind = 40;
-    placeBet(game, roundStarted.smallBlind, smallBlind);
-    placeBet(game, roundStarted.bigBlind, bigBlind);
+    broadcastBet(game, roundStarted.smallBlind);
+    broadcastBet(game, roundStarted.bigBlind);
 
     res.send('');
 };
@@ -247,15 +245,15 @@ Controller.placeBet = function(req, res)
     var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
     var amount = parseInt(req.body.amount);
 
-    placeBet(game, playerId, amount);
+    game.placeBet(playerId, amount);
+
+    broadcastBet(game, playerId);
 
     res.send('');
 };
 
-function placeBet(game, playerId, amount)
+function broadcastBet(game, playerId)
 {
-    game.placeBet(playerId, amount);
-
     var seatsProjection = new SeatsProjection(game);
     var roundProjection = new RoundProjection(game);
 

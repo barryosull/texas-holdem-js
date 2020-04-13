@@ -94,6 +94,9 @@ Game.prototype.startNewRound = function(deckSeed)
         var cards = this.deck.getCards(2);
         this.push(new events.HandDealt(playerId, cards));
     });
+
+    this.placeBet(smallBlind, 20);
+    this.placeBet(bigBlind, 40);
 };
 
 Game.prototype.foldHand = function(playerId)
