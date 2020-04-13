@@ -1,9 +1,9 @@
 
 var events = require('./events');
 var SeatsProjection = require('./seats-projection');
-var PlayersProjection = require('./players-projection');
 var RoundProjection = require('./round-projection');
 var DeckProjection = require('./deck-projection');
+var ChipsProjection = require('./chips-projection');
 
 var Game = function(id, eventLogger)
 {
@@ -14,9 +14,9 @@ var Game = function(id, eventLogger)
 
     // Projections
     this.seats = new SeatsProjection(this);
-    this.players = new PlayersProjection(this);
     this.round = new RoundProjection(this);
     this.deck = new DeckProjection(this);
+    this.chips = new ChipsProjection(this);
 };
 
 Game.prototype.push = function(...args)
@@ -43,6 +43,7 @@ Game.prototype.addPlayer = function(playerId, name)
 
     if (freeSeat == null) {
         console.log("All seats taken, no room for player " + playerId);
+        return;
     }
 
     this.push(new events.SeatTaken(freeSeat, playerId));
@@ -59,7 +60,7 @@ Game.prototype.addPlayer = function(playerId, name)
  */
 function isNewPlayer(game, playerId)
 {
-    return game.seats.getPlayerChips(playerId) === 0;
+    return game.chips.getPlayerChips(playerId) === 0;
 }
 
 Game.prototype.removePlayer = function(playerId)
@@ -177,7 +178,7 @@ Game.prototype.closeRoundOfBetting = function()
 
 Game.prototype.placeBet = function(playerId, amount)
 {
-    var playerChips = this.seats.getPlayerChips(playerId);
+    var playerChips = this.chips.getPlayerChips(playerId);
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;
     this.push(new events.BetPlaced(playerId, amount));

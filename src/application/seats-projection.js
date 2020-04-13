@@ -2,7 +2,7 @@
 var Game = require('./../domain/game');
 var events = require('./../domain/events');
 
-const SEAT_COUNT = 8;
+var SEAT_COUNT = 8;
 
 /**
  * @param game {Game}
@@ -85,22 +85,6 @@ SeatsProjection.prototype.getPlayerInSeat = function(seat)
         }
         return playerId;
     }, null);
-};
-
-SeatsProjection.prototype.makeSeatsViewModel = function()
-{
-    var viewModel = [];
-    for (var seat = 0; seat < SEAT_COUNT; seat++) {
-        var playerId = this.getPlayerInSeat(seat);
-        var chips = this.getPlayerChips(playerId);
-        viewModel.push({
-            playerId: playerId,
-            playerName: this.game.players.getPlayerName(playerId),
-            chips: chips,
-            seat: seat
-        });
-    }
-    return viewModel;
 };
 
 SeatsProjection.prototype.getRoundStarted = function()

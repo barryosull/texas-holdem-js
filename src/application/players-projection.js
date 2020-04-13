@@ -1,6 +1,6 @@
 
-var Game = require('./game');
-var events = require('./events');
+var Game = require('../domain/game');
+var events = require('../domain/events');
 
 /**
  * @param game {Game}

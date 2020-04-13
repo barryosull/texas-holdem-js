@@ -2,7 +2,7 @@
 var Game = require('./game');
 var events = require('./events');
 
-const SEAT_COUNT = 8;
+var SEAT_COUNT = 8;
 
 /**
  * @param game {Game}
@@ -27,6 +27,7 @@ SeatsProjection.prototype.getPlayersSeat = function(playerId)
 SeatsProjection.prototype.getFreeSeat = function()
 {
     var seatsToPlayers = mapSeatsToPlayerIds(this.game);
+
     for (var seat = 0; seat < SEAT_COUNT; seat++) {
         if (seatsToPlayers[seat] === undefined) {
             return seat;

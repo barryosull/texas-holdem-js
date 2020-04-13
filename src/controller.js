@@ -3,6 +3,10 @@ var Server = require('socket.io');
 var GameRepo = require('./domain/game-repository');
 var SeatsProjection = require('./application/seats-projection');
 var RoundProjection = require('./application/round-projection');
+var ChipsProjection = require('./application/chips-projection');
+var PlayersProjection = require('./application/players-projection');
+
+var SEAT_COUNT = 8;
 
 /**
  * @type {{io: Server}}
@@ -31,11 +35,29 @@ Controller.addPlayer = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
-    var seatsProjection = new SeatsProjection(game);
-
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', seatsProjection.makeSeatsViewModel());
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', Controller.makeSeatsViewModel(game));
 
     res.send('');
+};
+
+Controller.makeSeatsViewModel = function(game)
+{
+    var seatsProjection = new SeatsProjection(game);
+    var chipsProjection = new ChipsProjection(game);
+    var playersProjection = new PlayersProjection(game);
+
+    var viewModel = [];
+    for (var seat = 0; seat < SEAT_COUNT; seat++) {
+        var playerId = seatsProjection.getPlayerInSeat(seat);
+        var chips = chipsProjection.getPlayerChips(playerId);
+        viewModel.push({
+            playerId: playerId,
+            playerName: playersProjection.getPlayerName(playerId),
+            chips: chips,
+            seat: seat
+        });
+    }
+    return viewModel;
 };
 
 Controller.removePlayer = function()
@@ -62,7 +84,7 @@ Controller.removePlayer = function()
     }
 
     Controller.sendToEveryoneInGame(game.id, 'seatEmptied', {
-        seats: seatsProjection.makeSeatsViewModel(),
+        seats: Controller.makeSeatsViewModel(game),
     });
 
     checkForWinnerByDefault(game);
@@ -80,7 +102,7 @@ Controller.dealCards = function(req, res)
     var seatsProjection = new SeatsProjection(game);
     var roundProjection = new RoundProjection(game);
 
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', seatsProjection.makeSeatsViewModel());
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', Controller.makeSeatsViewModel(game));
 
     game.startNewRound();
 
@@ -193,12 +215,12 @@ Controller.finish = function(req, res)
 
     game.finish();
 
-    var seatsProjection = new SeatsProjection(game);
     var roundProjection = new RoundProjection(game);
+    var chipsProjection = new ChipsProjection(game);
 
     var winningPlayerId = roundProjection.getWinner();
     var winningHand = roundProjection.getPlayerHand(winningPlayerId);
-    winningHand.playerChips = seatsProjection.getPlayerChips(winningPlayerId);
+    winningHand.playerChips = chipsProjection.getPlayerChips(winningPlayerId);
     Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);
 
     res.send('');
@@ -229,10 +251,10 @@ function checkForWinnerByDefault(game)
         return;
     }
 
-    var seatsProjection = new SeatsProjection(game);
+    var chipsProjection = new ChipsProjection(game);
 
     var winningHand = activeHands[0];
-    winningHand.playerChips = seatsProjection.getPlayerChips(winningHand.playerId);
+    winningHand.playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
     Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
 
 }
@@ -254,10 +276,10 @@ Controller.placeBet = function(req, res)
 
 function broadcastBet(game, playerId)
 {
-    var seatsProjection = new SeatsProjection(game);
+    var chipsProjection = new ChipsProjection(game);
     var roundProjection = new RoundProjection(game);
 
-    var playerChips = seatsProjection.getPlayerChips(playerId);
+    var playerChips = chipsProjection.getPlayerChips(playerId);
     var amountBetInBettingRound = roundProjection.getPlayerBet(playerId);
 
     Controller.sendToEveryoneInGame(game.id, 'betMade', {
