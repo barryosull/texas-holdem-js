@@ -1,6 +1,7 @@
 
 var assert = require('assert');
 var Game = require('../src/domain/game');
+var SeatsProjection1 = require('../src/application/seats-projection-1');
 
 function makeGame()
 {
@@ -17,7 +18,7 @@ describe('Game', () => {
         game.addPlayer(playerA, "Name");
         game.addPlayer(playerB, "Name");
 
-        var players = game.seats.getPlayers();
+        var players = (new SeatsProjection1(game)).getPlayers();
 
         assert.deepEqual([playerA, playerB], players);
     });
@@ -29,7 +30,7 @@ describe('Game', () => {
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
 
-        var players = game.seats.getPlayers();
+        var players = (new SeatsProjection1(game)).getPlayers();
 
         assert.deepEqual([playerA], players);
     });
@@ -72,8 +73,8 @@ describe('Game', () => {
         assert.deepEqual(playerAHand, winningHand);
 
         // Winner gets chips
-        var playerAChips = game.seats.getPlayerChips(playerA);
-        var playerBChips = game.seats.getPlayerChips(playerB);
+        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
         assert.equal(1160, playerAChips);
         assert.equal(840, playerBChips);
     });
@@ -97,8 +98,8 @@ describe('Game', () => {
 
         // Player A wins by default
         var winningPlayer = game.round.getWinner();
-        var playerAChips = game.seats.getPlayerChips(playerA);
-        var playerBChips = game.seats.getPlayerChips(playerB);
+        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -123,8 +124,8 @@ describe('Game', () => {
 
         // Player A wins by default
         var winningPlayer = game.round.getWinner();
-        var playerAChips = game.seats.getPlayerChips(playerA);
-        var playerBChips = game.seats.getPlayerChips(playerB);
+        var playerAChips = (new SeatsProjection1(game)).getPlayerChips(playerA);
+        var playerBChips = (new SeatsProjection1(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);

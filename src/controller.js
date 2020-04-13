@@ -1,6 +1,7 @@
 
 var Server = require('socket.io');
 var GameRepo = require('./domain/game-repository');
+var SeatsProjection = require('./application/seats-projection');
 
 /**
  * @type {{io: Server}}
@@ -29,7 +30,9 @@ Controller.addPlayer = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
+    var seatsProjection = new SeatsProjection(game);
+
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', seatsProjection.makeSeatsViewModel());
 
     res.send('');
 };
@@ -50,13 +53,15 @@ Controller.removePlayer = function()
     SocketsToPlayersMap.deassociate(socketId);
     SocketsToGameMap.deassociate(socketId);
 
-    if (!game.seats.hasPlayers()) {
+    var seatsProjection = new SeatsProjection(game);
+
+    if (!seatsProjection.hasPlayers()) {
         GameRepo.remove(game);
         return;
     }
 
     Controller.sendToEveryoneInGame(game.id, 'seatEmptied', {
-        seats: game.seats.makeSeatsViewModel(),
+        seats: seatsProjection.makeSeatsViewModel(),
     });
 
     checkForWinnerByDefault(game);
@@ -71,12 +76,14 @@ Controller.dealCards = function(req, res)
         return;
     }
 
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
+    var seatsProjection = new SeatsProjection(game);
+
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', seatsProjection.makeSeatsViewModel());
 
     game.startNewRound();
 
-    var players = game.seats.getPlayers();
-    var roundStarted = game.seats.getRoundStarted();
+    var players = seatsProjection.getPlayers();
+    var roundStarted = seatsProjection.getRoundStarted();
 
     var playersToHands = game.round.getHands().reduce((map, hand) => {
         map[hand.playerId] = hand;
@@ -109,7 +116,9 @@ Controller.isGameAdmin = function(game, req)
     var socketId = req.header('Authorization').replace("Bearer ", "");
     var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
 
-    return game.seats.isAdmin(playerId);
+    var seatsProjection = new SeatsProjection(game);
+
+    return seatsProjection.isAdmin(playerId);
 };
 
 Controller.dealFlop = function(req, res)
@@ -178,9 +187,11 @@ Controller.finish = function(req, res)
 
     game.finish();
 
+    var seatsProjection = new SeatsProjection(game);
+
     var winningPlayerId = game.round.getWinner();
     var winningHand = game.round.getPlayerHand(winningPlayerId);
-    winningHand.playerChips = game.seats.getPlayerChips(winningPlayerId);
+    winningHand.playerChips = seatsProjection.getPlayerChips(winningPlayerId);
     Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);
 
     res.send('');
@@ -205,11 +216,16 @@ Controller.foldHand = function(req, res)
 function checkForWinnerByDefault(game)
 {
     var activeHands = game.round.activeHands();
-    if (activeHands.length === 1) {
-        var winningHand = activeHands[0];
-        winningHand.playerChips = game.seats.getPlayerChips(winningHand.playerId);
-        Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
+    if (activeHands.length !== 1) {
+        return;
     }
+
+    var seatsProjection = new SeatsProjection(game);
+
+    var winningHand = activeHands[0];
+    winningHand.playerChips = seatsProjection.getPlayerChips(winningHand.playerId);
+    Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
+
 }
 
 Controller.placeBet = function(req, res)
@@ -228,7 +244,10 @@ Controller.placeBet = function(req, res)
 function placeBet(game, playerId, amount)
 {
     game.placeBet(playerId, amount);
-    var playerChips = game.seats.getPlayerChips(playerId);
+
+    var seatsProjection = new SeatsProjection(game);
+
+    var playerChips = seatsProjection.getPlayerChips(playerId);
     var amountBetInBettingRound = game.round.getPlayerBet(playerId);
 
     Controller.sendToEveryoneInGame(game.id, 'betMade', {

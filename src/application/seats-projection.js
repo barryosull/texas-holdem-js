@@ -1,6 +1,6 @@
 
-var Game = require('./game');
-var events = require('./events');
+var Game = require('./../domain/game');
+var events = require('./../domain/events');
 
 const SEAT_COUNT = 8;
 
@@ -12,27 +12,27 @@ var SeatsProjection = function(game)
     this.game = game;
 };
 
-SeatsProjection.prototype.getPlayersSeat = function(playerId)
+SeatsProjection.prototype.hasPlayers = function()
 {
-    return this.game.events.reduce((seat, e) => {
-        if (e instanceof events.SeatTaken) {
-            if (e.playerId === playerId) {
-                return e.seat;
-            }
-        }
-        return seat;
-    }, false);
+    return this.getActivePlayers().length !== 0;
 };
 
-SeatsProjection.prototype.getFreeSeat = function()
+SeatsProjection.prototype.isAdmin = function(playerId)
 {
     var seatsToPlayers = mapSeatsToPlayerIds(this.game);
-    for (var seat = 0; seat < SEAT_COUNT; seat++) {
-        if (seatsToPlayers[seat] === undefined) {
-            return seat;
+
+    for (var i = 0; i < SEAT_COUNT; i++) {
+        if (seatsToPlayers[i]) {
+            return seatsToPlayers[i] === playerId;
         }
     }
-    return null;
+
+    return false;
+};
+
+SeatsProjection.prototype.getPlayers = function()
+{
+    return Object.values(mapSeatsToPlayerIds(this.game));
 };
 
 SeatsProjection.prototype.getActivePlayers = function()
@@ -70,6 +70,39 @@ function mapSeatsToPlayerIds(game)
     return seatsToPlayerIds;
 }
 
+SeatsProjection.prototype.getPlayerInSeat = function(seat)
+{
+    return this.game.events.reduce((playerId, e) => {
+        if (e instanceof events.SeatTaken) {
+            if (e.seat === seat) {
+                return e.playerId;
+            }
+        }
+        if (e instanceof events.SeatEmptied) {
+            if (e.seat === seat) {
+                return null;
+            }
+        }
+        return playerId;
+    }, null);
+};
+
+SeatsProjection.prototype.makeSeatsViewModel = function()
+{
+    var viewModel = [];
+    for (var seat = 0; seat < SEAT_COUNT; seat++) {
+        var playerId = this.getPlayerInSeat(seat);
+        var chips = this.getPlayerChips(playerId);
+        viewModel.push({
+            playerId: playerId,
+            playerName: this.game.players.getPlayerName(playerId),
+            chips: chips,
+            seat: seat
+        });
+    }
+    return viewModel;
+};
+
 SeatsProjection.prototype.getRoundStarted = function()
 {
     return this.game.events.reduce((value, e) => {
@@ -97,37 +130,5 @@ SeatsProjection.prototype.getPlayerChips = function(playerId)
     }, 0);
 };
 
-SeatsProjection.prototype.getNextThreePlayersAfterDealer = function()
-{
-    let lastRound = this.getRoundStarted();
-    var activePlayers = this.getActivePlayers();
-    var seat = -1;
-    if (lastRound) {
-        seat = this.getPlayersSeat(lastRound.dealer);
-    }
-
-    var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
-
-    var nextDealerSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat);
-    var smallBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, nextDealerSeat);
-    var bigBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, smallBlindSeat);
-
-    return [
-        seatsToPlayerIds[nextDealerSeat],
-        seatsToPlayerIds[smallBlindSeat],
-        seatsToPlayerIds[bigBlindSeat],
-    ];
-};
-
-function getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat)
-{
-    for (let i = 0; i < SEAT_COUNT; i++) {
-        let nextSeat = ((seat + 1) + i) % SEAT_COUNT;
-        let playerId = seatsToPlayerIds[nextSeat];
-        if (playerId && activePlayers.indexOf(playerId) !== -1) {
-            return nextSeat;
-        }
-    }
-}
 
 module.exports = SeatsProjection;
