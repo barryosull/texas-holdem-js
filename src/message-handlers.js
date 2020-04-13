@@ -12,7 +12,6 @@ function boot(io)
         var roomId = socket.handshake.query.gameId;
         socket.join(roomId);
 
-        socket.on('newPlayer', Controller.addPlayer);
         socket.on('disconnect', Controller.removePlayer);
     });
 }

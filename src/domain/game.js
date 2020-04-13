@@ -5,10 +5,12 @@ var PlayersProjection = require('./players-projection');
 var RoundProjection = require('./round-projection');
 var DeckProjection = require('./deck-projection');
 
-var Game = function(id)
+var Game = function(id, eventLogger)
 {
     this.id = id;
     this.events = [];
+
+    this.eventLogger = eventLogger || function(event){ console.log(event) };
 
     // Projections
     this.seats = new SeatsProjection(this);
@@ -21,7 +23,7 @@ Game.prototype.push = function(...args)
 {
     this.events.push(...args);
     for (var i = 0; i< arguments.length; i++) {
-        console.log(arguments[i]);
+        this.eventLogger(arguments[i]);
     }
 };
 
@@ -34,6 +36,7 @@ Game.prototype.addPlayer = function(playerId, name)
     if (seat !== false) {
         return;
     }
+
     this.push(new events.PlayerNamed(playerId, name));
 
     var freeSeat = this.seats.getFreeSeat();
@@ -62,6 +65,11 @@ function isNewPlayer(game, playerId)
 Game.prototype.removePlayer = function(playerId)
 {
     var seat = this.seats.getPlayersSeat(playerId);
+
+    if (seat === false) {
+        return;
+    }
+
     this.push(new events.SeatEmptied(seat));
 
     var winnerByDefaultGand = getWinnerDyDefaultHand(this);

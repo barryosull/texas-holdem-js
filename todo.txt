@@ -131,7 +131,18 @@
 [x] Fix bug with number of chips displayed
     - Fold causing that issue
 [x] Do not allow negative bets
-[ ] Fix bug when person joins or refreshes it resets the current game
+[x] Fix bug when person joins or refreshes it resets the current game
+[ ] Write tests for domain
+[ ] Broadcast inprogress hand on refresh
+    - Old implementation was broken, so it's been deleted
+    - render steps:
+        - render seats
+        - render hands
+        - render current players hand
+        - render community cards
+        - render pot
+        - render controls
+[ ] Indicate next player to make a bet
 
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
@@ -159,7 +170,6 @@
 [ ] Handle draws
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
-[ ] Broadcast inprogress hand on refresh
-    - Old implementation was broken, so it's been deleted
+
 
 

@@ -29,6 +29,8 @@ Controller.addPlayer = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
+    Controller.sendToEveryoneInGame(game.id, 'seatFilled', game.seats.makeSeatsViewModel());
+
     res.send('');
 };
 
