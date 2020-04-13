@@ -1,6 +1,7 @@
 
 var Game = require('../domain/game');
 var events = require('../domain/events');
+var SeatsProjection = require('./seats-projection');
 
 /**
  * @param game {Game}
@@ -26,7 +27,9 @@ RoundProjection.prototype.getHands = function()
         }
     });
 
-    var activePlayers = this.game.seats.getActivePlayers();
+    var seatsProjection = new SeatsProjection(this.game);
+
+    var activePlayers = seatsProjection.getActivePlayers();
 
     return Object.values(hands).filter(hand => {
         return activePlayers.indexOf(hand.playerId) !== -1;

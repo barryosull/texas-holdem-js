@@ -2,6 +2,7 @@
 var Game = require('./game');
 var events = require('./events');
 var pokerTools = require('poker-tools');
+var SeatsProjection = require('./seats-projection');
 
 /**
  * @param game {Game}
@@ -27,7 +28,9 @@ RoundProjection.prototype.getHands = function()
         }
     });
 
-    var activePlayers = this.game.seats.getActivePlayers();
+    var seatsProjection = new SeatsProjection(this.game);
+
+    var activePlayers = seatsProjection.getActivePlayers();
 
     return Object.values(hands).filter(hand => {
         return activePlayers.indexOf(hand.playerId) !== -1;
@@ -102,6 +105,15 @@ RoundProjection.prototype.getWinner = function()
         }
         return playerId;
     }, null);
+};
+
+RoundProjection.prototype.getWinnerByDefaultHand = function()
+{
+    var activeHands = this.activeHands();
+    if (activeHands.length > 1) {
+        return null;
+    }
+    return activeHands[0];
 };
 
 RoundProjection.prototype.getPot = function()

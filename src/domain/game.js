@@ -11,12 +11,6 @@ var Game = function(id, eventLogger)
     this.events = [];
 
     this.eventLogger = eventLogger || function(event){ console.log(event) };
-
-    // Projections
-    this.seats = new SeatsProjection(this);
-    this.round = new RoundProjection(this);
-    this.deck = new DeckProjection(this);
-    this.chips = new ChipsProjection(this);
 };
 
 Game.prototype.push = function(...args)
@@ -31,7 +25,9 @@ const STARTING_CHIPS_COUNT = 1000;
 
 Game.prototype.addPlayer = function(playerId, name)
 {
-    var seat = this.seats.getPlayersSeat(playerId);
+    var seatsProjection = new SeatsProjection(this);
+
+    var seat = seatsProjection.getPlayersSeat(playerId);
 
     if (seat !== false) {
         return;
@@ -39,7 +35,7 @@ Game.prototype.addPlayer = function(playerId, name)
 
     this.push(new events.PlayerNamed(playerId, name));
 
-    var freeSeat = this.seats.getFreeSeat();
+    var freeSeat = seatsProjection.getFreeSeat();
 
     if (freeSeat == null) {
         console.log("All seats taken, no room for player " + playerId);
@@ -60,12 +56,16 @@ Game.prototype.addPlayer = function(playerId, name)
  */
 function isNewPlayer(game, playerId)
 {
-    return game.chips.getPlayerChips(playerId) === 0;
+    var chipsProjection = new ChipsProjection(this);
+    return chipsProjection.getPlayerChips(playerId) === 0;
 }
 
 Game.prototype.removePlayer = function(playerId)
 {
-    var seat = this.seats.getPlayersSeat(playerId);
+    var seatsProjection = new SeatsProjection(this);
+
+
+    var seat = seatsProjection.getPlayersSeat(playerId);
 
     if (seat === false) {
         return;
@@ -73,9 +73,11 @@ Game.prototype.removePlayer = function(playerId)
 
     this.push(new events.SeatEmptied(seat));
 
-    var winnerByDefaultGand = getWinnerDyDefaultHand(this);
-    if (winnerByDefaultGand) {
-        winRound(this, winnerByDefaultGand);
+    var roundProjection = new RoundProjection(this);
+
+    var winnerByDefaultHand = roundProjection.getWinnerByDefaultHand();
+    if (winnerByDefaultHand) {
+        winRound(this, winnerByDefaultHand);
     }
 };
 
@@ -83,7 +85,10 @@ Game.prototype.startNewRound = function(deckSeed)
 {
     deckSeed = deckSeed || Math.random().toString(36);
 
-    var players = this.seats.getNextThreePlayersAfterDealer();
+    var seatsProjection = new SeatsProjection(this);
+    var deckProjection = new DeckProjection(this);
+
+    var players = seatsProjection.getNextThreePlayersAfterDealer();
 
     var dealer = players[0],
         smallBlind = players[1],
@@ -91,8 +96,8 @@ Game.prototype.startNewRound = function(deckSeed)
 
     this.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
-    this.seats.getActivePlayers().forEach(playerId => {
-        var cards = this.deck.getCards(2);
+    seatsProjection.getActivePlayers().forEach(playerId => {
+        var cards = deckProjection.getCards(2);
         this.push(new events.HandDealt(playerId, cards));
     });
 
@@ -102,32 +107,27 @@ Game.prototype.startNewRound = function(deckSeed)
 
 Game.prototype.foldHand = function(playerId)
 {
-    var playerHand = this.round.getPlayerHand(playerId);
+    var roundProjection = new RoundProjection(this);
+
+    var playerHand = roundProjection.getPlayerHand(playerId);
     if (!playerHand) {
         return;
     }
     this.push(new events.HandFolded(playerId));
 
-    var winnerByDefaultHand = getWinnerDyDefaultHand(this);
+    var winnerByDefaultHand = roundProjection.getWinnerByDefaultHand();
     if (winnerByDefaultHand) {
         winRound(this, winnerByDefaultHand);
         this.bankruptPlayersWithNoChips();
     }
 };
 
-function getWinnerDyDefaultHand(game)
-{
-    var activeHands = game.round.activeHands();
-    if (activeHands.length > 1) {
-        return null;
-    }
-    return activeHands[0];
-}
-
 function winRound(game, winningHand)
 {
+    var roundProjection = new RoundProjection(game);
+
     var handWonEvent = new events.HandWon(winningHand.playerId);
-    var pot = game.round.getPot();
+    var pot = roundProjection.getPot();
     var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
     game.push(handWonEvent, playerGivenChipsEvent);
 }
@@ -136,7 +136,9 @@ Game.prototype.dealFlop = function()
 {
     this.closeRoundOfBetting();
 
-    var cards = this.deck.getCards(3);
+    var deckProjection = new DeckProjection(this);
+
+    var cards = deckProjection.getCards(3);
     this.push(new events.FlopDealt(cards));
 };
 
@@ -144,7 +146,9 @@ Game.prototype.dealTurn = function()
 {
     this.closeRoundOfBetting();
 
-    var card = this.deck.getCards(1)[0];
+    var deckProjection = new DeckProjection(this);
+
+    var card = deckProjection.getCards(1)[0];
     this.push(new events.TurnDealt(card));
 };
 
@@ -152,21 +156,27 @@ Game.prototype.dealRiver = function()
 {
     this.closeRoundOfBetting();
 
-    var card = this.deck.getCards(1)[0];
+    var deckProjection = new DeckProjection(this);
+
+    var card = deckProjection.getCards(1)[0];
     this.push(new events.RiverDealt(card));
 };
 
 Game.prototype.finish = function()
 {
+    var roundProjection = new RoundProjection(this);
+
     this.closeRoundOfBetting();
-    var winningHand = this.round.chooseWinningHand();
+    var winningHand = roundProjection.chooseWinningHand();
     winRound(this, winningHand);
     this.bankruptPlayersWithNoChips();
 };
 
 Game.prototype.bankruptPlayersWithNoChips = function()
 {
-    this.round.getPlayersBankrupedInRound().forEach(playerId => {
+    var roundProjection = new RoundProjection(this);
+
+    roundProjection.getPlayersBankrupedInRound().forEach(playerId => {
         this.push(new events.PlayerBankrupted(playerId));
     });
 };
@@ -178,7 +188,8 @@ Game.prototype.closeRoundOfBetting = function()
 
 Game.prototype.placeBet = function(playerId, amount)
 {
-    var playerChips = this.chips.getPlayerChips(playerId);
+    var chipsProjection = new ChipsProjection(this);
+    var playerChips = chipsProjection.getPlayerChips(playerId);
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;
     this.push(new events.BetPlaced(playerId, amount));
