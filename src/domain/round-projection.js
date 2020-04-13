@@ -14,6 +14,9 @@ var RoundProjection = function(game)
 RoundProjection.prototype.getActiveHands = function()
 {
     let hands = this.game.events.reduce((hands, e) => {
+        if (e instanceof events.RoundStarted) {
+            hands = {};
+        }
         if (e instanceof events.HandDealt) {
             hands[e.playerId] = {
                 playerId: e.playerId,
