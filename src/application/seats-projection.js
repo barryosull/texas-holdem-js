@@ -12,11 +12,6 @@ var SeatsProjection = function(game)
     this.game = game;
 };
 
-SeatsProjection.prototype.hasPlayers = function()
-{
-    return this.getActivePlayers().length !== 0;
-};
-
 SeatsProjection.prototype.isAdmin = function(playerId)
 {
     var seatsToPlayers = mapSeatsToPlayerIds(this.game);
@@ -45,29 +40,32 @@ SeatsProjection.prototype.getActivePlayers = function()
     });
 };
 
+SeatsProjection.prototype.hasPlayers = function()
+{
+    return Object.values(mapSeatsToPlayerIds(this.game)).length !== 0;
+};
+
 function bankruptedPlayers(game)
 {
-    var playerIds = [];
-    game.events.forEach(e => {
+    return game.events.reduce((playerIds, e) => {
         if (e instanceof events.PlayerBankrupted) {
             playerIds.push(e.playerId);
         }
+        return playerIds;
     });
-    return playerIds;
 }
 
 function mapSeatsToPlayerIds(game)
 {
-    var seatsToPlayerIds = {};
-    game.events.forEach(e => {
+    return game.events.reduce((seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }
         if (e instanceof events.SeatEmptied) {
             delete seatsToPlayerIds[e.seat];
         }
-    });
-    return seatsToPlayerIds;
+        return seatsToPlayerIds;
+    }, {});
 }
 
 SeatsProjection.prototype.getPlayerInSeat = function(seat)

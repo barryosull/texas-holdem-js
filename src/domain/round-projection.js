@@ -2,7 +2,6 @@
 var Game = require('./game');
 var events = require('./events');
 var pokerTools = require('poker-tools');
-var SeatsProjection = require('./seats-projection');
 
 /**
  * @param game {Game}
@@ -12,41 +11,27 @@ var RoundProjection = function(game)
     this.game = game;
 };
 
-RoundProjection.prototype.getHands = function()
+RoundProjection.prototype.getActiveHands = function()
 {
-    var hands = {};
-    this.game.events.forEach(e => {
+    let hands = this.game.events.reduce((hands, e) => {
         if (e instanceof events.HandDealt) {
             hands[e.playerId] = {
                 playerId: e.playerId,
                 cards: e.cards,
-                hasFolded: false
             };
         }
         if (e instanceof events.HandFolded) {
-            hands[e.playerId].hasFolded = true;
+            delete hands[e.playerId];
         }
-    });
+        return hands;
+    }, {});
 
-    var seatsProjection = new SeatsProjection(this.game);
-
-    var activePlayers = seatsProjection.getActivePlayers();
-
-    return Object.values(hands).filter(hand => {
-        return activePlayers.indexOf(hand.playerId) !== -1;
-    });
-};
-
-RoundProjection.prototype.activeHands = function()
-{
-    return this.getHands().filter(hand => {
-        return !hand.hasFolded;
-    });
+    return Object.values(hands);
 };
 
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
-    return this.getHands().filter(hand => {
+    return this.getActiveHands().filter(hand => {
         return hand.playerId === playerId;
     }).pop();
 };
@@ -78,7 +63,7 @@ RoundProjection.prototype.getCommunityCards = function()
 
 RoundProjection.prototype.chooseWinningHand = function()
 {
-    var hands = this.activeHands();
+    var hands = this.getActiveHands();
     var communityCards = this.getCommunityCards();
 
     var pokerToolsHands = hands.map(hand => {
@@ -109,7 +94,7 @@ RoundProjection.prototype.getWinner = function()
 
 RoundProjection.prototype.getWinnerByDefaultHand = function()
 {
-    var activeHands = this.activeHands();
+    var activeHands = this.getActiveHands();
     if (activeHands.length > 1) {
         return null;
     }

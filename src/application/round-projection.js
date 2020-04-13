@@ -1,7 +1,6 @@
 
 var Game = require('../domain/game');
 var events = require('../domain/events');
-var SeatsProjection = require('./seats-projection');
 
 /**
  * @param game {Game}
@@ -39,37 +38,31 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 
 RoundProjection.prototype.getCommunityCards = function()
 {
-    var flop = [], turn = null, river = null;
-    this.game.events.forEach(e => {
+    return this.game.events.reduce((cards, e) => {
         if (e instanceof events.FlopDealt) {
-            flop = e.cards;
+            cards = e.cards;
         }
         if (e instanceof events.TurnDealt) {
-            turn = e.card;
+            cards.push(e.card);
         }
         if (e instanceof events.RiverDealt) {
-            river = e.card;
+            cards.push(e.card);
         }
         if (e instanceof events.RoundStarted) {
-            flop = [], turn = null, river = null;
+            cards = [];
         }
-    });
-
-    var cards = flop.concat([turn, river]);
-
-    return cards.filter(card => {
-        return card != null;
-    });
+        return cards;
+    }, []);
 };
 
 RoundProjection.prototype.getWinner = function()
 {
     return this.game.events.reduce((playerId, e) => {
         if (e instanceof events.RoundStarted) {
-            return null;
+            playerId = null;
         }
         if (e instanceof events.HandWon) {
-            return e.playerId;
+            playerId = e.playerId;
         }
         return playerId;
     }, null);
@@ -111,15 +104,15 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
 
 RoundProjection.prototype.bankruptedInLastRound = function()
 {
-    var bankrupted = {};
-    this.game.events.forEach(e => {
+    let bankrupted = this.game.events.reduce((bankrupted, e) => {
         if (e instanceof events.HandWon) {
             bankrupted = {};
         }
         if (e instanceof events.PlayerBankrupted) {
             bankrupted[e.playerId] = true;
         }
-    });
+        return bankrupted;
+    }, {});
 
     return Object.keys(bankrupted);
 };

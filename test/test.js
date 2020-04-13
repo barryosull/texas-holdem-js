@@ -3,6 +3,7 @@ var assert = require('assert');
 var Game = require('../src/domain/game');
 var SeatsProjection = require('../src/application/seats-projection');
 var RoundProjection = require('../src/application/round-projection');
+var ChipsProjection = require('../src/application/chips-projection');
 
 function makeGame()
 {
@@ -92,8 +93,8 @@ describe('Game', () => {
         assert.deepEqual(playerAHand, winningHand);
 
         // Winner gets chips
-        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
+        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
         assert.equal(1160, playerAChips);
         assert.equal(840, playerBChips);
     });
@@ -117,8 +118,8 @@ describe('Game', () => {
 
         // Player A wins by default
         var winningPlayer = (new RoundProjection(game)).getWinner();
-        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
+        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -143,8 +144,8 @@ describe('Game', () => {
 
         // Player A wins by default
         var winningPlayer = (new RoundProjection(game)).getWinner();
-        var playerAChips = (new SeatsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new SeatsProjection(game)).getPlayerChips(playerB);
+        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
+        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
         assert.equal(playerA, winningPlayer);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);

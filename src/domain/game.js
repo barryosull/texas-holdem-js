@@ -72,12 +72,7 @@ Game.prototype.removePlayer = function(playerId)
 
     this.push(new events.SeatEmptied(seat));
 
-    var roundProjection = new RoundProjection(this);
-
-    var winnerByDefaultHand = roundProjection.getWinnerByDefaultHand();
-    if (winnerByDefaultHand) {
-        winRound(this, winnerByDefaultHand);
-    }
+    this.foldHand(playerId);
 };
 
 Game.prototype.startNewRound = function(deckSeed)
