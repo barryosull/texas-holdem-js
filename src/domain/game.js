@@ -111,9 +111,9 @@ Game.prototype.foldHand = function(playerId)
     }
     this.push(new events.HandFolded(playerId));
 
-    var winnerByDefaultGand = getWinnerDyDefaultHand(this);
-    if (winnerByDefaultGand) {
-        winRound(this, winnerByDefaultGand);
+    var winnerByDefaultHand = getWinnerDyDefaultHand(this);
+    if (winnerByDefaultHand) {
+        winRound(this, winnerByDefaultHand);
         this.bankruptPlayersWithNoChips();
     }
 };
