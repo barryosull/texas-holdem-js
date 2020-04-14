@@ -5,20 +5,52 @@ var RoundProjection = require('./round-projection');
 var DeckProjection = require('./deck-projection');
 var ChipsProjection = require('./chips-projection');
 
-var Game = function(id, eventLogger)
+var EventStream = function(eventLogger)
 {
-    this.id = id;
-    this.events = [];
-
     this.eventLogger = eventLogger || function(event){ console.log(event) };
+
+    this.events = [];
+    this.projections = {};
 };
 
-Game.prototype.push = function(...args)
+EventStream.prototype.push = function(...args)
 {
     this.events.push(...args);
     for (var i = 0; i< arguments.length; i++) {
         this.eventLogger(arguments[i]);
     }
+};
+
+EventStream.prototype.reduce = function(reduceFunction, initial)
+{
+    return this.events.reduce(reduceFunction, initial);
+};
+
+EventStream.prototype.project = function(name, reduceFunction, initial)
+{
+    var projection = this.projections[name];
+
+    var position = (projection === undefined) ? 0: projection.position;
+    initial = (projection === undefined) ? initial : projection.value;
+
+    var eventsToProcess = this.events.slice(position);
+
+    var reduction = eventsToProcess.reduce(reduceFunction, initial);
+
+    position += eventsToProcess.length;
+
+    this.projections[name] = {
+        value: reduction,
+        position: position
+    };
+
+    return reduction;
+};
+
+var Game = function(id, eventLogger)
+{
+    this.id = id;
+    this.events = new EventStream(eventLogger);
 };
 
 const STARTING_CHIPS_COUNT = 1000;
@@ -33,7 +65,7 @@ Game.prototype.addPlayer = function(playerId, name)
         return;
     }
 
-    this.push(new events.PlayerNamed(playerId, name));
+    this.events.push(new events.PlayerNamed(playerId, name));
 
     var freeSeat = seatsProjection.getFreeSeat();
 
@@ -42,10 +74,10 @@ Game.prototype.addPlayer = function(playerId, name)
         return;
     }
 
-    this.push(new events.SeatTaken(freeSeat, playerId));
+    this.events.push(new events.SeatTaken(freeSeat, playerId));
 
     if (isNewPlayer(this, playerId)) {
-        this.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
+        this.events.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
     }
 };
 
@@ -70,7 +102,7 @@ Game.prototype.removePlayer = function(playerId)
         return;
     }
 
-    this.push(new events.SeatEmptied(seat));
+    this.events.push(new events.SeatEmptied(seat));
 
     this.foldHand(playerId);
 };
@@ -88,11 +120,11 @@ Game.prototype.startNewRound = function(deckSeed)
         smallBlind = players[1],
         bigBlind = players[2];
 
-    this.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
+    this.events.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
     seatsProjection.getActivePlayers().forEach(playerId => {
         var cards = deckProjection.getCards(2);
-        this.push(new events.HandDealt(playerId, cards));
+        this.events.push(new events.HandDealt(playerId, cards));
     });
 
     this.placeBet(smallBlind, 20);
@@ -107,7 +139,7 @@ Game.prototype.foldHand = function(playerId)
     if (!playerHand) {
         return;
     }
-    this.push(new events.HandFolded(playerId));
+    this.events.push(new events.HandFolded(playerId));
 
     var winnerByDefaultHand = roundProjection.getWinnerByDefaultHand();
     if (winnerByDefaultHand) {
@@ -123,7 +155,7 @@ function winRound(game, winningHand)
     var handWonEvent = new events.HandWon(winningHand.playerId);
     var pot = roundProjection.getPot();
     var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
-    game.push(handWonEvent, playerGivenChipsEvent);
+    game.events.push(handWonEvent, playerGivenChipsEvent);
 }
 
 Game.prototype.dealFlop = function()
@@ -133,7 +165,7 @@ Game.prototype.dealFlop = function()
     var deckProjection = new DeckProjection(this);
 
     var cards = deckProjection.getCards(3);
-    this.push(new events.FlopDealt(cards));
+    this.events.push(new events.FlopDealt(cards));
 };
 
 Game.prototype.dealTurn = function()
@@ -143,7 +175,7 @@ Game.prototype.dealTurn = function()
     var deckProjection = new DeckProjection(this);
 
     var card = deckProjection.getCards(1)[0];
-    this.push(new events.TurnDealt(card));
+    this.events.push(new events.TurnDealt(card));
 };
 
 Game.prototype.dealRiver = function()
@@ -153,7 +185,7 @@ Game.prototype.dealRiver = function()
     var deckProjection = new DeckProjection(this);
 
     var card = deckProjection.getCards(1)[0];
-    this.push(new events.RiverDealt(card));
+    this.events.push(new events.RiverDealt(card));
 };
 
 Game.prototype.finish = function()
@@ -162,6 +194,7 @@ Game.prototype.finish = function()
 
     this.closeRoundOfBetting();
     var winningHand = roundProjection.chooseWinningHand();
+
     winRound(this, winningHand);
     this.bankruptPlayersWithNoChips();
 };
@@ -171,13 +204,13 @@ Game.prototype.bankruptPlayersWithNoChips = function()
     var roundProjection = new RoundProjection(this);
 
     roundProjection.getPlayersBankruptedInRound().forEach(playerId => {
-        this.push(new events.PlayerBankrupted(playerId));
+        this.events.push(new events.PlayerBankrupted(playerId));
     });
 };
 
 Game.prototype.closeRoundOfBetting = function()
 {
-    this.push(new events.BettingRoundClosed());
+    this.events.push(new events.BettingRoundClosed());
 };
 
 Game.prototype.placeBet = function(playerId, amount)
@@ -186,7 +219,7 @@ Game.prototype.placeBet = function(playerId, amount)
     var playerChips = chipsProjection.getPlayerChips(playerId);
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;
-    this.push(new events.BetPlaced(playerId, amount));
+    this.events.push(new events.BetPlaced(playerId, amount));
 };
 
 module.exports = Game;
