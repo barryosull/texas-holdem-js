@@ -12,7 +12,7 @@ var ChipsProjection = function(game)
 
 ChipsProjection.prototype.getPlayerChips = function(playerId)
 {
-    var playersToChips = this.game.events.project('app/chips::getPlayerChips', (playersToChips, e) => {
+    var playersToChips = this.game.events.project('app/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;

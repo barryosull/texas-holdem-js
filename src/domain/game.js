@@ -43,9 +43,10 @@ var ProjectionSnapshot = function(name, eventStreamPosition, state)
     this.state = state;
 };
 
-ProjectionSnapshot.prototype.update = function(eventStreamPosition, state)
+ProjectionSnapshot.prototype.update = function(processEventCount, state)
 {
-    return new ProjectionSnapshot(this.name, eventStreamPosition, state);
+    var position = this.position + processEventCount;
+    return new ProjectionSnapshot(this.name, position, state);
 };
 
 var ProjectionSnapshots = function()
