@@ -144,7 +144,7 @@
         - Also resets when the only player refreshes
         - Fine for now
 [ ] Admin allows players to take a seat and join the game
-    
+
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
     - render steps:
@@ -152,8 +152,11 @@
         [x] render hands
         [x] render current players hand
         [x] render community cards
+        [ ] render bets
         [ ] render pot
         [ ] render controls
+            - Admin button
+            - fold/bet
 [ ] Indicate next player to make a bet
 
 [ ] Admin allows a player to buy back into the game
