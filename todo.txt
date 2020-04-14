@@ -134,16 +134,19 @@
 [x] Fix bug when person joins or refreshes it resets the current game
 [x] Write tests for domain
 [x] Extract domain and application projections
-[ ] Add caching for projections
+[x] Add caching for projections
+    - This turned out to be a lot of fun
+    - Means I can call projections with impunity, there is practically no cost to multiple calls
+[ ] Admin allows players to take a seat and join the game
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
     - render steps:
-        - render seats
-        - render hands
-        - render current players hand
-        - render community cards
-        - render pot
-        - render controls
+        [x] render seats
+        [x] render hands
+        [x] render current players hand
+        [x] render community cards
+        [ ] render pot
+        [ ] render controls
 [ ] Indicate next player to make a bet
 
 [ ] Admin allows a player to buy back into the game

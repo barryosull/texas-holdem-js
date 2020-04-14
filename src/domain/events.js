@@ -11,9 +11,10 @@ function SeatTaken(seat, playerId)
     this.playerId = playerId;
 }
 
-function SeatEmptied(seat)
+function SeatEmptied(seat, playerId)
 {
     this.seat = seat;
+    this.playerId = playerId;
 }
 
 function RoundStarted(deckSeed, dealer, smallBlind, bigBlind)

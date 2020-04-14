@@ -15,7 +15,7 @@ var Controller = {
     io: null
 };
 
-Controller.addPlayer = function(req, res)
+Controller.join = function(req, res)
 {
     var game = GameRepo.fetchOrCreate(req.params.gameId);
 
@@ -35,12 +35,12 @@ Controller.addPlayer = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', Controller.makeSeatsViewModel(game));
+    var gameState = Controller.makeGameStateViewModel(game, playerId);
 
-    res.send('');
+    res.json(gameState);
 };
 
-Controller.makeSeatsViewModel = function(game)
+Controller.makePlayersViewModel = function(game)
 {
     var seatsProjection = new SeatsProjection(game);
     var chipsProjection = new ChipsProjection(game);
@@ -59,6 +59,18 @@ Controller.makeSeatsViewModel = function(game)
     }
 
     return viewModel;
+};
+
+Controller.makeGameStateViewModel = function(game, playerId)
+{
+    var roundProjection = new RoundProjection(game);
+
+    return {
+        players: Controller.makePlayersViewModel(game),
+        round: Controller.makeRoundStartedViewModel(game, playerId),
+        cards: roundProjection.getCommunityCards(),
+        pot: roundProjection.getPot()
+    };
 };
 
 Controller.removePlayer = function()
@@ -85,7 +97,7 @@ Controller.removePlayer = function()
     }
 
     Controller.sendToEveryoneInGame(game.id, 'seatEmptied', {
-        seats: Controller.makeSeatsViewModel(game),
+        seats: Controller.makePlayersViewModel(game),
     });
 
     checkForWinnerByDefault(game);
@@ -101,37 +113,47 @@ Controller.dealCards = function(req, res)
     }
 
     var seatsProjection = new SeatsProjection(game);
-    var roundProjection = new RoundProjection(game);
 
-    Controller.sendToEveryoneInGame(game.id, 'seatFilled', Controller.makeSeatsViewModel(game));
+    Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
 
     game.startNewRound();
 
-    var players = seatsProjection.getPlayers();
     var roundStarted = seatsProjection.getRoundStarted();
 
-    var playersToHands = roundProjection.getHands().reduce((map, hand) => {
-        map[hand.playerId] = hand;
-        return map;
-    }, {});
+    var activePlayers = seatsProjection.getActivePlayers();
 
-    var activePlayers = Object.keys(playersToHands);
-    var bankruptedPlayers = roundProjection.bankruptedInLastRound();
-
-    players.forEach(playerId => {
-        var hand = playersToHands[playerId];
-        Controller.sendToPlayerInGame(playerId, 'roundStarted', {
-            hand: hand,
-            dealer: roundStarted.dealer,
-            activePlayers: activePlayers,
-            bankruptedPlayers: bankruptedPlayers
-        });
+    activePlayers.forEach(playerId => {
+        Controller.sendToPlayerInGame(playerId, 'roundStarted', Controller.makeRoundStartedViewModel(game, playerId));
     });
 
     broadcastBet(game, roundStarted.smallBlind);
     broadcastBet(game, roundStarted.bigBlind);
 
     res.send('');
+};
+
+Controller.makeRoundStartedViewModel = function(game, playerId)
+{
+    var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
+
+    var roundStarted = seatsProjection.getRoundStarted();
+
+    if (!roundStarted) {
+        return null;
+    }
+
+    var activePlayers = seatsProjection.getActivePlayers();
+    var bankruptedPlayers = roundProjection.bankruptedInLastRound();
+
+    var hand = roundProjection.getPlayerHand(playerId);
+
+    return {
+        hand: hand,
+        dealer: roundStarted.dealer,
+        activePlayers: activePlayers,
+        bankruptedPlayers: bankruptedPlayers
+    }
 };
 
 Controller.isGameAdmin = function(game, req)

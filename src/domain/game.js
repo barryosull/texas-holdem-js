@@ -82,6 +82,8 @@ Game.prototype.addPlayer = function(playerId, name)
 
     var seat = seatsProjection.getPlayersSeat(playerId);
 
+    console.log('seat', seat);
+
     if (seat !== false) {
         return;
     }
@@ -123,7 +125,7 @@ Game.prototype.removePlayer = function(playerId)
         return;
     }
 
-    this.events.push(new events.SeatEmptied(seat));
+    this.events.push(new events.SeatEmptied(seat, playerId));
 
     this.foldHand(playerId);
 };

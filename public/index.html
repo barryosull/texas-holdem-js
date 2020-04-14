@@ -200,7 +200,7 @@ Game.bootClient = function(gameId, socketId)
 
 Game.join = function(playerId, playerName)
 {
-    $.post(
+    return $.post(
         "api/game/" + Game.gameId + "/join",
         {
             playerId: playerId,
@@ -325,7 +325,15 @@ Controller.joinGame = function()
 
     Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
-    Game.join(Controller.playerId, playerName);
+    Game.join(Controller.playerId, playerName).done( gameState => {
+        Controller.players(gameState.players);
+        if (gameState.round) {
+            View.renderDownFacingHands(gameState.round.activePlayers);
+            View.renderPlayerHand(gameState.round.hand);
+            View.attachCommunityCards(gameState.cards);
+            View.updatePot(gameState.pot);
+        }
+    });
 
     View.hideCommunityCardsButtons();
     View.disableBetting();
@@ -371,14 +379,14 @@ Controller.getGameId = function()
     return url.searchParams.get("gameId");
 };
 
-Controller.seatFilled = function(seats)
+Controller.players = function(players)
 {
-    if (Controller.isFirstPlayer(seats)) {
+    if (Controller.isFirstPlayer(players)) {
         View.enableAdminControls();
     } else {
         View.disableAdminControls();
     }
-    View.renderSeats(seats, Controller.playerId);
+    View.renderPlayers(players, Controller.playerId);
 };
 
 Controller.seatEmptied = function(seats)
@@ -424,14 +432,14 @@ Controller.winningHand = function(hand)
 
 var View = {};
 
-View.renderSeats = function(seats, currentPlayerId)
+View.renderPlayers = function(players, currentPlayerId)
 {
-    for (var index in seats) {
-        var seat = seats[index];
-        if (seat.playerId) {
-            View.renderSeat(seat.seat, seat.playerId, seat.playerName, seat.chips, currentPlayerId);
+    for (var index in players) {
+        var player = players[index];
+        if (player.playerId) {
+            View.renderSeat(player.seat, player.playerId, player.playerName, player.chips, currentPlayerId);
         } else {
-            View.renderEmptySeat(seat.seat);
+            View.renderEmptySeat(player.seat);
         }
     }
 };
@@ -522,17 +530,17 @@ View.renderDownFacingHands = function(playerIds)
     });
 };
 
-View.renderFlop = function(flop)
+View.attachCommunityCards = function(cards)
 {
-    $('#cards').html(View.renderCards(flop));
+    $('#cards').html(View.renderCards(cards));
 };
 
-View.renderTurn = function(card)
+View.attachTurn = function(card)
 {
     $('#cards').html( $('#cards').html() + View.renderCards([card]));
 };
 
-View.renderRiver = function(card)
+View.attachRiver = function(card)
 {
     $('#cards').html( $('#cards').html() + View.renderCards([card]));
 };
@@ -698,7 +706,7 @@ Bootstrap.attachHtmlEventListeners = function()
 
 Bootstrap.attachSocketEventListeners = function(socket)
 {
-    socket.on('seatFilled', Controller.seatFilled);
+    socket.on('players', Controller.players);
 
     socket.on('seatEmptied', Controller.seatEmptied);
 
@@ -708,11 +716,11 @@ Bootstrap.attachSocketEventListeners = function(socket)
 
     socket.on('winnerByDefault', Controller.winnerByDefault);
 
-    socket.on('flop', View.renderFlop);
+    socket.on('flop', View.attachCommunityCards);
 
-    socket.on('turn', View.renderTurn);
+    socket.on('turn', View.attachTurn);
 
-    socket.on('river', View.renderRiver);
+    socket.on('river', View.attachRiver);
 
     socket.on('playerFolded', View.foldPlayerHand);
 

@@ -83,6 +83,7 @@ SeatsProjection.prototype.getPlayerInSeat = function(seat)
     return seatsToPlayers[seat.toString()];
 };
 
+// TODO: Move into round projection, no need for it to be here
 SeatsProjection.prototype.getRoundStarted = function()
 {
     return this.game.events.project('app/seats.getRoundStarted', (value, e) => {

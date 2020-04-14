@@ -14,14 +14,17 @@ var SeatsProjection = function(game)
 
 SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
-    return this.game.events.project('domain/seats.getPlayersSeat', (seat, e) => {
+    var seats = this.game.events.project('domain/seats.getPlayersSeat', (seats, e) => {
         if (e instanceof events.SeatTaken) {
-            if (e.playerId === playerId) {
-                return e.seat;
-            }
+            seats[e.playerId] = e.seat;
         }
-        return seat;
-    }, false);
+        if (e instanceof events.SeatEmptied) {
+            delete seats[e.playerId];
+        }
+        return seats;
+    }, {});
+
+    return seats[playerId] !== undefined ? seats[playerId] : false;
 };
 
 SeatsProjection.prototype.getFreeSeat = function()
