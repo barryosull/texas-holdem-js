@@ -57,6 +57,7 @@ Controller.makeSeatsViewModel = function(game)
             seat: seat
         });
     }
+
     return viewModel;
 };
 

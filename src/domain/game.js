@@ -30,18 +30,18 @@ EventStream.prototype.project = function(name, reduceFunction, initial)
 {
     var projection = this.projections[name];
 
-    var position = (projection === undefined) ? 0: projection.position;
+    var positionInEventStream = (projection === undefined) ? 0 : projection.position;
     initial = (projection === undefined) ? initial : projection.value;
 
-    var eventsToProcess = this.events.slice(position);
+    var eventsToProcess = this.events.slice(positionInEventStream);
 
     var reduction = eventsToProcess.reduce(reduceFunction, initial);
 
-    position += eventsToProcess.length;
+    positionInEventStream += eventsToProcess.length;
 
     this.projections[name] = {
         value: reduction,
-        position: position
+        position: positionInEventStream
     };
 
     return reduction;

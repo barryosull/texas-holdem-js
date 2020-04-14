@@ -132,7 +132,9 @@
     - Fold causing that issue
 [x] Do not allow negative bets
 [x] Fix bug when person joins or refreshes it resets the current game
-[ ] Write tests for domain
+[x] Write tests for domain
+[x] Extract domain and application projections
+[ ] Add caching for projections
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
     - render steps:

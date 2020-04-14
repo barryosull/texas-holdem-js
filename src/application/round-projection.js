@@ -12,7 +12,7 @@ var RoundProjection = function(game)
 
 RoundProjection.prototype.getHands = function()
 {
-    let hands = this.game.events.reduce((hands, e) => {
+    let hands = this.game.events.project('app/round.getHands', (hands, e) => {
         if (e instanceof events.RoundStarted) {
             hands = {};
         }
@@ -41,7 +41,7 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 
 RoundProjection.prototype.getCommunityCards = function()
 {
-    return this.game.events.reduce((cards, e) => {
+    return this.game.events.project('app/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.FlopDealt) {
             cards = e.cards;
         }
@@ -60,7 +60,7 @@ RoundProjection.prototype.getCommunityCards = function()
 
 RoundProjection.prototype.getWinner = function()
 {
-    return this.game.events.reduce((playerId, e) => {
+    return this.game.events.project('app/round.getWinner', (playerId, e) => {
         if (e instanceof events.RoundStarted) {
             playerId = null;
         }
@@ -73,7 +73,7 @@ RoundProjection.prototype.getWinner = function()
 
 RoundProjection.prototype.getPot = function()
 {
-    return this.game.events.reduce((pot, e) => {
+    return this.game.events.project('app/round.getPot', (pot, e) => {
         if (e instanceof events.HandWon) {
             return 0;
         }
@@ -89,25 +89,26 @@ RoundProjection.prototype.getPot = function()
 
 RoundProjection.prototype.getPlayerBet = function(playerId)
 {
-    return this.game.events.reduce((bet, e) => {
+    var playersToBets = this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
-            return 0;
+            playersToBets = {};
         }
         if (e instanceof events.HandWon) {
-            return 0;
+            playersToBets = {};
         }
         if (e instanceof events.BetPlaced) {
-            if (e.playerId === playerId) {
-                return bet + e.amount;
-            }
+            playersToBets[e.playerId] =  playersToBets[e.playerId] || 0;
+            playersToBets[e.playerId] += e.amount;
         }
-        return bet;
-    }, 0);
+        return playersToBets;
+    }, {});
+
+    return playersToBets[playerId];
 };
 
 RoundProjection.prototype.bankruptedInLastRound = function()
 {
-    let bankrupted = this.game.events.reduce((bankrupted, e) => {
+    let bankrupted = this.game.events.project('app/round.bankruptedInLastRound', (bankrupted, e) => {
         if (e instanceof events.HandWon) {
             bankrupted = {};
         }

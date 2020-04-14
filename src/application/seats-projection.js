@@ -47,7 +47,7 @@ SeatsProjection.prototype.hasPlayers = function()
 
 function bankruptedPlayers(game)
 {
-    return game.events.reduce((playerIds, e) => {
+    return game.events.project('app/seats.bankruptedPlayers', (playerIds, e) => {
         if (e instanceof events.PlayerBankrupted) {
             playerIds.push(e.playerId);
         }
@@ -57,7 +57,7 @@ function bankruptedPlayers(game)
 
 function mapSeatsToPlayerIds(game)
 {
-    return game.events.reduce((seatsToPlayerIds, e) => {
+    return game.events.project('app/seats.mapSeatsToPlayerIds', (seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }
@@ -70,47 +70,27 @@ function mapSeatsToPlayerIds(game)
 
 SeatsProjection.prototype.getPlayerInSeat = function(seat)
 {
-    return this.game.events.reduce((playerId, e) => {
+    var seatsToPlayers = this.game.events.project('app/seats.getPlayerInSeat', (seatsToPlayers, e) => {
         if (e instanceof events.SeatTaken) {
-            if (e.seat === seat) {
-                return e.playerId;
-            }
+            seatsToPlayers[e.seat] = e.playerId;
         }
         if (e instanceof events.SeatEmptied) {
-            if (e.seat === seat) {
-                return null;
-            }
+            delete seatsToPlayers[e.seat];
         }
-        return playerId;
-    }, null);
+        return seatsToPlayers;
+    }, {});
+
+    return seatsToPlayers[seat.toString()];
 };
 
 SeatsProjection.prototype.getRoundStarted = function()
 {
-    return this.game.events.reduce((value, e) => {
+    return this.game.events.project('app/seats.getRoundStarted', (value, e) => {
         if (e instanceof events.RoundStarted) {
-            return e;
+            value =  e;
         }
         return value;
     }, null);
 };
-
-SeatsProjection.prototype.getPlayerChips = function(playerId)
-{
-    return this.game.events.reduce((chips, e) => {
-        if (e instanceof events.PlayerGivenChips) {
-            if (e.playerId === playerId) {
-                return chips + e.amount;
-            }
-        }
-        if (e instanceof events.BetPlaced) {
-            if (e.playerId === playerId) {
-                return chips - e.amount;
-            }
-        }
-        return chips;
-    }, 0);
-};
-
 
 module.exports = SeatsProjection;
