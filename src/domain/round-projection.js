@@ -13,7 +13,7 @@ var RoundProjection = function(game)
 
 RoundProjection.prototype.getActiveHands = function()
 {
-    let hands = this.game.events.reduce((hands, e) => {
+    let hands = this.game.events.project('domain/round.getActiveHands', (hands, e) => {
         if (e instanceof events.RoundStarted) {
             hands = {};
         }
@@ -41,7 +41,7 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 
 RoundProjection.prototype.getCommunityCards = function()
 {
-    return this.game.events.reduce((cards, e) => {
+    return this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.FlopDealt) {
             cards = e.cards;
         }
@@ -81,7 +81,7 @@ RoundProjection.prototype.chooseWinningHand = function()
 
 RoundProjection.prototype.getWinner = function()
 {
-    return this.game.events.reduce((playerId, e) => {
+    return this.game.events.project('domain/round.getWinner', (playerId, e) => {
         if (e instanceof events.HandWon) {
             return e.playerId;
         }
@@ -100,7 +100,7 @@ RoundProjection.prototype.getWinnerByDefaultHand = function()
 
 RoundProjection.prototype.getPot = function()
 {
-    return this.game.events.reduce((pot, e) => {
+    return this.game.events.project('app/round.getPot', (pot, e) => {
         if (e instanceof events.HandWon) {
             return 0;
         }
@@ -116,7 +116,7 @@ RoundProjection.prototype.getPot = function()
 
 RoundProjection.prototype.getPlayersBankruptedInRound = function()
 {
-    let playersToChips = this.game.events.reduce((playersToChips, e) => {
+    let playersToChips = this.game.events.project('domain/round.getPlayersBankruptedInRound', (playersToChips, e) => {
 
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;

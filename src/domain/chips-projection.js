@@ -13,19 +13,18 @@ var ChipsProjection = function(game)
 
 ChipsProjection.prototype.getPlayerChips = function(playerId)
 {
-    return this.game.events.reduce((chips, e) => {
+    var playersToChips = this.game.events.project('domain/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
-            if (e.playerId === playerId) {
-                return chips + e.amount;
-            }
+            playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
+            playersToChips[e.playerId] += e.amount;
         }
         if (e instanceof events.BetPlaced) {
-            if (e.playerId === playerId) {
-                return chips - e.amount;
-            }
+            playersToChips[e.playerId] -= e.amount;
         }
-        return chips;
-    }, 0);
+        return playersToChips;
+    }, {});
+
+    return playersToChips[playerId] || 0;
 };
 
 module.exports = ChipsProjection;

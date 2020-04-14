@@ -14,7 +14,7 @@ var SeatsProjection = function(game)
 
 SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
-    return this.game.events.reduce((seat, e) => {
+    return this.game.events.project('domain/seats.getPlayersSeat', (seat, e) => {
         if (e instanceof events.SeatTaken) {
             if (e.playerId === playerId) {
                 return e.seat;
@@ -48,7 +48,7 @@ SeatsProjection.prototype.getActivePlayers = function()
 
 function bankruptedPlayers(game)
 {
-    return game.events.reduce((playerIds, e) => {
+    return game.events.project('domain/seats.bankruptedPlayers', (playerIds, e) => {
         if (e instanceof events.PlayerBankrupted) {
             playerIds.push(e.playerId);
         }
@@ -58,7 +58,7 @@ function bankruptedPlayers(game)
 
 function mapSeatsToPlayerIds(game)
 {
-    return game.events.reduce((seatsToPlayerIds, e) => {
+    return game.events.project('domain/seats.mapSeatsToPlayerIds', (seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }
@@ -71,7 +71,7 @@ function mapSeatsToPlayerIds(game)
 
 SeatsProjection.prototype.getRoundStarted = function()
 {
-    return this.game.events.reduce((value, e) => {
+    return this.game.events.project('domain/seats.getRoundStarted', (value, e) => {
         if (e instanceof events.RoundStarted) {
             return e;
         }
@@ -81,7 +81,7 @@ SeatsProjection.prototype.getRoundStarted = function()
 
 SeatsProjection.prototype.getPlayerChips = function(playerId)
 {
-    return this.game.events.reduce((chips, e) => {
+    return this.game.events.project('domain/seats.getPlayerChips', (chips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             if (e.playerId === playerId) {
                 return chips + e.amount;

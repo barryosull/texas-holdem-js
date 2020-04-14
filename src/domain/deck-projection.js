@@ -13,29 +13,30 @@ var DeckProjection = function(game)
 
 DeckProjection.prototype.getCards = function(number)
 {
-    var seed = 0;
-
-    let cardsDealt = this.game.events.reduce((cardsDealt, e) => {
+    let deckState = this.game.events.project('domain/deck.getCards', (deckState, e) => {
         if (e instanceof events.RoundStarted) {
-            seed = e.deckSeed;
-            cardsDealt = 0;
+            deckState.seed = e.deckSeed;
+            deckState.cardsDealt = 0;
         }
         if (e instanceof events.HandDealt) {
-            cardsDealt += 2;
+            deckState.cardsDealt += 2;
         }
         if (e instanceof events.FlopDealt) {
-            cardsDealt += 3;
+            deckState.cardsDealt += 3;
         }
         if (e instanceof events.TurnDealt) {
-            cardsDealt += 1;
+            deckState.cardsDealt += 1;
         }
         if (e instanceof events.RiverDealt) {
-            cardsDealt += 1;
+            deckState.cardsDealt += 1;
         }
-        return cardsDealt;
-    }, 0);
+        return deckState;
+    }, {
+        cardsDealt: 0,
+        seed: 0
+    },);
 
-    var deck = Deck.makeNew(seed).burnCards(cardsDealt);
+    var deck = Deck.makeNew(deckState.seed).burnCards(deckState.cardsDealt);
 
     return deck.getCards(number);
 };
