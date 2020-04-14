@@ -137,7 +137,14 @@
 [x] Add caching for projections
     - This turned out to be a lot of fun
     - Means I can call projections with impunity, there is practically no cost to multiple calls
+[x] Disconnecting does not remove a player from the game
+    - Display icon to indicate they're gone
+    - At end of round, disconnected players are removed
+    - Delete game when all players are disconnected
+        - Also resets when the only player refreshes
+        - Fine for now
 [ ] Admin allows players to take a seat and join the game
+    
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
     - render steps:

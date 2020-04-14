@@ -73,34 +73,33 @@ Controller.makeGameStateViewModel = function(game, playerId)
     };
 };
 
-Controller.removePlayer = function()
+Controller.playerDisconnected = function()
 {
     var socketId = this.id;
-    var playerId = SocketsToPlayersMap.getPlayerIdForSocket(socketId);
-    if (!playerId) {
-        return;
-    }
 
-    var gameId = SocketsToGameMap.getGameIdForSocket(socketId);
-    var game = GameRepo.fetchOrCreate(gameId);
-
-    game.removePlayer(playerId);
+    var gameId = SocketsToGameMap.getGame(socketId);
 
     SocketsToPlayersMap.deassociate(socketId);
     SocketsToGameMap.deassociate(socketId);
 
+    if (SocketsToGameMap.isGameEmpty(gameId)) {
+        GameRepo.remove(gameId);
+    }
+};
+
+Controller.removeDisconnectedPlayers = function(game)
+{
     var seatsProjection = new SeatsProjection(game);
 
-    if (!seatsProjection.hasPlayers()) {
-        GameRepo.remove(game);
-        return;
-    }
+    var players = seatsProjection.getActivePlayers();
 
-    Controller.sendToEveryoneInGame(game.id, 'seatEmptied', {
-        seats: Controller.makePlayersViewModel(game),
+    var disconnectedPlayers = players.filter(playerId => {
+        return !SocketsToPlayersMap.getSocketIdForPlayer(playerId);
     });
 
-    checkForWinnerByDefault(game);
+    disconnectedPlayers.forEach(playerId => {
+        game.removePlayer(playerId);
+    });
 };
 
 Controller.dealCards = function(req, res)
@@ -111,6 +110,8 @@ Controller.dealCards = function(req, res)
         res.send('');
         return;
     }
+
+    Controller.removeDisconnectedPlayers(game);
 
     var seatsProjection = new SeatsProjection(game);
 
@@ -349,7 +350,7 @@ var SocketsToPlayersMap =
             }
         }
         return undefined;
-    }
+    },
 };
 
 var SocketsToGameMap = {
@@ -366,10 +367,15 @@ var SocketsToGameMap = {
         delete SocketsToGameMap.map[socketId];
     },
 
-    getGameIdForSocket: function(socketId)
+    getGame: function(socketId)
     {
         return SocketsToGameMap.map[socketId];
     },
+
+    isGameEmpty: function(gameId)
+    {
+        return Object.values(SocketsToGameMap.map).indexOf(gameId) === -1;
+    }
 };
 
 

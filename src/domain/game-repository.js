@@ -25,12 +25,12 @@ GameRepository.fetchOrCreate = function(gameId)
 };
 
 /**
- * @param game {Game}
+ * @param gameId {string}
  */
-GameRepository.remove = function (game)
+GameRepository.remove = function (gameId)
 {
-    console.log("Removing game + " +game.id );
-    delete GameRepository.games[game.id];
+    console.log("Removing game + " + gameId);
+    delete GameRepository.games[gameId];
 };
 
 module.exports = GameRepository;

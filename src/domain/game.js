@@ -82,8 +82,6 @@ Game.prototype.addPlayer = function(playerId, name)
 
     var seat = seatsProjection.getPlayersSeat(playerId);
 
-    console.log('seat', seat);
-
     if (seat !== false) {
         return;
     }
