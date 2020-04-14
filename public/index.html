@@ -735,13 +735,11 @@ $(function()
 
     var socket = io(window.location.href);
 
+    Bootstrap.attachHtmlEventListeners();
+    Bootstrap.attachSocketEventListeners(socket);
+
     socket.on('connect', function() {
-
         Game.bootClient(gameId, socket.id);
-
-        Bootstrap.attachHtmlEventListeners();
-        Bootstrap.attachSocketEventListeners(socket);
-
         Controller.joinGame();
     });
 });
