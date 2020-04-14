@@ -10,7 +10,7 @@ var EventStream = function(eventLogger)
     this.eventLogger = eventLogger || function(event){ console.log(event) };
 
     this.events = [];
-    this.projections = {};
+    this.projectionSnapshots = new ProjectionSnapshots();
 };
 
 EventStream.prototype.push = function(...args)
@@ -21,31 +21,51 @@ EventStream.prototype.push = function(...args)
     }
 };
 
-EventStream.prototype.reduce = function(reduceFunction, initial)
-{
-    return this.events.reduce(reduceFunction, initial);
-};
-
 EventStream.prototype.project = function(name, reduceFunction, initial)
 {
-    var projection = this.projections[name];
+    let snapshot = this.projectionSnapshots.get(name) || new ProjectionSnapshot(name, 0, initial);
 
-    var positionInEventStream = (projection === undefined) ? 0 : projection.position;
-    initial = (projection === undefined) ? initial : projection.value;
+    let eventsToProcess = this.events.slice(snapshot.position);
 
-    var eventsToProcess = this.events.slice(positionInEventStream);
+    let newState = eventsToProcess.reduce(reduceFunction, snapshot.state);
 
-    var reduction = eventsToProcess.reduce(reduceFunction, initial);
+    snapshot = snapshot.update(eventsToProcess.length, newState);
 
-    positionInEventStream += eventsToProcess.length;
+    this.projectionSnapshots.store(snapshot);
 
-    this.projections[name] = {
-        value: reduction,
-        position: positionInEventStream
-    };
-
-    return reduction;
+    return newState;
 };
+
+var ProjectionSnapshot = function(name, eventStreamPosition, state)
+{
+    this.name = name;
+    this.position = eventStreamPosition;
+    this.state = state;
+};
+
+ProjectionSnapshot.prototype.update = function(eventStreamPosition, state)
+{
+    return new ProjectionSnapshot(this.name, eventStreamPosition, state);
+};
+
+var ProjectionSnapshots = function()
+{
+    this.snapshots = {};
+};
+
+ProjectionSnapshots.prototype.get = function(name)
+{
+    return this.snapshots[name];
+};
+
+/**
+ * @param snapshot {ProjectionSnapshot}
+ */
+ProjectionSnapshots.prototype.store = function(snapshot)
+{
+    this.snapshots[snapshot.name] = snapshot;
+};
+
 
 var Game = function(id, eventLogger)
 {
