@@ -292,9 +292,9 @@ View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 
     var seatHtml =
         "<div id='seat-" + seat + "' class='seat'>" +
-        "<div class='name'>" + title + "</div>" +
-        "<span class='cards' id='player-" + playerId + "'></span>" +
-        "<span class='chips stack'>" + chips + "</span>" +
+            "<div class='name'>" + title + "</div>" +
+            "<span class='cards' id='player-" + playerId + "'></span>" +
+            "<span class='chips stack'>" + chips + "</span>" +
         "</div>";
 
     View.getHandsDiv(seat).append(seatHtml);
@@ -315,9 +315,9 @@ View.renderEmptySeat = function(seat)
 
     var seatHtml =
         "<div id='seat-" + seat + "' class='seat empty'>" +
-        "<div class='name'>" + title + "</div>" +
-        "<span class='cards'></span>" +
-        "<span class='chips stack' style='display: none'></span>" +
+            "<div class='name'>" + title + "</div>" +
+            "<span class='cards'></span>" +
+            "<span class='chips stack' style='display: none'></span>" +
         "</div>";
 
     View.getHandsDiv(seat).append(seatHtml);
