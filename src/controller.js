@@ -40,6 +40,18 @@ Controller.join = function(req, res)
     res.json(gameState);
 };
 
+Controller.makeGameStateViewModel = function(game, playerId)
+{
+    var roundProjection = new RoundProjection(game);
+
+    return {
+        players: Controller.makePlayersViewModel(game),
+        round: Controller.makeRoundStartedViewModel(game, playerId),
+        cards: roundProjection.getCommunityCards(),
+        pot: roundProjection.getPot()
+    };
+};
+
 Controller.makePlayersViewModel = function(game)
 {
     var seatsProjection = new SeatsProjection(game);
@@ -61,17 +73,6 @@ Controller.makePlayersViewModel = function(game)
     return viewModel;
 };
 
-Controller.makeGameStateViewModel = function(game, playerId)
-{
-    var roundProjection = new RoundProjection(game);
-
-    return {
-        players: Controller.makePlayersViewModel(game),
-        round: Controller.makeRoundStartedViewModel(game, playerId),
-        cards: roundProjection.getCommunityCards(),
-        pot: roundProjection.getPot()
-    };
-};
 
 Controller.playerDisconnected = function()
 {

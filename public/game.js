@@ -149,12 +149,20 @@ Controller.joinGame = function()
 
     Game.join(Controller.playerId, playerName).done( gameState => {
         Controller.players(gameState.players);
-        if (gameState.round) {
-            View.renderDownFacingHands(gameState.round.activePlayers);
-            View.renderPlayerHand(gameState.round.hand);
-            View.attachCommunityCards(gameState.cards);
-            View.updatePot(gameState.pot);
+        console.log(gameState.round);
+        if (!gameState.round) {
+            return
         }
+        var otherPlayers = gameState.round.activePlayers.filter(playerId => {
+            return playerId !== Controller.playerId
+        });
+        View.renderDownFacingHands(otherPlayers);
+        View.attachCommunityCards(gameState.cards);
+        View.updatePot(gameState.pot);
+        if (!gameState.round.hand){
+            return;
+        }
+        View.renderPlayerHand(gameState.round.hand);
     });
 
     View.hideCommunityCardsButtons();
@@ -275,7 +283,7 @@ View.renderEmptySeats = function()
 
 View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 {
-    var title = "Seat " + (seat + 1) + ": " + playerName;
+    var title = (seat + 1) + ": " + playerName;
     if (playerId === currentPlayerId) {
         title = "<b>" + title + "</b>";
     }
@@ -302,7 +310,7 @@ View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 
 View.renderEmptySeat = function(seat)
 {
-    var title = "Seat " + (seat + 1) + " (empty)";
+    var title = (seat + 1) + ": (empty)";
 
     var $seat = $(`#seat-${seat}`);
     if ($seat.length) {
