@@ -326,9 +326,9 @@ View.renderEmptySeat = function(seat)
 View.getHandsDiv = function(seat)
 {
     if (seat < 4) {
-        return $('#hands-1-to-4');
+        return $('#seats-1-to-4');
     }
-    return $('#hands-5-to-8');
+    return $('#seats-5-to-8');
 };
 
 View.renderPlayerHand = function(hand)

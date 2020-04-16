@@ -88,16 +88,16 @@ body {
     padding: 6px;
 }
 
-.seat {
-    position: relative;
-    width: 166px;
-    height: 145px;
-    border: 1px solid #aaa;
-    margin: 0 23px;
+.hands {
+    width: 860px;
 }
 
-.seat.empty {
-    opacity: 0.5;
+#seats-1-to-4 .seat {
+    float: left;
+}
+
+#seats-5-to-8 .seat {
+    float: right;
 }
 
 #seat-0, #seat-3 {
@@ -106,18 +106,6 @@ body {
 
 #seat-7, #seat-4 {
     bottom: 60px;
-}
-
-.hands {
-    width: 860px;
-}
-
-#hands-1-to-4 .seat {
-    float: left;
-}
-
-#hands-5-to-8 .seat {
-    float: right;
 }
 
 #center {
@@ -142,25 +130,40 @@ body {
     left: 0;
 }
 
+.seat {
+    position: relative;
+    width: 166px;
+    height: 145px;
+    border: 1px solid #aaa;
+    margin: 0 23px;
+    border-radius: 10px;
+}
+
+
 .seat .dealer {
     display: inline-block;
     position: absolute;
     top: -10px;
     left: -10px;
     color: #000;
-    background-color: #ff8e4d;
+    background: linear-gradient(to bottom, #ff9389 5%, #d74761 100%);
     border-radius: 10px;
     border: 1px solid #ff553a;
     line-height: 17px;
     text-align: center;
     min-width: 15px;
+    padding: 2px;
+}
+
+.seat.empty {
+    opacity: 0.5;
 }
 
 .chips {
     padding: 2px;
     border-radius: 10px;
     color: #333;
-    background: #ffd742;
+    background: linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
     border: 1px solid #ffaa22;
     line-height: 17px;
     text-align: center;
@@ -180,9 +183,10 @@ body {
 }
 
 .name {
-    background-color: #649c42;
     padding: 4px 10px;
     overflow: hidden;
+    border-bottom: 1px solid #aaa;
+    color: #fff;
 }
 
 .card {
