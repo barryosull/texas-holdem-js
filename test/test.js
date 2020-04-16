@@ -150,4 +150,44 @@ describe('Game', () => {
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
     });
+
+    it ('keeps track of who is the next player to act', () => {
+        let game = makeGame();
+        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
+        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
+        let playerC = '9e29bbb2-e76c-4cf6-8931-2e22be61f345';
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
+
+        game.startNewRound('test-seed');
+
+        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerA, nextToAct);
+
+        game.placeBet(playerA, 40);
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerB, nextToAct);
+
+        game.placeBet(playerB, 20);
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        // Big blind has bet 40 but has not acted, so they get a turn to act
+        assert.equal(playerC, nextToAct);
+
+        game.placeBet(playerC, 0);
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(null, nextToAct);
+
+        game.dealFlop();
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerB, nextToAct);
+    });
+
+    it ('knows when a round of betting is complete', () => {
+
+    });
 });

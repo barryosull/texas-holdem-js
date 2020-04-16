@@ -121,4 +121,100 @@ RoundProjection.prototype.bankruptedInLastRound = function()
     return Object.keys(bankrupted);
 };
 
+RoundProjection.prototype.getNextPlayerToAct = function()
+{
+    var lastActivePlayer = this.game.events.project('app/round.getNextPlayerToAct.lastActivePlayer', (player, e) => {
+        if (e instanceof events.BetPlaced) {
+            player = e.playerId;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            player = null;
+        }
+        return player;
+    }, null);
+
+    var activePlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
+        if (e instanceof events.SeatTaken) {
+            seats[e.seat] = e.playerId;
+        }
+        if (e instanceof events.SeatEmptied) {
+            delete seats[e.seat];
+        }
+        return seats;
+    }, [null, null, null, null, null, null, null, null]).filter(Boolean);
+
+    var actions = this.game.events.project('app/round.getNextPlayerToAct.playerActionCounts', (actions, e) => {
+        if (e instanceof events.RoundStarted) {
+            actions = {};
+            // Big and small blinds still need to "act" even though they have bet
+            actions[e.smallBlind] = -1;
+            actions[e.bigBlind] = -1;
+        }
+        if (e instanceof events.HandDealt) {
+            actions[e.playerId] = actions[e.playerId] || 0;
+        }
+        if (e instanceof events.HandFolded) {
+            delete actions[e.playerId];
+        }
+        if (e instanceof events.BetPlaced) {
+            actions[e.playerId] += 1;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            actions = {};
+        }
+        return actions;
+    }, {});
+
+    let bets = this.game.events.project('app/round.getNextPlayerToAct.playerBets', (bets, e) => {
+        if (e instanceof events.RoundStarted) {
+            bets = {};
+        }
+        if (e instanceof events.HandDealt) {
+            bets[e.playerId] = 0;
+        }
+        if (e instanceof events.HandFolded) {
+            delete bets[e.playerId];
+        }
+        if (e instanceof events.BetPlaced) {
+            bets[e.playerId] += e.amount;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            bets = {};
+        }
+        return bets;
+    }, {});
+
+    var hasEveryoneActed = Object.values(actions).reduce((value, actionCount) => {
+        return value && actionCount > 0;
+    }, true);
+
+    var betsArray = Object.values(bets);
+    var uniqueBetAmounts = betsArray.filter((bet, index) => {
+        return betsArray.indexOf(bet) === index;
+    });
+
+    var hasEveryoneBetTheSameAmount = (uniqueBetAmounts.length === 1);
+
+    if (hasEveryoneActed && hasEveryoneBetTheSameAmount) {
+        return null;
+    }
+
+    // No active player, then get player to left of dealer
+    if (lastActivePlayer === null) {
+        var dealer = this.game.events.project('app/round.getNextPlayerToAct.dealer', (dealer, e) => {
+            if (e instanceof events.RoundStarted) {
+                dealer = e.dealer;
+            }
+            return dealer;
+        }, null);
+        lastActivePlayer = dealer;
+    }
+
+    var currPlayerIndex = activePlayers.indexOf(lastActivePlayer);
+    // Go to the player to the left of the last active player
+    var nextPlayerIndex = ((currPlayerIndex + 1) % activePlayers.length);
+
+    return activePlayers[nextPlayerIndex];
+};
+
 module.exports = RoundProjection;

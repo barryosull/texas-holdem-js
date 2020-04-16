@@ -143,8 +143,19 @@
     - Delete game when all players are disconnected
         - Also resets when the only player refreshes
         - Fine for now
+[ ] Indicate next player to make a bet
+    - Much trickier to implement than I'd thought
+    - No idea were to start, theres just too much data for a single projection
+        - Maybe use multiple projections then
+    - Rules:
+        - Who is the next player in this round that has yet to "act"
+            - Goes through in the order of seats
+        - Only factor in active players
+        - Ignore the first bets of the small and big blinds
+        - If everyone has acted and everyone has bet the same amount, then it's nobodies turn\
+    [ ] Build projection
+    [ ]
 [ ] Admin allows players to take a seat and join the game
-
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
     - render steps:
@@ -152,12 +163,12 @@
         [x] render hands
         [x] render current players hand
         [x] render community cards
-        [ ] render bets
-        [ ] render pot
+        [x] render bets
+        [x] render pot
         [ ] render controls
             - Admin button
             - fold/bet
-[ ] Indicate next player to make a bet
+
 
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
