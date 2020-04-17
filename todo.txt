@@ -166,7 +166,8 @@
 [x] Bug: Folded players should not be the next player
 [x] Bankrupt players do not see current game happening
 [x] Bankrupt player are still considered in the game
-
+[x] Bankrupted players cannot see game in progress
+[x] Disconnected players are not removed from the game
 [ ] Fix broken hand
     - A hand that shouldn't have won has won
         - winner: 8H, KD

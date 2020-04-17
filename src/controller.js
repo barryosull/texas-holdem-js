@@ -92,7 +92,7 @@ Controller.removeDisconnectedPlayers = function(game)
 {
     var seatsProjection = new SeatsProjection(game);
 
-    var players = seatsProjection.getActivePlayers();
+    var players = seatsProjection.getPlayers();
 
     var disconnectedPlayers = players.filter(playerId => {
         return !SocketsToPlayersMap.getSocketIdForPlayer(playerId);
