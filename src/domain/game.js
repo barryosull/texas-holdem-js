@@ -102,6 +102,11 @@ Game.prototype.addPlayer = function(playerId, name)
     }
 };
 
+Game.prototype.givePlayerChips = function(playerId, amount)
+{
+    this.events.push(new events.PlayerGivenChips(playerId, amount))
+};
+
 /**
  * @param game {Game}
  * @param playerId {string}

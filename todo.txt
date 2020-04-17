@@ -162,7 +162,7 @@
     [x] Players can go in all in even it's less than the required amount
     [ ] Max bet in a round is the lowest players remaining chips count
     [ ] Players can only win a proportion of what they've bet
-        
+
 [ ] Fix broken hand
     - A hand that shouldn't have won has won
         - winner: 8H, KD

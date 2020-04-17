@@ -115,7 +115,6 @@ Controller.dealCards = function(req, res)
     Controller.removeDisconnectedPlayers(game);
 
     var seatsProjection = new SeatsProjection(game);
-    var roundProjection = new RoundProjection(game);
 
     Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
 
@@ -253,6 +252,28 @@ Controller.finish = function(req, res)
     var winningHand = roundProjection.getPlayerHand(winningPlayerId);
     winningHand.playerChips = chipsProjection.getPlayerChips(winningPlayerId);
     Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);
+
+    res.send('');
+};
+
+Controller.givePlayerChips = function(req, res)
+{
+    var game = GameRepo.fetchOrCreate(req.params.gameId);
+
+    if (!Controller.isGameAdmin(game, req)) {
+        res.send('Nice try bucko');
+        return;
+    }
+    var playerId = req.body.playerId;
+    var amount = parseInt(req.body.amount);
+
+    if (!playerId) {
+        return;
+    }
+
+    game.givePlayerChips(playerId, amount);
+
+    Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
 
     res.send('');
 };

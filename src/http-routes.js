@@ -26,6 +26,8 @@ function boot(app, io)
 
     app.post('/api/game/:gameId/finish', Controller.finish);
 
+    app.post('/api/game/:gameId/give-chips-to-player', Controller.givePlayerChips);
+
     app.post('/api/game/:gameId/fold/:playerId', Controller.foldHand);
 
     app.post('/api/game/:gameId/bet/:playerId', Controller.placeBet);

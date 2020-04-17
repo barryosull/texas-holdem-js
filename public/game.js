@@ -58,6 +58,19 @@ Game.finishRound = function()
     $.post("api/game/" + Game.gameId + "/finish/");
 };
 
+Game.giveChipsToPlayer = function(playerId, amount)
+{
+    return $.post(
+        "api/game/" + Game.gameId + "/give-chips-to-player",
+        {
+            playerId: playerId,
+            amount: amount
+        },
+        d => {},
+        "json"
+    );
+};
+
 Game.foldHand = function(playerId)
 {
     $.post("api/game/" + Game.gameId + "/fold/" + playerId);
@@ -276,14 +289,28 @@ Controller.playersTurn = function(playersTurn)
     View.highlightPlayerToAct(playersTurn.playerId);
 };
 
+Controller.givePlayerChips = function()
+{
+    var playerId = $('#player_ids').val();
+    var amount = parseInt($('#chips-to-give').val());
+
+    Game.giveChipsToPlayer(playerId, amount);
+
+    $('#chips-to-give').val('');
+};
+
 var View = {};
 
 View.renderPlayers = function(players, currentPlayerId)
 {
+    var $playerIds = $('#player_ids');
+    $playerIds.html('<option value="">(Choose player)</option>');
+
     for (var index in players) {
         var player = players[index];
         if (player.playerId) {
             View.renderSeat(player.seat, player.playerId, player.playerName, player.chips, currentPlayerId);
+            $playerIds.append('<option value="' + player.playerId + '">' + player.playerName + '</option>');
         } else {
             View.renderEmptySeat(player.seat);
         }
@@ -591,6 +618,9 @@ Bootstrapper.attachHtmlEventListeners = function()
     });
     $("#fold").click(function(){
         Controller.foldHand();
+    });
+    $("#give-chips").click(function(){
+        Controller.givePlayerChips();
     });
     $('#bet').click(function(){
         Controller.placeBet();
