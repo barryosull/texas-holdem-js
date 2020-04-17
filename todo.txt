@@ -156,7 +156,8 @@
     [x] Build projection
     [x] Next round bet highlight not working
         - First bet raised, didn't highlight second player
-    [ ] Enable control for next player, disable for others
+    [x] Enable control for next player, disable for others
+    [x] Show how much the next player has to pay to play
 [ ] Fix broken hand
     - A hand that shouldn't have won has won
         - winner: 8H, KD

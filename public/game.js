@@ -234,6 +234,7 @@ Controller.seatEmptied = function(seats)
 Controller.roundStarted = function(round)
 {
     View.clearTable();
+    View.unhighlightWinner();
     View.renderDownFacingHands(round.activePlayers);
     View.removeCards(round.bankruptedPlayers);
     if (round.hand) {
@@ -422,9 +423,13 @@ View.renderDownFacingCard = function()
 View.highlightWinner = function(playerId)
 {
     $('.turn').removeClass('turn');
-    $('#player-' + playerId + ' .card').each(function(){
-        $(this).addClass('winner');
-    });
+    var $seat = $('#player-' + playerId).parent('.seat');
+    $seat.addClass('winner');
+};
+
+View.unhighlightWinner = function()
+{
+    $('.winner').removeClass('winner');
 };
 
 View.highlightDealer = function(playerId)

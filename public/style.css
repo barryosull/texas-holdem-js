@@ -183,6 +183,20 @@ body {
     box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
 }
 
+.seat.winner {
+    border-color: #ffaa22;
+    background: linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
+    color: #9e3b00;
+    -webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+    box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+}
+
+.seat.winner .name {
+    color: #333;
+    border-color: #ffaa22;
+}
+
 .chips {
     padding: 2px;
     border-radius: 10px;
