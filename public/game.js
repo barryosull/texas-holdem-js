@@ -428,6 +428,7 @@ View.attachRiver = function(card)
 View.clearTable = function()
 {
     $('#cards').html('');
+    $('.card').remove();
 };
 
 View.renderCards = function(cards)

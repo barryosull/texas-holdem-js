@@ -122,9 +122,9 @@ Controller.dealCards = function(req, res)
 
     var roundStarted = seatsProjection.getRoundStarted();
 
-    var activePlayers = seatsProjection.getActivePlayers();
+    var players = seatsProjection.getPlayers();
 
-    activePlayers.forEach(playerId => {
+    players.forEach(playerId => {
         Controller.sendToPlayerInGame(playerId, 'roundStarted', Controller.makeRoundStartedViewModel(game, playerId));
     });
 
