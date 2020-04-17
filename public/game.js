@@ -123,10 +123,15 @@ Controller.foldHand = function()
 
 Controller.placeBet = function()
 {
-    var amountVal = $('#amount').val();
-    var amount = amountVal === "" ? 0 : parseInt($('#amount').val());
+    var $amount = $('#amount');
+    var amount = $amount.val() === "" ? 0 : parseInt($amount.val());
+    var minAmount = parseInt($amount.attr('min'));
+    if (amount < minAmount) {
+        alert("Bet too low to play. Minimum bet is "+ minAmount + ".");
+        return;
+    }
     Game.makeBet(Controller.playerId, amount);
-    $('#amount').val('');
+    $amount.val('');
 };
 
 Controller.joinGame = function()
@@ -258,16 +263,16 @@ Controller.winningHand = function(hand)
     View.showDealButton();
 };
 
-Controller.playersTurn = function(playerId)
+Controller.playersTurn = function(playersTurn)
 {
-    if (playerId === Controller.playerId) {
+    if (playersTurn.playerId === Controller.playerId) {
         View.enableFoldButton();
-        View.enableBetting();
+        View.enableBetting(playersTurn.amountToPlay);
     } else {
         View.disableFoldButton();
         View.disableBetting();
     }
-    View.highlightPlayerToAct(playerId);
+    View.highlightPlayerToAct(playersTurn.playerId);
 };
 
 var View = {};
@@ -530,8 +535,13 @@ View.disableBetting = function() {
     $('#bet').attr('disabled', 'disabled');
 };
 
-View.enableBetting = function()
+View.enableBetting = function(minAmount)
 {
+    $('#amount').attr('min', minAmount);
+    if (minAmount > 0) {
+        $('#amount').val(minAmount);
+    }
+
     $('#bet').removeAttr('disabled');
 };
 

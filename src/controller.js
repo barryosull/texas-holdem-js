@@ -132,7 +132,7 @@ Controller.dealCards = function(req, res)
     broadcastBet(game, roundStarted.smallBlind);
     broadcastBet(game, roundStarted.bigBlind);
 
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+    Controller.announceNextPlayersTurn(game);
 
     res.send('');
 };
@@ -188,7 +188,7 @@ Controller.dealFlop = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'flop', flop);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+    Controller.announceNextPlayersTurn(game);
     res.send('');
 };
 
@@ -209,7 +209,7 @@ Controller.dealTurn = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'turn', turn);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+    Controller.announceNextPlayersTurn(game);
 
     res.send('');
 };
@@ -231,7 +231,7 @@ Controller.dealRiver = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'river', river);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+    Controller.announceNextPlayersTurn(game);
     res.send('');
 };
 
@@ -279,7 +279,7 @@ function checkForWinnerByDefault(game)
 
     var winningHand = roundProjection.getWinner();
     if (!winningHand) {
-        Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+        Controller.announceNextPlayersTurn(game);
         return;
     }
 
@@ -301,11 +301,22 @@ Controller.placeBet = function(req, res)
 
     broadcastBet(game, playerId);
 
-    var roundProjection = new RoundProjection(game);
-
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
+    Controller.announceNextPlayersTurn(game);
 
     res.send('');
+};
+
+Controller.announceNextPlayersTurn = function(game)
+{
+    var roundProjection = new RoundProjection(game);
+
+    var nextPlayerToAct = roundProjection.getNextPlayerToAct();
+
+    var playersTurn = {
+        playerId: nextPlayerToAct,
+        amountToPlay: roundProjection.getAmountToPlay(nextPlayerToAct)
+    };
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', playersTurn);
 };
 
 function broadcastBet(game, playerId)

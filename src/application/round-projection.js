@@ -215,4 +215,38 @@ RoundProjection.prototype.getNextPlayerToAct = function()
     return activePlayers[nextPlayerIndex];
 };
 
+RoundProjection.prototype.getAmountToPlay = function(playerId)
+{
+    if (!playerId) {
+        return null;
+    }
+    var bets = this.game.events.project('app/round.getNextPlayerToAct.playerBets', (bets, e) => {
+        if (e instanceof events.RoundStarted) {
+            bets = {};
+        }
+        if (e instanceof events.HandFolded) {
+            delete bets[e.playerId];
+        }
+        if (e instanceof events.BetPlaced) {
+            bets[e.playerId] = bets[e.playerId] || 0;
+            bets[e.playerId] += e.amount;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            bets = {};
+        }
+        return bets;
+    }, {});
+
+    var playersBet = bets[playerId] || 0;
+
+    var maxBet = Object.values(bets).reduce((maxBet, bet) => {
+        if (maxBet < bet) {
+            maxBet = bet;
+        }
+        return maxBet;
+    }, 0);
+
+    return maxBet - playersBet;
+};
+
 module.exports = RoundProjection;
