@@ -209,28 +209,6 @@ describe('Game', () => {
         assert.equal(playerA, nextToAct);
     });
 
-    it ('winning hand is selected', () => {
-
-        var pokerToolsHands = ["KCJH", "8HKD"].map(hand => {
-            return pokerTools.CardGroup.fromString(hand);
-        });
-        var board = pokerTools.CardGroup.fromString("5C4SJD4D8D");
-
-        const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
-
-        console.log(result);
-        console.log(result[0][0].handrank);
-        console.log(result[1][0].handrank);
-
-        result[0][0].handrank.highcards.cards.map(card => {
-            console.log(card);
-        });
-
-        result[1][0].handrank.highcards.cards.map(card => {
-            console.log(card);
-        });
-    });
-
     it ('Picks the winning hand correctly', () => {
         let game = new Game('f17cd07c-a4f1-4810-925a-cfa8c8b57b35');
         let playerA = '4df495c4-1e0c-4e12-8914-cf89a268a4f6';
@@ -263,5 +241,53 @@ describe('Game', () => {
 
         game.finish();
     });
+
+    it ('winning hand is selected', () => {
+        /*
+        var pokerToolsHands = ["KCJH", "8HKD"].map(hand => {
+            return pokerTools.CardGroup.fromString(hand);
+        });
+        var board = pokerTools.CardGroup.fromString("5C4SJD4D8D");
+
+        const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+
+        console.log(result);
+
+        console.log('handA')
+        result[0][0].handrank.highcards.cards.map(card => {
+            console.log(card.toString());
+        });
+
+        console.log('handB')
+        result[1][0].handrank.highcards.cards.map(card => {
+            console.log(card.toString());
+        });
+        */
+    });
+
+    it ('handles draws', () => {
+
+        var pokerToolsHands = ["4d4s", "9d9s"].map(hand => {
+            return pokerTools.CardGroup.fromString(hand);
+        });
+        var board = pokerTools.CardGroup.fromString("JdTsQsKsAs");
+
+        const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+
+        console.log(result);
+
+        console.log(board.toString());
+
+        console.log('handA')
+        result[0][0].handrank.highcards.cards.map(card => {
+            console.log(card.toString());
+        });
+
+        console.log('handB')
+        result[1][0].handrank.highcards.cards.map(card => {
+            console.log(card.toString());
+        });
+    });
+
 });
 

@@ -158,6 +158,11 @@
         - First bet raised, didn't highlight second player
     [x] Enable control for next player, disable for others
     [x] Show how much the next player has to pay to play
+[ ] Handle case when player does not have enough chips to play
+    [x] Players can go in all in even it's less than the required amount
+    [ ] Max bet in a round is the lowest players remaining chips count
+    [ ] Players can only win a proportion of what they've bet
+        
 [ ] Fix broken hand
     - A hand that shouldn't have won has won
         - winner: 8H, KD
@@ -181,31 +186,17 @@
         [ ] render controls
             - Admin button
             - fold/bet
-
-
 [ ] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
         - Good enough for now
 [ ] Admin allows people into the game
     - Not need for Beta
-[ ] Refactor game into aggregates
-    - This thing is getting messy internally
-    - I need to create aggregates for write operations
-    - Query projections are not isolated, listening to too many events
-    - Have query projections that are only used external to the domain
-
-[ ] Next round cannot start until everyone has put in the same amount
+[x] Next round cannot start until everyone has put in the same amount
     - Or a player has put in all their chips
-
-[ ] Sub-streams of events for faster projections
-    - Don't need all events to figure out the current hands, only events from this hand
-[ ] Write tests based on domain events
 [ ] Write broadcast events
     - Documentation only
     - Plan is to migrate to trigger broadcast on domain events
-
-
-[ ] Show winning hand title 
+[ ] Show winning hand title
 [ ] Handle draws
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare

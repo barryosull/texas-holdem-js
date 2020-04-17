@@ -309,12 +309,17 @@ Controller.placeBet = function(req, res)
 Controller.announceNextPlayersTurn = function(game)
 {
     var roundProjection = new RoundProjection(game);
+    var chipsProjection = new ChipsProjection(game);
 
     var nextPlayerToAct = roundProjection.getNextPlayerToAct();
 
+    var amountToPlay = roundProjection.getAmountToPlay(nextPlayerToAct);
+
+    var playerChips = chipsProjection.getPlayerChips(nextPlayerToAct);
+
     var playersTurn = {
         playerId: nextPlayerToAct,
-        amountToPlay: roundProjection.getAmountToPlay(nextPlayerToAct)
+        amountToPlay: Math.min(playerChips, amountToPlay)
     };
     Controller.sendToEveryoneInGame(game.id, 'playersTurn', playersTurn);
 };

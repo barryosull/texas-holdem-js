@@ -193,6 +193,8 @@ RoundProjection.prototype.getNextPlayerToAct = function()
 
     var hasEveryoneBetTheSameAmount = (uniqueBetAmounts.length === 1);
 
+
+
     if (hasEveryoneActed && hasEveryoneBetTheSameAmount) {
         return null;
     }
