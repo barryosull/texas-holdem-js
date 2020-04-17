@@ -158,10 +158,14 @@
         - First bet raised, didn't highlight second player
     [x] Enable control for next player, disable for others
     [x] Show how much the next player has to pay to play
+[x] Admins can transfer chips to others
 [ ] Handle case when player does not have enough chips to play
     [x] Players can go in all in even it's less than the required amount
     [ ] Max bet in a round is the lowest players remaining chips count
     [ ] Players can only win a proportion of what they've bet
+[x] Bug: Folded players should not be the next player
+[x] Bankrupt players do not see current game happening
+[x] Bankrupt player are still considered in the game
 
 [ ] Fix broken hand
     - A hand that shouldn't have won has won

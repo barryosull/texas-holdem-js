@@ -133,7 +133,7 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return player;
     }, null);
 
-    var activePlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
+    var seatedPlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
         if (e instanceof events.SeatTaken) {
             seats[e.seat] = e.playerId;
         }
@@ -143,7 +143,33 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return seats;
     }, [null, null, null, null, null, null, null, null]).filter(Boolean);
 
-    var actions = this.game.events.project('app/round.getNextPlayerToAct.playerActionCounts', (actions, e) => {
+    var folderPlayers = this.game.events.project('app/round.getNextPlayerToAct.foldedPlayers', (folded, e) => {
+        if (e instanceof events.RoundStarted) {
+            folded = [];
+        }
+        if (e instanceof events.HandFolded) {
+            folded.push(e.playerId);
+        }
+        if (e instanceof events.PlayerBankrupted) {
+            folded.push(e.playerId);
+        }
+        return folded;
+    }, []);
+
+    var bankruptedPlayers = this.game.events.project('app/round.getNextPlayerToAct.bankruptedPlayers', (bankrupted, e) => {
+        if (e instanceof events.PlayerBankrupted) {
+            bankrupted.push(e.playerId);
+        }
+        return bankrupted;
+    }, []);
+
+    var inactivePlayers = folderPlayers.concat(bankruptedPlayers);
+
+    var activePlayers = seatedPlayers.filter(playerId => {
+        return inactivePlayers.indexOf(playerId) === -1;
+    });
+
+    var actions = this.game.events.project('app/round.getNextPlayerToAct.actions', (actions, e) => {
         if (e instanceof events.RoundStarted) {
             actions = {};
             // Big and small blinds still need to "act" even though they have bet
@@ -192,8 +218,6 @@ RoundProjection.prototype.getNextPlayerToAct = function()
     });
 
     var hasEveryoneBetTheSameAmount = (uniqueBetAmounts.length === 1);
-
-
 
     if (hasEveryoneActed && hasEveryoneBetTheSameAmount) {
         return null;

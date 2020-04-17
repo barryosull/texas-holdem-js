@@ -210,7 +210,7 @@ describe('Game', () => {
     });
 
     it ('Picks the winning hand correctly', () => {
-        let game = new Game('f17cd07c-a4f1-4810-925a-cfa8c8b57b35');
+        let game = makeGame();
         let playerA = '4df495c4-1e0c-4e12-8914-cf89a268a4f6';
         let playerB = '6d53ea8e-0e7c-4d11-9551-0ec062394650';
         game.addPlayer(playerA, "Test");
@@ -242,52 +242,61 @@ describe('Game', () => {
         game.finish();
     });
 
-    it ('winning hand is selected', () => {
-        /*
-        var pokerToolsHands = ["KCJH", "8HKD"].map(hand => {
-            return pokerTools.CardGroup.fromString(hand);
-        });
-        var board = pokerTools.CardGroup.fromString("5C4SJD4D8D");
+    it ('folded players are not considered for next player', () => {
 
-        const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+        let game = makeGame();
+        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
+        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
+        let playerC = '9e29bbb2-e76c-4cf6-8931-2e22be61f345';
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
 
-        console.log(result);
+        game.startNewRound('test-seed');
 
-        console.log('handA')
-        result[0][0].handrank.highcards.cards.map(card => {
-            console.log(card.toString());
-        });
+        game.placeBet(playerA, 40);
+        game.foldHand(playerB);
+        game.placeBet(playerC, 0);
 
-        console.log('handB')
-        result[1][0].handrank.highcards.cards.map(card => {
-            console.log(card.toString());
-        });
-        */
+        game.dealFlop();
+
+        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerC, nextToAct);
     });
 
-    it ('handles draws', () => {
+    it ('bankrupted players are not considered for next player', () => {
 
-        var pokerToolsHands = ["4d4s", "9d9s"].map(hand => {
-            return pokerTools.CardGroup.fromString(hand);
-        });
-        var board = pokerTools.CardGroup.fromString("JdTsQsKsAs");
+        let game = makeGame();
+        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
+        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
+        let playerC = '9e29bbb2-e76c-4cf6-8931-2e22be61f345';
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
 
-        const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
+        game.startNewRound('test-seeda');
 
-        console.log(result);
+        game.placeBet(playerA, 1000);
+        game.foldHand(playerB);
+        game.placeBet(playerC, 960);
 
-        console.log(board.toString());
+        game.dealFlop();
+        game.dealTurn();
+        game.dealRiver();
+        game.finish();
 
-        console.log('handA')
-        result[0][0].handrank.highcards.cards.map(card => {
-            console.log(card.toString());
-        });
+        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerA, nextToAct);
 
-        console.log('handB')
-        result[1][0].handrank.highcards.cards.map(card => {
-            console.log(card.toString());
-        });
+        game.startNewRound('test-seedb');
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerA, nextToAct);
+
+        game.placeBet(playerA, 20);
+
+        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(playerB, nextToAct);
     });
-
 });
 
