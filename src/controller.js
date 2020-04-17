@@ -115,6 +115,7 @@ Controller.dealCards = function(req, res)
     Controller.removeDisconnectedPlayers(game);
 
     var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
 
     Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
 
@@ -130,6 +131,8 @@ Controller.dealCards = function(req, res)
 
     broadcastBet(game, roundStarted.smallBlind);
     broadcastBet(game, roundStarted.bigBlind);
+
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
 
     res.send('');
 };
@@ -185,6 +188,7 @@ Controller.dealFlop = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'flop', flop);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
     res.send('');
 };
 
@@ -205,6 +209,7 @@ Controller.dealTurn = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'turn', turn);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
 
     res.send('');
 };
@@ -226,6 +231,7 @@ Controller.dealRiver = function(req, res)
 
     Controller.sendToEveryoneInGame(game.id, 'river', river);
     Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
     res.send('');
 };
 
@@ -273,6 +279,7 @@ function checkForWinnerByDefault(game)
 
     var winningHand = roundProjection.getWinner();
     if (!winningHand) {
+        Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
         return;
     }
 
@@ -280,7 +287,6 @@ function checkForWinnerByDefault(game)
 
     winningHand.playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
     Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
-
 }
 
 Controller.placeBet = function(req, res)
@@ -294,6 +300,10 @@ Controller.placeBet = function(req, res)
     game.placeBet(playerId, amount);
 
     broadcastBet(game, playerId);
+
+    var roundProjection = new RoundProjection(game);
+
+    Controller.sendToEveryoneInGame(game.id, 'playersTurn', roundProjection.getNextPlayerToAct());
 
     res.send('');
 };

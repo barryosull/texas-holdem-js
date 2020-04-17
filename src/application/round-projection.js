@@ -150,14 +150,12 @@ RoundProjection.prototype.getNextPlayerToAct = function()
             actions[e.smallBlind] = -1;
             actions[e.bigBlind] = -1;
         }
-        if (e instanceof events.HandDealt) {
-            actions[e.playerId] = actions[e.playerId] || 0;
-        }
         if (e instanceof events.HandFolded) {
             delete actions[e.playerId];
         }
         if (e instanceof events.BetPlaced) {
-            actions[e.playerId] += 1;
+            actions[e.playerId] = actions[e.playerId] || 0;
+            ++actions[e.playerId];
         }
         if (e instanceof events.BettingRoundClosed) {
             actions = {};
@@ -169,13 +167,11 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         if (e instanceof events.RoundStarted) {
             bets = {};
         }
-        if (e instanceof events.HandDealt) {
-            bets[e.playerId] = 0;
-        }
         if (e instanceof events.HandFolded) {
             delete bets[e.playerId];
         }
         if (e instanceof events.BetPlaced) {
+            bets[e.playerId] = bets[e.playerId] || 0;
             bets[e.playerId] += e.amount;
         }
         if (e instanceof events.BettingRoundClosed) {
@@ -184,9 +180,11 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return bets;
     }, {});
 
+    var hasActionCountForEveryPlayer = Object.values(actions).length === activePlayers.length;
+
     var hasEveryoneActed = Object.values(actions).reduce((value, actionCount) => {
         return value && actionCount > 0;
-    }, true);
+    }, true) && hasActionCountForEveryPlayer;
 
     var betsArray = Object.values(bets);
     var uniqueBetAmounts = betsArray.filter((bet, index) => {

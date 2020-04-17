@@ -143,7 +143,7 @@
     - Delete game when all players are disconnected
         - Also resets when the only player refreshes
         - Fine for now
-[ ] Indicate next player to make a bet
+[x] Indicate next player to make a bet
     - Much trickier to implement than I'd thought
     - No idea were to start, theres just too much data for a single projection
         - Maybe use multiple projections then
@@ -153,8 +153,20 @@
         - Only factor in active players
         - Ignore the first bets of the small and big blinds
         - If everyone has acted and everyone has bet the same amount, then it's nobodies turn\
-    [ ] Build projection
-    [ ]
+    [x] Build projection
+    [x] Next round bet highlight not working
+        - First bet raised, didn't highlight second player
+    [ ] Enable control for next player, disable for others
+[ ] Fix broken hand
+    - A hand that shouldn't have won has won
+        - winner: 8H, KD
+        - loser: KC, JH
+        - community: 5C, 4S, JD, 4D, 8D
+    - Wrote a test to reproduce, it's now picking the right hand
+    - Took a log of the entire game, will reproduce in a testcase and check the result
+        - That didn't help, a replay of the game leads to the correct winner
+        - It's bizarre, it always chooses the right winner, except in the same we're looking at
+    - Look into another poker engine
 [ ] Admin allows players to take a seat and join the game
 [ ] Broadcast inprogress hand on refresh
     - Old implementation was broken, so it's been deleted
