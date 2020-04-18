@@ -191,7 +191,7 @@
         [ ] render controls
             - Admin button
             - fold/bet
-[ ] Admin allows a player to buy back into the game
+[x] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
         - Good enough for now
 [ ] Admin allows people into the game

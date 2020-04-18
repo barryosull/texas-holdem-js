@@ -1,8 +1,15 @@
 
 var pokerTools = require('poker-tools');
+var Hand = require('./hand');
+
 
 var WinnerCalculator = {};
 
+/**
+ * @param hands {Hand[]}
+ * @param communityCards {CommunityCards}
+ * @returns {*}
+ */
 WinnerCalculator.findWinner = function(hands, communityCards)
 {
     var pokerToolsHands = hands.map(hand => {
@@ -11,7 +18,7 @@ WinnerCalculator.findWinner = function(hands, communityCards)
         );
     });
     var board = pokerTools.CardGroup.fromString(
-        PokerToolsAdapter.convertToPokerToolsString(communityCards)
+        PokerToolsAdapter.convertToPokerToolsString(communityCards.cards)
     );
 
     const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);

@@ -2,6 +2,7 @@
 var Game = require('./game');
 var events = require('./events');
 var Hand = require('./hand');
+var CommunityCards = require('./community-cards');
 var WinnerCalculator = require('./winner-calculator');
 
 /**
@@ -42,7 +43,7 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 
 RoundProjection.prototype.getCommunityCards = function()
 {
-    return this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
+    let cards = this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.RoundStarted) {
             cards = [];
         }
@@ -57,6 +58,8 @@ RoundProjection.prototype.getCommunityCards = function()
         }
         return cards;
     }, []);
+
+    return new CommunityCards(cards);
 };
 
 RoundProjection.prototype.chooseWinningHand = function()
