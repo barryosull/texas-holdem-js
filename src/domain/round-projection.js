@@ -1,6 +1,7 @@
 
 var Game = require('./game');
 var events = require('./events');
+var Hand = require('./hand');
 var WinnerCalculator = require('./winner-calculator');
 
 /**
@@ -11,6 +12,9 @@ var RoundProjection = function(game)
     this.game = game;
 };
 
+/**
+ * @returns {Hand[]}
+ */
 RoundProjection.prototype.getActiveHands = function()
 {
     let hands = this.game.events.project('domain/round.getActiveHands', (hands, e) => {
@@ -18,10 +22,7 @@ RoundProjection.prototype.getActiveHands = function()
             hands = {};
         }
         if (e instanceof events.HandDealt) {
-            hands[e.playerId] = {
-                playerId: e.playerId,
-                cards: e.cards,
-            };
+            hands[e.playerId] = new Hand(e.playerId, e.cards);
         }
         if (e instanceof events.HandFolded) {
             delete hands[e.playerId];
