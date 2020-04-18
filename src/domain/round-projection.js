@@ -1,7 +1,7 @@
 
 var Game = require('./game');
 var events = require('./events');
-var pokerTools = require('poker-tools');
+var WinnerCalculator = require('./winner-calculator');
 
 /**
  * @param game {Game}
@@ -63,20 +63,7 @@ RoundProjection.prototype.chooseWinningHand = function()
     var hands = this.getActiveHands();
     var communityCards = this.getCommunityCards();
 
-    var pokerToolsHands = hands.map(hand => {
-        return pokerTools.CardGroup.fromString(
-            PokerToolsAdapter.convertToPokerToolsString(hand.cards)
-        );
-    });
-    var board = pokerTools.CardGroup.fromString(
-        PokerToolsAdapter.convertToPokerToolsString(communityCards)
-    );
-
-    const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
-
-    var winnerIndex = result[0][0].index;
-
-    return hands[winnerIndex];
+    return WinnerCalculator.findWinner(hands, communityCards);
 };
 
 RoundProjection.prototype.getWinner = function()
@@ -137,32 +124,6 @@ RoundProjection.prototype.getPlayersBankruptedInRound = function()
         }
         return bankruptPlayers;
     }, []);
-};
-
-var PokerToolsAdapter = {};
-
-PokerToolsAdapter.convertToPokerToolsString = function(cards)
-{
-    var convertedCards = cards.map(card => {
-        var parts = card.split('_of_');
-        var number = parts[0];
-        if (number === "10") {
-            number = "T";
-        }
-        if (PokerToolsAdapter.isFaceCard(number)) {
-            number = number.charAt(0);
-        }
-
-        var suit = parts[1].charAt(0);
-        return number.toUpperCase().concat(suit);
-    });
-
-    return convertedCards.join("");
-};
-
-PokerToolsAdapter.isFaceCard = function(number)
-{
-    return number.length > 2;
 };
 
 module.exports = RoundProjection;

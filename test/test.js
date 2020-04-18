@@ -5,8 +5,6 @@ var SeatsProjection = require('../src/application/seats-projection');
 var RoundProjection = require('../src/application/round-projection');
 var ChipsProjection = require('../src/application/chips-projection');
 
-var pokerTools = require('poker-tools');
-
 function makeGame()
 {
     var fakeLogger = () => {};
