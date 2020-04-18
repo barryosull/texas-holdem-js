@@ -43,7 +43,7 @@ RoundProjection.prototype.getCommunityCards = function()
 {
     return this.game.events.project('app/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.FlopDealt) {
-            cards = e.cards;
+            cards = e.cards.slice();
         }
         if (e instanceof events.TurnDealt) {
             cards.push(e.card);

@@ -43,17 +43,17 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 RoundProjection.prototype.getCommunityCards = function()
 {
     return this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
+        if (e instanceof events.RoundStarted) {
+            cards = [];
+        }
         if (e instanceof events.FlopDealt) {
-            cards = e.cards;
+            cards = e.cards.slice();
         }
         if (e instanceof events.TurnDealt) {
             cards.push(e.card);
         }
         if (e instanceof events.RiverDealt) {
             cards.push(e.card);
-        }
-        if (e instanceof events.RoundStarted) {
-            cards = [];
         }
         return cards;
     }, []);
