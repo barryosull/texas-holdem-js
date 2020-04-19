@@ -6,6 +6,18 @@ function BetMade(playerId, total, remainingChips)
     this.remainingChips = remainingChips;
 }
 
+function Turn(card)
+{
+    this.card = card;
+}
+
+function PotTotal(amount)
+{
+    this.amount = amount;
+}
+
 module.exports = {
-    BetMade
+    BetMade,
+    Turn,
+    PotTotal
 };

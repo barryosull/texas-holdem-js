@@ -414,9 +414,9 @@ View.attachCommunityCards = function(cards)
     $('#cards').html(View.renderCards(cards));
 };
 
-View.attachTurn = function(card)
+View.attachTurn = function(turn)
 {
-    $('#cards').html( $('#cards').html() + View.renderCards([card]));
+    $('#cards').html( $('#cards').html() + View.renderCards([turn.card]));
 };
 
 View.attachRiver = function(card)
@@ -542,10 +542,10 @@ View.clearBets = function()
     $('.seat .bet').remove();
 };
 
-View.updatePot = function(pot)
+View.updatePot = function(potTotal)
 {
     View.clearBets();
-    $('#pot').show().text(pot);
+    $('#pot').show().text(potTotal.amount);
 };
 
 View.emptyPot = function()
@@ -650,7 +650,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
 
     socket.on('betMade', View.showBet);
 
-    socket.on('pot', View.updatePot);
+    socket.on('potTotal', View.updatePot);
 
     socket.on('playersTurn', Controller.playersTurn);
 

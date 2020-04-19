@@ -186,9 +186,11 @@ Controller.dealFlop = function(req, res)
     var roundProjection = new RoundProjection(game);
 
     var flop = roundProjection.getCommunityCards().slice(0, 3);
-
     Controller.sendToEveryoneInGame(game.id, 'flop', flop);
-    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+
+    var amount = roundProjection.getPot();
+    Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+
     Controller.announceNextPlayersTurn(game);
     res.send('');
 };
@@ -206,10 +208,11 @@ Controller.dealTurn = function(req, res)
 
     var roundProjection = new RoundProjection(game);
 
-    var turn = roundProjection.getCommunityCards().slice(-1).pop();
+    var card = roundProjection.getCommunityCards().slice(-1).pop();
+    var amount = roundProjection.getPot();
 
-    Controller.sendToEveryoneInGame(game.id, 'turn', turn);
-    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+    Controller.notifier.broadcast(game.id, new notifications.Turn(card));
+    Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
     Controller.announceNextPlayersTurn(game);
 
     res.send('');
@@ -231,7 +234,10 @@ Controller.dealRiver = function(req, res)
     var river = roundProjection.getCommunityCards().slice(-1).pop();
 
     Controller.sendToEveryoneInGame(game.id, 'river', river);
-    Controller.sendToEveryoneInGame(game.id, 'pot', roundProjection.getPot());
+
+    var amount = roundProjection.getPot();
+    Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+
     Controller.announceNextPlayersTurn(game);
     res.send('');
 };
