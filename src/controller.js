@@ -28,7 +28,7 @@ Controller.join = function(req, res)
     var existingSocketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        Controller.sendToPlayerInGame(playerId, 'existingSession');
+        Controller.notifier.broadcastToPlayer(playerId, new notifications.ExistingSession());
         return;
     }
 
@@ -37,42 +37,38 @@ Controller.join = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
-    var gameState = Controller.makeGameStateViewModel(game, playerId);
+    var gameState = Controller.generateGameStateViewModel(game, playerId);
 
     res.json(gameState);
 };
 
-Controller.makeGameStateViewModel = function(game, playerId)
+Controller.generateGameStateViewModel = function(game, playerId)
 {
     var roundProjection = new RoundProjection(game);
 
     return {
-        players: Controller.makePlayersViewModel(game),
-        round: Controller.makeRoundStartedViewModel(game, playerId),
+        playerList: Controller.generatePlayerListNotification(game),
+        round: Controller.generateRoundStartedNotification(game, playerId),
         cards: roundProjection.getCommunityCards(),
         pot: roundProjection.getPot()
     };
 };
 
-Controller.makePlayersViewModel = function(game)
+Controller.generatePlayerListNotification = function(game)
 {
-    var seatsProjection = new SeatsProjection(game);
-    var chipsProjection = new ChipsProjection(game);
-    var playersProjection = new PlayersProjection(game);
+    const seatsProjection = new SeatsProjection(game);
+    const chipsProjection = new ChipsProjection(game);
+    const playersProjection = new PlayersProjection(game);
 
-    var viewModel = [];
+    let players = [];
     for (var seat = 0; seat < SEAT_COUNT; seat++) {
-        var playerId = seatsProjection.getPlayerInSeat(seat);
-        var chips = chipsProjection.getPlayerChips(playerId);
-        viewModel.push({
-            playerId: playerId,
-            playerName: playersProjection.getPlayerName(playerId),
-            chips: chips,
-            seat: seat
-        });
+        let playerId = seatsProjection.getPlayerInSeat(seat);
+        let chips = chipsProjection.getPlayerChips(playerId);
+        let name = playersProjection.getPlayerName(playerId);
+        players.push( new notifications.Player(playerId, name, chips, seat));
     }
 
-    return viewModel;
+    return new notifications.PlayerList(players);
 };
 
 
@@ -118,7 +114,8 @@ Controller.dealCards = function(req, res)
 
     var seatsProjection = new SeatsProjection(game);
 
-    Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
+    let playersListNotification = Controller.generatePlayerListNotification(game);
+    Controller.notifier.broadcast(game.id, playersListNotification);
 
     game.startNewRound();
 
@@ -127,7 +124,8 @@ Controller.dealCards = function(req, res)
     var players = seatsProjection.getPlayers();
 
     players.forEach(playerId => {
-        Controller.sendToPlayerInGame(playerId, 'roundStarted', Controller.makeRoundStartedViewModel(game, playerId));
+        let roundStartedNotification = Controller.generateRoundStartedNotification(game, playerId);
+        Controller.sendToPlayerInGame(playerId, roundStartedNotification);
     });
 
     broadcastBet(game, roundStarted.smallBlind);
@@ -138,7 +136,7 @@ Controller.dealCards = function(req, res)
     res.send('');
 };
 
-Controller.makeRoundStartedViewModel = function(game, playerId)
+Controller.generateRoundStartedNotification = function(game, playerId)
 {
     var seatsProjection = new SeatsProjection(game);
     var roundProjection = new RoundProjection(game);
@@ -154,12 +152,7 @@ Controller.makeRoundStartedViewModel = function(game, playerId)
 
     var hand = roundProjection.getPlayerHand(playerId);
 
-    return {
-        hand: hand,
-        dealer: roundStarted.dealer,
-        activePlayers: activePlayers,
-        bankruptedPlayers: bankruptedPlayers
-    }
+    return new notifications.RoundStarted(hand, roundStarted.dealer, activePlayers, bankruptedPlayers);
 };
 
 Controller.isGameAdmin = function(game, req)
@@ -185,8 +178,8 @@ Controller.dealFlop = function(req, res)
 
     var roundProjection = new RoundProjection(game);
 
-    var flop = roundProjection.getCommunityCards().slice(0, 3);
-    Controller.sendToEveryoneInGame(game.id, 'flop', flop);
+    let cards = roundProjection.getCommunityCards().slice(0, 3);
+    Controller.notifier.broadcast(game.id, new notifications.FlopDealt(cards));
 
     var amount = roundProjection.getPot();
     Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
@@ -211,7 +204,7 @@ Controller.dealTurn = function(req, res)
     var card = roundProjection.getCommunityCards().slice(-1).pop();
     var amount = roundProjection.getPot();
 
-    Controller.notifier.broadcast(game.id, new notifications.Turn(card));
+    Controller.notifier.broadcast(game.id, new notifications.TurnDealt(card));
     Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
     Controller.announceNextPlayersTurn(game);
 
@@ -231,9 +224,9 @@ Controller.dealRiver = function(req, res)
 
     var roundProjection = new RoundProjection(game);
 
-    var river = roundProjection.getCommunityCards().slice(-1).pop();
+    var card = roundProjection.getCommunityCards().slice(-1).pop();
 
-    Controller.sendToEveryoneInGame(game.id, 'river', river);
+    Controller.notifier.broadcast(game.id, new notifications.RiverDealt(card));
 
     var amount = roundProjection.getPot();
     Controller.notifier.broadcast(game.id, new notifications.PotTotal(amount));
@@ -258,8 +251,9 @@ Controller.finish = function(req, res)
 
     var winningPlayerId = roundProjection.getWinner();
     var winningHand = roundProjection.getPlayerHand(winningPlayerId);
-    winningHand.playerChips = chipsProjection.getPlayerChips(winningPlayerId);
-    Controller.sendToEveryoneInGame(game.id, 'winningHand', winningHand);
+    var playerChips = chipsProjection.getPlayerChips(winningPlayerId);
+
+    Controller.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
 
     res.send('');
 };
@@ -281,7 +275,8 @@ Controller.givePlayerChips = function(req, res)
 
     game.givePlayerChips(playerId, amount);
 
-    Controller.sendToEveryoneInGame(game.id, 'players', Controller.makePlayersViewModel(game));
+    let playersListNotification = Controller.generatePlayerListNotification(game);
+    Controller.notifier.broadcast(game.id, playersListNotification);
 
     res.send('');
 };
@@ -295,7 +290,7 @@ Controller.foldHand = function(req, res)
 
     game.foldHand(playerId);
 
-    Controller.sendToEveryoneInGame(game.id, 'playerFolded', playerId);
+    Controller.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
 
     checkForWinnerByDefault(game);
 
@@ -314,8 +309,8 @@ function checkForWinnerByDefault(game)
 
     var chipsProjection = new ChipsProjection(game);
 
-    winningHand.playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
-    Controller.sendToEveryoneInGame(game.id, 'winnerByDefault', winningHand);
+    let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
+    Controller.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
 }
 
 Controller.placeBet = function(req, res)
@@ -346,11 +341,10 @@ Controller.announceNextPlayersTurn = function(game)
 
     var playerChips = chipsProjection.getPlayerChips(nextPlayerToAct);
 
-    var playersTurn = {
-        playerId: nextPlayerToAct,
-        amountToPlay: Math.min(playerChips, amountToPlay)
-    };
-    Controller.sendToEveryoneInGame(game.id, 'playersTurn', playersTurn);
+    amountToPlay = Math.min(playerChips, amountToPlay);
+
+    var playersTurn = new notifications.PlayersTurn(nextPlayerToAct, amountToPlay);
+    Controller.notifier.broadcast(game.id, playersTurn);
 };
 
 function broadcastBet(game, playerId)
@@ -365,15 +359,10 @@ function broadcastBet(game, playerId)
     Controller.notifier.broadcast(game.id, notification);
 }
 
-Controller.sendToEveryoneInGame = function(gameId, type, message)
-{
-    Controller.io.to(gameId).emit(type, message);
-};
-
-Controller.sendToPlayerInGame = function(playerId, type, message)
+Controller.sendToPlayerInGame = function(playerId, notification)
 {
     var socketId = SocketsToPlayersMap.getSocketIdForPlayer(playerId);
-    Controller.io.sockets.to(socketId).emit(type, message);
+    Controller.notifier.broadcastToPlayer(socketId, notification);
 };
 
 var SocketsToPlayersMap =
