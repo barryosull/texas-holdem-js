@@ -5,6 +5,7 @@ var SeatsProjection = require('./application/seats-projection');
 var RoundProjection = require('./application/round-projection');
 var ChipsProjection = require('./application/chips-projection');
 var PlayersProjection = require('./application/players-projection');
+var notifications = require('./application/notifications');
 
 var SEAT_COUNT = 8;
 
@@ -12,7 +13,8 @@ var SEAT_COUNT = 8;
  * @type {{io: Server}}
  */
 var Controller = {
-    io: null
+    io: null,
+    notifier: null
 };
 
 Controller.join = function(req, res)
@@ -353,11 +355,8 @@ function broadcastBet(game, playerId)
     var playerChips = chipsProjection.getPlayerChips(playerId);
     var amountBetInBettingRound = roundProjection.getPlayerBet(playerId);
 
-    Controller.sendToEveryoneInGame(game.id, 'betMade', {
-        playerId: playerId,
-        total: amountBetInBettingRound,
-        remainingChips: playerChips
-    });
+    let notification = new notifications.BetMade(playerId, amountBetInBettingRound, playerChips);
+    Controller.notifier.broadcast(game.id, notification);
 }
 
 Controller.sendToEveryoneInGame = function(gameId, type, message)

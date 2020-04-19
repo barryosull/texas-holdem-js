@@ -2,6 +2,7 @@
 var express = require('express');
 var Server = require('socket.io');
 var Controller = require('./controller');
+var Notifier = require('./application/notifier');
 
 /**
  * @param app
@@ -10,6 +11,7 @@ var Controller = require('./controller');
 function boot(app, io)
 {
     Controller.io = io;
+    Controller.notifier = new Notifier(io);
 
     // Serve public files
     app.use(express.static('public'));

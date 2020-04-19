@@ -167,7 +167,6 @@ Controller.joinGame = function()
 
     Game.join(Controller.playerId, playerName).done( gameState => {
         Controller.players(gameState.players);
-        console.log(gameState.round);
         if (!gameState.round) {
             return
         }
@@ -524,6 +523,7 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
+    console.log(bet);
     var betTotal = bet.total === 0 ? "check" : bet.total;
     var $seat = $('#player-' + bet.playerId).parent('.seat');
     $seat.find('.stack').text(bet.remainingChips);
