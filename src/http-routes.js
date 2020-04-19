@@ -1,8 +1,9 @@
 
 var express = require('express');
 var Server = require('socket.io');
-var Controller = require('./controller');
+var HttpController = require('./controllers/http-controller');
 var Notifier = require('./application/notifier');
+var SocketMapper = require('./controllers/socket-mapper');
 
 /**
  * @param app
@@ -10,29 +11,28 @@ var Notifier = require('./application/notifier');
  */
 function boot(app, io)
 {
-    Controller.io = io;
-    Controller.notifier = new Notifier(io);
+    let controller = new HttpController(new Notifier(io), new SocketMapper());
 
     // Serve public files
     app.use(express.static('public'));
 
-    app.post('/api/game/:gameId/join', Controller.join);
+    app.post('/api/game/:gameId/join', controller.join.bind(controller));
 
-    app.post('/api/game/:gameId/deal', Controller.dealCards);
+    app.post('/api/game/:gameId/deal', controller.dealCards.bind(controller));
 
-    app.post('/api/game/:gameId/flop', Controller.dealFlop);
+    app.post('/api/game/:gameId/flop', controller.dealFlop.bind(controller));
 
-    app.post('/api/game/:gameId/turn', Controller.dealTurn);
+    app.post('/api/game/:gameId/turn', controller.dealTurn.bind(controller));
 
-    app.post('/api/game/:gameId/river', Controller.dealRiver);
+    app.post('/api/game/:gameId/river', controller.dealRiver.bind(controller));
 
-    app.post('/api/game/:gameId/finish', Controller.finish);
+    app.post('/api/game/:gameId/finish', controller.finish.bind(controller));
 
-    app.post('/api/game/:gameId/give-chips-to-player', Controller.givePlayerChips);
+    app.post('/api/game/:gameId/give-chips-to-player', controller.givePlayerChips.bind(controller));
 
-    app.post('/api/game/:gameId/fold/:playerId', Controller.foldHand);
+    app.post('/api/game/:gameId/fold/:playerId', controller.foldHand.bind(controller));
 
-    app.post('/api/game/:gameId/bet/:playerId', Controller.placeBet);
+    app.post('/api/game/:gameId/bet/:playerId', controller.placeBet.bind(controller));
 }
 
 module.exports = boot;

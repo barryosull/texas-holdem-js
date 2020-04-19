@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
  * Boot routes and message handlers
  **********************************/
 require('./src/http-routes')(app, io);
-require('./src/message-handlers')(io);
+require('./src/socket-routes')(io);
 
 /*******************************
  * Launch the Webserver
