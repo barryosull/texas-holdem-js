@@ -1,8 +1,6 @@
 # Texas Hold'em
 
-# Template:
-[![<Texas Hold'em>](https://circleci.com/gh/barryosull/texas-holdem.svg?style=svg)]
-
+![Texas Hold'em](https://circleci.com/gh/barryosull/texas-holdem.svg?style=svg)
 
 A simple webapp I'm building for playing texas holdem remotely.
 
