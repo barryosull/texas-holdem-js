@@ -4,7 +4,7 @@
   "description": "Basic texas holdem app",
   "main": "server.js",
   "scripts": {
-    "test": "test",
+    "test": "./node_modules/mocha/bin/mocha",
     "start": "node server.js"
   },
   "repository": {
