@@ -1,0 +1,21 @@
+version: 2.1
+jobs:
+    docker: # run the steps with Docker
+    - image: circleci/node:10.16.3 # ...with this image as the primary container; this is where all `steps` will run
+    steps: # a collection of executable commands
+    - checkout
+    - run:
+        name: update-npm
+        command: 'sudo npm install -g npm@latest'
+    - restore_cache: # special step to restore the dependency cache
+        key: dependency-cache-{{ checksum "package-lock.json" }}
+    - run:
+        name: install-npm
+        command: npm install
+    - save_cache: # special step to save the dependency cache
+        key: dependency-cache-{{ checksum "package-lock.json" }}
+        paths:
+        - ./node_modules
+    - run: # run tests
+        name: test
+        command: npm test
