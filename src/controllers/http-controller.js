@@ -7,6 +7,7 @@ var RoundProjection = require('../application/round-projection');
 var ChipsProjection = require('../application/chips-projection');
 var PlayersProjection = require('../application/players-projection');
 var notifications = require('../application/notifications');
+
 var SEAT_COUNT = 8;
 
 /**
