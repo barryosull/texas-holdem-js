@@ -1,16 +1,17 @@
-# Texas Holdem
+# Texas Hold'em
+
+# Template:
+[![<Texas Hold'em>](https://circleci.com/gh/barryosull/texas-holdem.svg?style=svg)]
+
 
 A simple webapp I'm building for playing texas holdem remotely.
 
 The goal is to build something that's easy to host and to use.
 
 ## What it does
-- Allows a game of texas holdem
-- Admin is the dealer
-- Automatically announces the winner of a hand (shows their cards)
-- Last player automatically wins (doesn't show cards)
-- Players can enter and leave at any time
-- Players can fold
+- Allows people to play a game of texas holdem.
+- Currently all or nothing on the pot.
+- Still a WIP
 
 ## What's next
 The todo list in todo.txt contains a details breakdown, but here's a high level version:
