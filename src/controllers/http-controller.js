@@ -47,9 +47,9 @@ HttpController.prototype.join = function(req, res)
 
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
 
-    var gameState = generateGameStateViewModel(game, playerId);
+    var notificationList = this.notifier.getRoundNotifications(game.id);
 
-    res.json(gameState);
+    res.json(notificationList);
 };
 
 HttpController.prototype.dealCards = function(req, res)

@@ -96,7 +96,8 @@ function uuidv4() {
 }
 
 var Controller = {
-    playerId: null
+    playerId: null,
+    eventHandlers: {}
 };
 
 Controller.startGame = function()
@@ -165,8 +166,12 @@ Controller.joinGame = function()
 
     Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
-    Game.join(Controller.playerId, playerName).done( gameState => {
-
+    Game.join(Controller.playerId, playerName).done( notificationList => {
+        for (var i in notificationList) {
+            let type = notificationList[i].type;
+            let notification = notificationList[i].notification;
+            Controller.eventHandlers[type](notification);
+        }
     });
 
     View.hideCommunityCardsButtons();
@@ -569,6 +574,11 @@ View.enableBetting = function(minAmount)
     $('#bet').removeAttr('disabled');
 };
 
+View.existingSession = function()
+{
+    alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
+};
+
 var Bootstrapper = {};
 
 Bootstrapper.boot = function()
@@ -621,31 +631,23 @@ Bootstrapper.attachHtmlEventListeners = function()
 
 Bootstrapper.attachSocketEventListeners = function(socket)
 {
-    socket.on('playerAdded', Controller.playerAdded);
+    Controller.eventHandlers = {
+        'playerAdded': Controller.playerAdded,
+        'roundStarted': Controller.roundStarted,
+        'playerDealtHand': Controller.playerDealtHand,
+        'winningHand': Controller.winningHand,
+        'winnerByDefault': Controller.winnerByDefault,
+        'flopDealt': View.attachCommunityCards,
+        'turnDealt': View.attachTurn,
+        'riverDealt': View.attachRiver,
+        'playerFolded': View.foldPlayerHand,
+        'betMade': View.showBet,
+        'potTotal': View.updatePot,
+        'playersTurn': Controller.playersTurn,
+        'existingSession': View.existingSession,
+    };
 
-    socket.on('roundStarted', Controller.roundStarted);
-
-    socket.on('playerDealtHand', Controller.playerDealtHand);
-
-    socket.on('winningHand', Controller.winningHand);
-
-    socket.on('winnerByDefault', Controller.winnerByDefault);
-
-    socket.on('flopDealt', View.attachCommunityCards);
-
-    socket.on('turnDealt', View.attachTurn);
-
-    socket.on('riverDealt', View.attachRiver);
-
-    socket.on('playerFolded', View.foldPlayerHand);
-
-    socket.on('betMade', View.showBet);
-
-    socket.on('potTotal', View.updatePot);
-
-    socket.on('playersTurn', Controller.playersTurn);
-
-    socket.on('existingSession', function(){
-        alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
-    });
+    for (var event in Controller.eventHandlers) {
+        socket.on(event, Controller.eventHandlers[event]);
+    }
 };
