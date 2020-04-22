@@ -32,7 +32,7 @@ HttpController.prototype.join = function(req, res)
     var existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        this.notifier.broadcastToPlayer(playerId, new notifications.ExistingSession());
+        this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
         return;
     }
 
@@ -47,7 +47,7 @@ HttpController.prototype.join = function(req, res)
 
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
 
-    var notificationList = this.notifier.getRoundNotifications(game.id);
+    var notificationList = this.notifier.getRoundNotifications(game.id, playerId);
 
     res.json(notificationList);
 };
@@ -78,7 +78,7 @@ HttpController.prototype.dealCards = function(req, res)
     players.forEach(playerId => {
         let hand = roundProjection.getPlayerHand(playerId);
         let socketId = this.socketMapper.getSocketIdForPlayer(playerId);
-        this.notifier.broadcastToPlayer(socketId, new notifications.PlayerDealtHand(hand));
+        this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.PlayerDealtHand(hand));
     });
 
     this.notifier.broadcast(game.id, generateBetMadeNotification(game, roundStarted.smallBlind));
