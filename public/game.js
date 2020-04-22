@@ -166,20 +166,7 @@ Controller.joinGame = function()
     Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
     Game.join(Controller.playerId, playerName).done( gameState => {
-        Controller.playerList(gameState.playerList);
-        if (!gameState.round) {
-            return
-        }
-        var otherPlayers = gameState.round.activePlayers.filter(playerId => {
-            return playerId !== Controller.playerId
-        });
-        View.renderDownFacingHands(otherPlayers);
-        View.attachCommunityCards(gameState.cards);
-        View.updatePot(gameState.pot);
-        if (!gameState.round.hand){
-            return;
-        }
-        View.renderPlayerHand(gameState.round.hand);
+
     });
 
     View.hideCommunityCardsButtons();
@@ -226,20 +213,16 @@ Controller.getGameId = function()
     return url.searchParams.get("gameId");
 };
 
-Controller.playerList = function(playerList)
+Controller.playerAdded = function(playerAdded)
 {
-    if (Controller.isFirstPlayer(playerList.players)) {
+    View.renderPlayers([playerAdded.player]);
+    if (playerAdded.player.playerId !== Controller.playerId) {
+        return;
+    }
+    if (playerAdded.isAdmin) {
         View.enableAdminControls();
     } else {
         View.disableAdminControls();
-    }
-    View.renderPlayers(playerList.players, Controller.playerId);
-};
-
-Controller.seatEmptied = function(seats)
-{
-    if (Controller.isFirstPlayer(seats.seats)) {
-        View.enableAdminControls();
     }
 };
 
@@ -247,12 +230,20 @@ Controller.roundStarted = function(round)
 {
     View.clearTable();
     View.unhighlightWinner();
-    View.renderDownFacingHands(round.activePlayers);
-    View.removeCards(round.bankruptedPlayers);
-    if (round.hand) {
-        View.renderPlayerHand(round.hand);
-    }
+    View.renderPlayers(round.players, Controller.playerId);
+
+    var playersWithChips = round.players.filter(player => {
+       return player.chips > 0;
+    });
+
+    View.renderDownFacingHands(playersWithChips);
     View.highlightDealer(round.dealer);
+};
+
+Controller.playerDealtHand = function(playerDealtHand)
+{
+    console.log(playerDealtHand);
+    View.renderPlayerHand(playerDealtHand.hand);
 };
 
 Controller.winnerByDefault = function(winner)
@@ -401,11 +392,11 @@ View.foldPlayerHand = function(playerFolded)
     });
 };
 
-View.renderDownFacingHands = function(playerIds)
+View.renderDownFacingHands = function(players)
 {
-    playerIds.map(playerId => {
+    players.map(player => {
         var hand = [View.renderDownFacingCard(), View.renderDownFacingCard()];
-        $('#player-' + playerId).html(hand);
+        $('#player-' + player.playerId).html(hand);
     });
 };
 
@@ -630,11 +621,11 @@ Bootstrapper.attachHtmlEventListeners = function()
 
 Bootstrapper.attachSocketEventListeners = function(socket)
 {
-    socket.on('playerList', Controller.playerList);
-
-    socket.on('seatEmptied', Controller.seatEmptied);
+    socket.on('playerAdded', Controller.playerAdded);
 
     socket.on('roundStarted', Controller.roundStarted);
+
+    socket.on('playerDealtHand', Controller.playerDealtHand);
 
     socket.on('winningHand', Controller.winningHand);
 

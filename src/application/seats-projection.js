@@ -40,9 +40,20 @@ SeatsProjection.prototype.getActivePlayers = function()
     });
 };
 
-SeatsProjection.prototype.hasPlayers = function()
+
+SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
-    return Object.values(mapSeatsToPlayerIds(this.game)).length !== 0;
+    var seats = this.game.events.project('app/seats.getPlayersSeat', (seats, e) => {
+        if (e instanceof events.SeatTaken) {
+            seats[e.playerId] = e.seat;
+        }
+        if (e instanceof events.SeatEmptied) {
+            delete seats[e.playerId];
+        }
+        return seats;
+    }, {});
+
+    return seats[playerId] !== undefined ? seats[playerId] : false;
 };
 
 function bankruptedPlayers(game)

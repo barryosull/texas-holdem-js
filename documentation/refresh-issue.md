@@ -78,6 +78,7 @@ Ok, so changes to notifications:
 2. Make a new notification for the player hand
 3. Round started includes a list of all players and their chip counts
 4. Add player added and player removed notifications, used to update the board in real-time
+5. Player given chips is now it's own notification
 
 The above will allow the game to be reloaded easily from just this rounds notifications.
 

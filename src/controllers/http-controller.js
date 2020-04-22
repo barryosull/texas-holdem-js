@@ -40,6 +40,13 @@ HttpController.prototype.join = function(req, res)
 
     game.addPlayer(playerId, playerName);
 
+    let seatsProjection = new SeatsProjection(game);
+
+    let player = generatePlayer(game, playerId);
+    let isAdmin = seatsProjection.isAdmin(playerId);
+
+    this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
+
     var gameState = generateGameStateViewModel(game, playerId);
 
     res.json(gameState);
@@ -56,21 +63,22 @@ HttpController.prototype.dealCards = function(req, res)
 
     removeDisconnectedPlayers(this, game);
 
-    var seatsProjection = new SeatsProjection(game);
-
-    let playersListNotification = generatePlayerListNotification(game);
-    this.notifier.broadcast(game.id, playersListNotification);
-
     game.startNewRound();
 
+    var seatsProjection = new SeatsProjection(game);
+    var roundProjection = new RoundProjection(game);
+
     var roundStarted = seatsProjection.getRoundStarted();
+
+    let roundStartedNotification = generateRoundStartedNotification(game);
+    this.notifier.broadcast(game.id, roundStartedNotification);
 
     var players = seatsProjection.getPlayers();
 
     players.forEach(playerId => {
-        let roundStartedNotification = generateRoundStartedNotification(game, playerId);
+        let hand = roundProjection.getPlayerHand(playerId);
         let socketId = this.socketMapper.getSocketIdForPlayer(playerId);
-        this.notifier.broadcastToPlayer(socketId, roundStartedNotification);
+        this.notifier.broadcastToPlayer(socketId, new notifications.PlayerDealtHand(hand));
     });
 
     this.notifier.broadcast(game.id, generateBetMadeNotification(game, roundStarted.smallBlind));
@@ -190,9 +198,6 @@ HttpController.prototype.givePlayerChips = function(req, res)
 
     game.givePlayerChips(playerId, amount);
 
-    let playersListNotification = this.generatePlayerListNotification(game);
-    this.notifier.broadcast(game.id, playersListNotification);
-
     res.send('');
 };
 
@@ -240,10 +245,9 @@ HttpController.prototype.foldHand = function(req, res)
     res.send('');
 };
 
-function generateRoundStartedNotification(game, playerId)
+function generateRoundStartedNotification(game)
 {
     var seatsProjection = new SeatsProjection(game);
-    var roundProjection = new RoundProjection(game);
 
     var roundStarted = seatsProjection.getRoundStarted();
 
@@ -251,12 +255,9 @@ function generateRoundStartedNotification(game, playerId)
         return null;
     }
 
-    var activePlayers = seatsProjection.getActivePlayers();
-    var bankruptedPlayers = roundProjection.bankruptedInLastRound();
+    let playersList = generatePlayerList(game);
 
-    var hand = roundProjection.getPlayerHand(playerId);
-
-    return new notifications.RoundStarted(hand, roundStarted.dealer, activePlayers, bankruptedPlayers);
+    return new notifications.RoundStarted(roundStarted.dealer, playersList);
 }
 
 function isGameAdmin(controller, game, req)
@@ -287,17 +288,10 @@ function generateNextPlayersTurn(game)
 
 function generateGameStateViewModel(game, playerId)
 {
-    var roundProjection = new RoundProjection(game);
-
-    return {
-        playerList: generatePlayerListNotification(game),
-        round: generateRoundStartedNotification(game, playerId),
-        cards: roundProjection.getCommunityCards(),
-        pot: roundProjection.getPot()
-    };
+    return {};
 }
 
-function generatePlayerListNotification (game)
+function generatePlayerList(game)
 {
     const seatsProjection = new SeatsProjection(game);
     const chipsProjection = new ChipsProjection(game);
@@ -311,7 +305,19 @@ function generatePlayerListNotification (game)
         players.push( new notifications.Player(playerId, name, chips, seat));
     }
 
-    return new notifications.PlayerList(players);
+    return players;
+}
+
+function generatePlayer(game, playerId)
+{
+    const seatsProjection = new SeatsProjection(game);
+    const chipsProjection = new ChipsProjection(game);
+    const playersProjection = new PlayersProjection(game);
+
+    let chips = chipsProjection.getPlayerChips(playerId);
+    let name = playersProjection.getPlayerName(playerId);
+    let seat = seatsProjection.getPlayersSeat(playerId);
+    return new notifications.Player(playerId, name, chips, seat);
 }
 
 function generateBetMadeNotification(game, playerId)

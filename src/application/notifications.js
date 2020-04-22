@@ -1,12 +1,33 @@
 
 function ExistingSession() {}
 
-function RoundStarted(hand, dealer, activePlayers, bankruptedPlayers)
+/**
+ * @param dealer {String}
+ * @param players {Player[]}
+ */
+function RoundStarted(dealer, players)
+{
+    this.dealer = dealer;
+    this.players = players;
+}
+
+function PlayerDealtHand(hand)
 {
     this.hand = hand;
-    this.dealer = dealer;
-    this.activePlayers = activePlayers;
-    this.bankruptedPlayers = bankruptedPlayers;
+}
+
+function Player(playerId, playerName, chips, seat)
+{
+    this.playerId = playerId;
+    this.playerName = playerName;
+    this.chips = chips;
+    this.seat = seat;
+}
+
+function PlayerAdded(player, isAdmin)
+{
+    this.player = player;
+    this.isAdmin = isAdmin;
 }
 
 function BetMade(playerId, total, remainingChips)
@@ -42,22 +63,6 @@ function PlayersTurn(playerId, amountToPlay)
     this.amountToPlay = amountToPlay;
 }
 
-/**
- * @param players {Player[]}
- */
-function PlayerList(players)
-{
-    this.players = players;
-}
-
-function Player(playerId, playerName, chips, seat)
-{
-    this.playerId = playerId;
-    this.playerName = playerName;
-    this.chips = chips;
-    this.seat = seat;
-}
-
 function WinningHand(hand, playerChips)
 {
     this.hand = hand;
@@ -76,8 +81,10 @@ function WinnerByDefault(hand, playerChips)
 }
 
 module.exports = {
+    PlayerAdded,
     ExistingSession,
     RoundStarted,
+    PlayerDealtHand,
     BetMade,
     FlopDealt,
     TurnDealt,
@@ -87,6 +94,5 @@ module.exports = {
     PlayerFolded,
     PotTotal,
     PlayersTurn,
-    PlayerList,
     Player
 };
