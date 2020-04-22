@@ -57,3 +57,29 @@ We could go further with this and do a complete overall of all notifications, fi
         - Both general and user specific
     - Can fetch the list at any time
     - Looks for the RoundStarted notification and then blanks the list afterwards
+
+## Redesign of Notifications
+In order for this to work I'll need to redesign the current notification structure.
+
+The hard part of this is the seats. I would like players to appear and disappear as they connect and disconnect.
+
+At the moment I'm broadcasting player state as one giant notification, but that does not allow new players to enter or leave. It's a bit of a mess TBH.
+
+I could remove this notification and have specific notifications for players entering or leaving, which would update everyone.
+
+The only issue with this is that these events are no longer tied to a round starting, so I'd need to keep track of all these events, then merge in the round notifications and send those. Not impossible, actually quite doable, but potentially messy.
+
+The existing players message also contains all player chips counts, which is needed for this to work.
+
+It sounds like the PlayersList notification is most useful when a round starts. It's used to reset the render of the board. It contains a projection of all players.
+
+Ok, so changes to notifications:
+1. Remove player hand from the round started notification, it just muddies the water.
+2. Make a new notification for the player hand
+3. Round started includes a list of all players and their chip counts
+4. Add player added and player removed notifications, used to update the board in real-time
+
+The above will allow the game to be reloaded easily from just this rounds notifications.
+
+**What about before the first round starts?**
+A good question. The notification relay system should broadcast all the notification before the round starts. Simple.
