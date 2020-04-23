@@ -128,6 +128,8 @@ UseCases.prototype.finish = function(game)
     let playerChips = chipsProjection.getPlayerChips(winningPlayerId);
 
     this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.placeBet = function(game, playerId, amount)
@@ -141,7 +143,10 @@ UseCases.prototype.placeBet = function(game, playerId, amount)
     let nextPlayerToAct = roundProjection.getNextPlayerToAct();
     if (nextPlayerToAct) {
         this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
     }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.foldHand = function(game, playerId)
@@ -163,13 +168,44 @@ UseCases.prototype.foldHand = function(game, playerId)
     let nextPlayerToAct = roundProjection.getNextPlayerToAct();
     if (nextPlayerToAct) {
         this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
     }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.givePlayerChips = function(game, playerId, amount)
 {
     game.givePlayerChips(playerId, amount);
 };
+
+function triggerNextAction(game)
+{
+    var roundProjection = new RoundProjection(game);
+    var nextAction = roundProjection.getNextAction();
+
+    console.log('nextAction', nextAction);
+
+    var actionToUseCase = {
+        'deal': this.dealCards,
+        'flop': this.dealFlop,
+        'turn': this.dealTurn,
+        'river': this.dealRiver,
+        'finish': this.finish
+    };
+
+    var nextUseCase = actionToUseCase[nextAction];
+
+    if (!nextUseCase) {
+        return;
+    }
+
+    var useCases = this;
+
+    setTimeout(function(){
+        nextUseCase.call(useCases, game);
+    }, 5000);
+}
 
 //*********************************
 // Notifications creation methods

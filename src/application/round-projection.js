@@ -64,6 +64,9 @@ RoundProjection.prototype.getCommunityCards = function()
 RoundProjection.prototype.getNextAction = function()
 {
     return this.game.events.project('app/round.getNextAction', (nextAction, e) => {
+        if (e instanceof events.RoundStarted) {
+            nextAction = 'flop';
+        }
         if (e instanceof events.FlopDealt) {
             nextAction = 'turn';
         }
@@ -77,7 +80,7 @@ RoundProjection.prototype.getNextAction = function()
             nextAction = 'deal';
         }
         return nextAction;
-    }, 'flop');
+    }, 'deal');
 };
 
 RoundProjection.prototype.getWinner = function()
