@@ -84,3 +84,6 @@ The above will allow the game to be reloaded easily from just this rounds notifi
 
 **What about before the first round starts?**
 A good question. The notification relay system should broadcast all the notification before the round starts. Simple.
+
+## Result
+This ended up working quite well. The notifier has become a little messy, so I think that's a sign it needs to be refactored and broken down further, but other than that this solution has worked really well, refreshing causes no real issues.
