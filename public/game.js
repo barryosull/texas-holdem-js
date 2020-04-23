@@ -146,6 +146,8 @@ Controller.placeBet = function()
     }
     Game.makeBet(Controller.playerId, amount);
     $amount.val('');
+    View.disableBetting();
+    View.disableFoldButton();
 };
 
 Controller.joinGame = function()
@@ -414,12 +416,12 @@ View.attachCommunityCards = function(flopDealt)
 
 View.attachTurn = function(turn)
 {
-    $('#cards').html( $('#cards').html() + View.renderCards([turn.card]));
+    $('#cards').append(View.renderCards([turn.card]));
 };
 
 View.attachRiver = function(river)
 {
-    $('#cards').html( $('#cards').html() + View.renderCards([river.card]));
+    $('#cards').append(View.renderCards([river.card]));
 };
 
 View.clearTable = function()

@@ -199,17 +199,27 @@ function triggerNextAction(game)
         'finish': this.finish
     };
 
+    var actionTimeTimeouts = {
+        'deal': 5000,
+        'flop': 1000,
+        'turn': 1000,
+        'river': 1000,
+        'finish': 1000,
+    };
+
     var nextUseCase = actionToUseCase[nextAction];
 
     if (!nextUseCase) {
         return;
     }
 
+    var timeout = actionTimeTimeouts[nextAction] || 1000;
+
     var useCases = this;
 
     setTimeout(function(){
         nextUseCase.call(useCases, game);
-    }, 5000);
+    }, timeout);
 }
 
 //*********************************
