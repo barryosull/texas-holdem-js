@@ -166,18 +166,21 @@ Controller.joinGame = function()
 
     Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
-    Game.join(Controller.playerId, playerName).done( notificationList => {
-        for (var i in notificationList) {
-            let type = notificationList[i].type;
-            let notification = notificationList[i].notification;
-            Controller.eventHandlers[type](notification);
-        }
-    });
+    Game.join(Controller.playerId, playerName).done(Controller.replayNotifications);
 
     View.hideCommunityCardsButtons();
     View.disableBetting();
     View.emptyPot();
     View.showDealButton();
+};
+
+Controller.replayNotifications = function(notificationList)
+{
+    for (var i in notificationList) {
+        let type = notificationList[i].type;
+        let notification = notificationList[i].notification;
+        Controller.eventHandlers[type](notification);
+    }
 };
 
 Controller.getPlayerId = function()

@@ -77,8 +77,6 @@
 [x] Restart node process if it fails
     - Went with Supervisord, good enough
 [x] Add concept of a game
-
-## Todo:
 [x] Write domain events (documentation)
     - Documentation only
     - Plan is to migrate to domain events internally, use them to build up game state
@@ -159,16 +157,12 @@
     [x] Enable control for next player, disable for others
     [x] Show how much the next player has to pay to play
 [x] Admins can transfer chips to others
-[ ] Handle case when player does not have enough chips to play
-    [x] Players can go in all in even it's less than the required amount
-    [ ] Max bet in a round is the lowest players remaining chips count
-    [ ] Players can only win a proportion of what they've bet
 [x] Bug: Folded players should not be the next player
 [x] Bankrupt players do not see current game happening
 [x] Bankrupt player are still considered in the game
 [x] Bankrupted players cannot see game in progress
 [x] Disconnected players are not removed from the game
-[ ] Fix broken hand
+[x] Fix broken hand
     - A hand that shouldn't have won has won
         - winner: 8H, KD
         - loser: KC, JH
@@ -178,31 +172,30 @@
         - That didn't help, a replay of the game leads to the correct winner
         - It's bizarre, it always chooses the right winner, except in the same we're looking at
     - Look into another poker engine
-[ ] Admin allows players to take a seat and join the game
-[ ] Broadcast inprogress hand on refresh
+    - The issue was caused by duplicate community card, issues with JS arrays being mutable references rather than copies
+[x] Broadcast in-progress hand on refresh
     - Old implementation was broken, so it's been deleted
-    - render steps:
-        [x] render seats
-        [x] render hands
-        [x] render current players hand
-        [x] render community cards
-        [x] render bets
-        [x] render pot
-        [ ] render controls
-            - Admin button
-            - fold/bet
+    - New solution is to replay all the notifications sent from the beginning of the game or round
+        - Seems to work fine, causes a flicker on the screen, that's it
 [x] Admin allows a player to buy back into the game
     - Workaround is to leave the game and rejoin in incognito mode
         - Good enough for now
-[ ] Admin allows people into the game
-    - Not need for Beta
 [x] Next round cannot start until everyone has put in the same amount
     - Or a player has put in all their chips
-[ ] Write broadcast events
-    - Documentation only
-    - Plan is to migrate to trigger broadcast on domain events
-[ ] Show winning hand title
-[ ] Handle draws
+[x] Write broadcast notifications
+
+## Todo:
+[ ] Game should auto-deal cards/flop/turn/river/finish
+    - Easy enough to do right now TBH
+    - Add a delay of 5 seconds
+[ ] Handle case when player does not have enough chips to play
+    [x] Players can go in all in even it's less than the required amount
+    [ ] Max bet in a round is the lowest players remaining chips count
+    [ ] Players can only win a proportion of what they've bet
+[ ] Show hand titles
+[ ] Admin allows people into the game
+    - Not needed for Beta
+[ ] Handle pots
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
 
