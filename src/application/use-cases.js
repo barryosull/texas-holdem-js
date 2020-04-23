@@ -1,0 +1,253 @@
+
+const SeatsProjection = require('../application/seats-projection');
+const RoundProjection = require('./round-projection');
+const ChipsProjection = require('./chips-projection');
+const PlayersProjection = require('./players-projection');
+const notifications = require('./notifications');
+
+const SEAT_COUNT = 8;
+
+function UseCases(notifier, socketMapper)
+{
+    this.notifier = notifier;
+    this.socketMapper = socketMapper;
+}
+
+UseCases.prototype.existingPlayer = function(game, playerId, socketId)
+{
+    this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
+};
+
+UseCases.prototype.joinGame = function(game, playerId, playerName)
+{
+    game.addPlayer(playerId, playerName);
+
+    let seatsProjection = new SeatsProjection(game);
+
+    let player = createPlayerNotification(game, playerId);
+    let isAdmin = seatsProjection.isAdmin(playerId);
+
+    this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
+};
+
+UseCases.prototype.dealCards = function(game)
+{
+    this.removeDisconnectedPlayers(this, game);
+
+    game.startNewRound();
+
+    let seatsProjection = new SeatsProjection(game);
+    let roundProjection = new RoundProjection(game);
+
+    let roundStarted = seatsProjection.getRoundStarted();
+
+    let roundStartedNotification = createRoundStartedNotification(game);
+    this.notifier.broadcast(game.id, roundStartedNotification);
+
+    let players = seatsProjection.getPlayers();
+
+    players.forEach(playerId => {
+        let hand = roundProjection.getPlayerHand(playerId);
+        let socketId = this.socketMapper.getSocketIdForPlayer(playerId);
+        this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.PlayerDealtHand(hand));
+    });
+
+    this.notifier.broadcast(game.id, createBetMadeNotification(game, roundStarted.smallBlind));
+    this.notifier.broadcast(game.id, createBetMadeNotification(game, roundStarted.bigBlind));
+    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+};
+
+UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
+{
+    let seatsProjection = new SeatsProjection(game);
+
+    let players = seatsProjection.getPlayers();
+
+    let disconnectedPlayers = players.filter(playerId => {
+        return !this.socketMapper.hasSocketForPlayer(playerId);
+    });
+
+    disconnectedPlayers.forEach(playerId => {
+        game.removePlayer(playerId);
+    });
+};
+
+UseCases.prototype.dealFlop = function(game)
+{
+    game.dealFlop();
+
+    let roundProjection = new RoundProjection(game);
+
+    let cards = roundProjection.getCommunityCards().slice(0, 3);
+    this.notifier.broadcast(game.id, new notifications.FlopDealt(cards));
+
+    let amount = roundProjection.getPot();
+    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+
+};
+
+UseCases.prototype.dealTurn = function(game)
+{
+    game.dealTurn();
+
+    let roundProjection = new RoundProjection(game);
+
+    let card = roundProjection.getCommunityCards().slice(-1).pop();
+    let amount = roundProjection.getPot();
+
+    this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
+    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+};
+
+UseCases.prototype.dealRiver = function(game)
+{
+    game.dealRiver();
+
+    let roundProjection = new RoundProjection(game);
+
+    let card = roundProjection.getCommunityCards().slice(-1).pop();
+
+    this.notifier.broadcast(game.id, new notifications.RiverDealt(card));
+
+    let amount = roundProjection.getPot();
+    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+};
+
+UseCases.prototype.finish = function(game)
+{
+    game.finish();
+
+    let roundProjection = new RoundProjection(game);
+    let chipsProjection = new ChipsProjection(game);
+
+    let winningPlayerId = roundProjection.getWinner();
+    let winningHand = roundProjection.getPlayerHand(winningPlayerId);
+    let playerChips = chipsProjection.getPlayerChips(winningPlayerId);
+
+    this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
+};
+
+UseCases.prototype.placeBet = function(game, playerId, amount)
+{
+    game.placeBet(playerId, amount);
+
+    let notification = createBetMadeNotification(game, playerId);
+    this.notifier.broadcast(game.id, notification);
+
+    let roundProjection = new RoundProjection(game);
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+    }
+};
+
+UseCases.prototype.foldHand = function(game, playerId)
+{
+    game.foldHand(playerId);
+
+    this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
+
+    let roundProjection = new RoundProjection(game);
+    let chipsProjection = new ChipsProjection(game);
+
+    let winningHand = roundProjection.getWinner();
+    if (winningHand) {
+        let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
+        this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
+        return;
+    }
+
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+    }
+};
+
+UseCases.prototype.givePlayerChips = function(game, playerId, amount)
+{
+    game.givePlayerChips(playerId, amount);
+};
+
+//*********************************
+// Notifications creation methods
+//*********************************
+
+function createPlayerNotification(game, playerId)
+{
+    const seatsProjection = new SeatsProjection(game);
+    const chipsProjection = new ChipsProjection(game);
+    const playersProjection = new PlayersProjection(game);
+
+    let chips = chipsProjection.getPlayerChips(playerId);
+    let name = playersProjection.getPlayerName(playerId);
+    let seat = seatsProjection.getPlayersSeat(playerId);
+    return new notifications.Player(playerId, name, chips, seat);
+}
+
+/**
+ * @param game
+ * @returns {notifications.RoundStarted}
+ */
+function createRoundStartedNotification(game)
+{
+    let seatsProjection = new SeatsProjection(game);
+
+    let roundStarted = seatsProjection.getRoundStarted();
+
+    if (!roundStarted) {
+        return null;
+    }
+
+    let playersList = createPlayerList(game);
+
+    return new notifications.RoundStarted(roundStarted.dealer, playersList);
+}
+
+function createPlayerList(game)
+{
+    const seatsProjection = new SeatsProjection(game);
+    const chipsProjection = new ChipsProjection(game);
+    const playersProjection = new PlayersProjection(game);
+
+    let players = [];
+    for (let seat = 0; seat < SEAT_COUNT; seat++) {
+        let playerId = seatsProjection.getPlayerInSeat(seat);
+        let chips = chipsProjection.getPlayerChips(playerId);
+        let name = playersProjection.getPlayerName(playerId);
+        players.push( new notifications.Player(playerId, name, chips, seat));
+    }
+
+    return players;
+}
+
+function createBetMadeNotification(game, playerId)
+{
+    let chipsProjection = new ChipsProjection(game);
+    let roundProjection = new RoundProjection(game);
+
+    let playerChips = chipsProjection.getPlayerChips(playerId);
+    let amountBetInBettingRound = roundProjection.getPlayerBet(playerId);
+
+    return new notifications.BetMade(playerId, amountBetInBettingRound, playerChips);
+}
+
+function createNextPlayersTurnNotification(game)
+{
+    let roundProjection = new RoundProjection(game);
+    let chipsProjection = new ChipsProjection(game);
+
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+
+    let amountToPlay = roundProjection.getAmountToPlay(nextPlayerToAct);
+
+    let playerChips = chipsProjection.getPlayerChips(nextPlayerToAct);
+
+    amountToPlay = Math.min(playerChips, amountToPlay);
+
+    return new notifications.PlayersTurn(nextPlayerToAct, amountToPlay);
+}
+
+module.exports = UseCases;

@@ -39,6 +39,9 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
     }).pop();
 };
 
+/**
+ * @return {String[]}
+ */
 RoundProjection.prototype.getCommunityCards = function()
 {
     return this.game.events.project('app/round.getCommunityCards', (cards, e) => {
@@ -56,6 +59,25 @@ RoundProjection.prototype.getCommunityCards = function()
         }
         return cards;
     }, []);
+};
+
+RoundProjection.prototype.getNextAction = function()
+{
+    return this.game.events.project('app/round.getNextAction', (nextAction, e) => {
+        if (e instanceof events.FlopDealt) {
+            nextAction = 'turn';
+        }
+        if (e instanceof events.TurnDealt) {
+            nextAction = 'river';
+        }
+        if (e instanceof events.RiverDealt) {
+            nextAction = 'finish';
+        }
+        if (e instanceof events.HandWon) {
+            nextAction = 'deal';
+        }
+        return nextAction;
+    }, 'flop');
 };
 
 RoundProjection.prototype.getWinner = function()
