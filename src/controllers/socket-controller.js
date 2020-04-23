@@ -16,8 +16,6 @@ SocketController.prototype.playerDisconnected = function(socket)
 
     var gameId = this.socketMapper.getGameForSocket(socketId);
 
-    console.log(socketId, gameId);
-
     this.socketMapper.disassociate(socketId);
 
     if (this.socketMapper.isGameEmpty(gameId)) {

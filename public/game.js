@@ -250,7 +250,6 @@ Controller.roundStarted = function(round)
 
 Controller.playerDealtHand = function(playerDealtHand)
 {
-    console.log(playerDealtHand);
     View.renderPlayerHand(playerDealtHand.hand);
 };
 
@@ -522,7 +521,6 @@ View.enableFoldButton = function()
 
 View.showBet = function(bet)
 {
-    console.log(bet);
     var betTotal = bet.total === 0 ? "check" : bet.total;
     var $seat = $('#player-' + bet.playerId).parent('.seat');
     $seat.find('.stack').text(bet.remainingChips);

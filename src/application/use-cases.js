@@ -158,10 +158,15 @@ UseCases.prototype.foldHand = function(game, playerId)
     let roundProjection = new RoundProjection(game);
     let chipsProjection = new ChipsProjection(game);
 
-    let winningHand = roundProjection.getWinner();
-    if (winningHand) {
+    let winner = roundProjection.getWinner();
+
+    if (winner) {
+        let winningHand = roundProjection.getPlayerHand(winner);
         let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
         this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
+
+        triggerNextAction.call(this, game);
+
         return;
     }
 

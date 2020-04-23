@@ -60,7 +60,6 @@ function SocketMap() {
 
 SocketMap.prototype.associate = function(socketId, gameId, playerId)
 {
-    console.log(socketId, gameId, playerId);
     SocketsToPlayersMap.associate(socketId, playerId);
     SocketsToGameMap.associate(socketId, gameId);
 };
