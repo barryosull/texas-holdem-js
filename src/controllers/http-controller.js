@@ -32,12 +32,26 @@ HttpController.prototype.join = function(req, res)
     var existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
+        existingPlayer.call(this, game, playerId, playerName);
         return;
     }
 
     this.socketMapper.associate(socketId, game.id, playerId);
 
+    joinGame.call(this, game, playerId, playerName);
+
+    var notificationList = this.notifier.getRoundNotifications(game.id, playerId);
+
+    res.json(notificationList);
+};
+
+function existingPlayer(game, playerId, socketId)
+{
+    this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
+}
+
+function joinGame(game, playerId, playerName)
+{
     game.addPlayer(playerId, playerName);
 
     let seatsProjection = new SeatsProjection(game);
@@ -46,11 +60,7 @@ HttpController.prototype.join = function(req, res)
     let isAdmin = seatsProjection.isAdmin(playerId);
 
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
-
-    var notificationList = this.notifier.getRoundNotifications(game.id, playerId);
-
-    res.json(notificationList);
-};
+}
 
 HttpController.prototype.dealCards = function(req, res)
 {
@@ -61,6 +71,13 @@ HttpController.prototype.dealCards = function(req, res)
         return;
     }
 
+    dealCards.call(this, game);
+
+    res.send('');
+};
+
+function dealCards(game)
+{
     removeDisconnectedPlayers(this, game);
 
     game.startNewRound();
@@ -83,20 +100,27 @@ HttpController.prototype.dealCards = function(req, res)
 
     this.notifier.broadcast(game.id, generateBetMadeNotification(game, roundStarted.smallBlind));
     this.notifier.broadcast(game.id, generateBetMadeNotification(game, roundStarted.bigBlind));
-    this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
-
-    res.send('');
-};
+    this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
+}
 
 HttpController.prototype.dealFlop = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    var gameId = req.params.gameId;
 
-    if (!isGameAdmin(this,game, req)) {
+    var game = GameRepo.fetchOrCreate(gameId);
+
+    if (!isGameAdmin(this, game, req)) {
         res.send('');
         return;
     }
 
+    dealFlop.call(this, game);
+
+    res.send('');
+};
+
+function dealFlop(game)
+{
     game.dealFlop();
 
     var roundProjection = new RoundProjection(game);
@@ -106,20 +130,28 @@ HttpController.prototype.dealFlop = function(req, res)
 
     var amount = roundProjection.getPot();
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
+    this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
 
-    res.send('');
-};
+}
 
 HttpController.prototype.dealTurn = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    var gameId = req.params.gameId;
+
+    var game = GameRepo.fetchOrCreate(gameId);
 
     if (!isGameAdmin(this,game, req)) {
         res.send('');
         return;
     }
 
+    dealTurn.call(this, game);
+
+    res.send('');
+};
+
+function dealTurn(game)
+{
     game.dealTurn();
 
     var roundProjection = new RoundProjection(game);
@@ -129,20 +161,27 @@ HttpController.prototype.dealTurn = function(req, res)
 
     this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
-
-    res.send('');
-};
+    this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
+}
 
 HttpController.prototype.dealRiver = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    var gameId = req.params.gameId;
 
-    if (!isGameAdmin(this,game, req)) {
+    var game = GameRepo.fetchOrCreate(gameId);
+
+    if (!isGameAdmin(this, game, req)) {
         res.send('');
         return;
     }
 
+    dealRiver.call(this, game);
+
+    res.send('');
+};
+
+function dealRiver(game)
+{
     game.dealRiver();
 
     var roundProjection = new RoundProjection(game);
@@ -153,10 +192,8 @@ HttpController.prototype.dealRiver = function(req, res)
 
     var amount = roundProjection.getPot();
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
-
-    res.send('');
-};
+    this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
+}
 
 HttpController.prototype.finish = function(req, res)
 {
@@ -167,6 +204,13 @@ HttpController.prototype.finish = function(req, res)
         return;
     }
 
+    finish.call(this, game);
+
+    res.send('');
+};
+
+function finish(game)
+{
     game.finish();
 
     var roundProjection = new RoundProjection(game);
@@ -177,9 +221,7 @@ HttpController.prototype.finish = function(req, res)
     var playerChips = chipsProjection.getPlayerChips(winningPlayerId);
 
     this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
-
-    res.send('');
-};
+}
 
 HttpController.prototype.givePlayerChips = function(req, res)
 {
@@ -213,7 +255,16 @@ HttpController.prototype.placeBet = function(req, res)
 
     let notification = generateBetMadeNotification(game, playerId);
     this.notifier.broadcast(game.id, notification);
-    this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
+
+    var roundProjection = new RoundProjection(game);
+    var nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
+        res.send('');
+        return;
+    }
+
+    // Figure out the next action
 
     res.send('');
 };
@@ -230,17 +281,24 @@ HttpController.prototype.foldHand = function(req, res)
     this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
 
     var roundProjection = new RoundProjection(game);
+    var chipsProjection = new ChipsProjection(game);
 
     var winningHand = roundProjection.getWinner();
-    if (!winningHand) {
-        this.notifier.broadcast(game.id, generateNextPlayersTurn(game));
+    if (winningHand) {
+        let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
+        this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
+        res.send('');
         return;
     }
 
-    var chipsProjection = new ChipsProjection(game);
+    var nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, getNextPlayersTurnNotification(game));
+        res.send('');
+        return;
+    }
 
-    let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
-    this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
+    // Figure out next action
 
     res.send('');
 };
@@ -270,7 +328,7 @@ function isGameAdmin(controller, game, req)
     return seatsProjection.isAdmin(playerId);
 }
 
-function generateNextPlayersTurn(game)
+function getNextPlayersTurnNotification(game)
 {
     var roundProjection = new RoundProjection(game);
     var chipsProjection = new ChipsProjection(game);
@@ -284,11 +342,6 @@ function generateNextPlayersTurn(game)
     amountToPlay = Math.min(playerChips, amountToPlay);
 
     return new notifications.PlayersTurn(nextPlayerToAct, amountToPlay);
-}
-
-function generateGameStateViewModel(game, playerId)
-{
-    return {};
 }
 
 function generatePlayerList(game)
@@ -329,6 +382,14 @@ function generateBetMadeNotification(game, playerId)
     var amountBetInBettingRound = roundProjection.getPlayerBet(playerId);
 
     return new notifications.BetMade(playerId, amountBetInBettingRound, playerChips);
+}
+
+function runNextAction()
+{
+    var roundProjection = new RoundProjection(this.game);
+
+    var nextAction = roundProjection.getNextAction();
+
 }
 
 function removeDisconnectedPlayers(controller, game)
