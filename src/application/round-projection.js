@@ -114,7 +114,7 @@ RoundProjection.prototype.getPot = function()
 
 RoundProjection.prototype.getPlayerBet = function(playerId)
 {
-    var playersToBets = this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
+    let playersToBets = this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
             playersToBets = {};
         }
@@ -148,17 +148,20 @@ RoundProjection.prototype.bankruptedInLastRound = function()
 
 RoundProjection.prototype.getNextPlayerToAct = function()
 {
-    var lastActivePlayer = this.game.events.project('app/round.getNextPlayerToAct.lastActivePlayer', (player, e) => {
-        if (e instanceof events.BetPlaced) {
-            player = e.playerId;
-        }
-        if (e instanceof events.BettingRoundClosed) {
-            player = null;
-        }
-        return player;
-    }, null);
+    let activePlayers = getPlayersActiveInRound.call(this);
 
-    var seatedPlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
+    if (hasEveryoneActed.call(this, activePlayers) && hasEveryoneBetTheSameAmount.call(this)) {
+        return null;
+    }
+
+    let lastActivePlayer = getLastActivePlayer.call(this);
+
+    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayers);
+};
+
+function getPlayersActiveInRound()
+{
+    let seatedPlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
         if (e instanceof events.SeatTaken) {
             seats[e.seat] = e.playerId;
         }
@@ -168,33 +171,43 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return seats;
     }, [null, null, null, null, null, null, null, null]).filter(Boolean);
 
-    var folderPlayers = this.game.events.project('app/round.getNextPlayerToAct.foldedPlayers', (folded, e) => {
+    let dealtInPlayers = this.game.events.project('app/round.getNextPlayerToAct.dealtInPlayers', (folded, e) => {
+        if (e instanceof events.RoundStarted) {
+            folded = [];
+        }
+        if (e instanceof events.HandDealt) {
+            folded.push(e.playerId);
+        }
+        return folded;
+    }, []);
+
+    let foldedPlayers = this.game.events.project('app/round.getNextPlayerToAct.foldedPlayers', (folded, e) => {
         if (e instanceof events.RoundStarted) {
             folded = [];
         }
         if (e instanceof events.HandFolded) {
             folded.push(e.playerId);
         }
-        if (e instanceof events.PlayerBankrupted) {
-            folded.push(e.playerId);
-        }
         return folded;
     }, []);
 
-    var bankruptedPlayers = this.game.events.project('app/round.getNextPlayerToAct.bankruptedPlayers', (bankrupted, e) => {
+    let bankruptedPlayers = this.game.events.project('app/round.getNextPlayerToAct.bankruptedPlayers', (bankrupted, e) => {
         if (e instanceof events.PlayerBankrupted) {
             bankrupted.push(e.playerId);
         }
         return bankrupted;
     }, []);
 
-    var inactivePlayers = folderPlayers.concat(bankruptedPlayers);
+    let inactivePlayers = foldedPlayers.concat(bankruptedPlayers);
 
-    var activePlayers = seatedPlayers.filter(playerId => {
-        return inactivePlayers.indexOf(playerId) === -1;
+    return seatedPlayers.filter(playerId => {
+        return inactivePlayers.indexOf(playerId) === -1 && dealtInPlayers.indexOf(playerId) !== -1;
     });
+}
 
-    var actions = this.game.events.project('app/round.getNextPlayerToAct.actions', (actions, e) => {
+function hasEveryoneActed(activePlayers)
+{
+    let playersToActionCount = this.game.events.project('app/round.getNextPlayerToAct.actions', (actions, e) => {
         if (e instanceof events.RoundStarted) {
             actions = {};
             // Big and small blinds still need to "act" even though they have bet
@@ -214,6 +227,77 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return actions;
     }, {});
 
+    let hasActionCountForEachPlayer = Object.values(playersToActionCount).length === activePlayers.length;
+
+    let havePlayerActedOnce = Object.values(playersToActionCount).reduce((value, actionCount) => {
+        return value && actionCount > 0;
+    }, true);
+
+    return hasActionCountForEachPlayer && havePlayerActedOnce;
+}
+
+function hasEveryoneBetTheSameAmount()
+{
+    let playersToAmountBet = this.game.events.project('app/round.getNextPlayerToAct.playerBets', (bets, e) => {
+        if (e instanceof events.RoundStarted) {
+            bets = {};
+        }
+        if (e instanceof events.HandFolded) {
+            delete bets[e.playerId];
+        }
+        if (e instanceof events.BetPlaced) {
+            bets[e.playerId] = bets[e.playerId] || 0;
+            bets[e.playerId] += e.amount;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            bets = {};
+        }
+        return bets;
+    }, {});
+
+    let amountsBet = Object.values(playersToAmountBet);
+
+    return amountsBet.filter((bet, index) => {
+        return amountsBet.indexOf(bet) === index;
+    });
+}
+
+function getLastActivePlayer()
+{
+    let lastActivePlayer = this.game.events.project('app/round.getNextPlayerToAct.lastActivePlayer', (player, e) => {
+        if (e instanceof events.BetPlaced) {
+            player = e.playerId;
+        }
+        if (e instanceof events.BettingRoundClosed) {
+            player = null;
+        }
+        return player;
+    }, null);
+
+    if (lastActivePlayer !== null) {
+        return lastActivePlayer;
+    }
+
+    return this.game.events.project('app/round.getNextPlayerToAct.dealer', (dealer, e) => {
+        if (e instanceof events.RoundStarted) {
+            dealer = e.dealer;
+        }
+        return dealer;
+    }, null);
+}
+
+function getPlayerToLeftOfPlayer(playerId, activePlayers)
+{
+    let currPlayerIndex = activePlayers.indexOf(playerId);
+    let nextPlayerIndex = ((currPlayerIndex + 1) % activePlayers.length);
+    return activePlayers[nextPlayerIndex];
+}
+
+RoundProjection.prototype.getAmountToPlay = function(playerId)
+{
+    if (!playerId) {
+        return null;
+    }
     let bets = this.game.events.project('app/round.getNextPlayerToAct.playerBets', (bets, e) => {
         if (e instanceof events.RoundStarted) {
             bets = {};
@@ -231,66 +315,9 @@ RoundProjection.prototype.getNextPlayerToAct = function()
         return bets;
     }, {});
 
-    var hasActionCountForEveryPlayer = Object.values(actions).length === activePlayers.length;
+    let playersBet = bets[playerId] || 0;
 
-    var hasEveryoneActed = Object.values(actions).reduce((value, actionCount) => {
-        return value && actionCount > 0;
-    }, true) && hasActionCountForEveryPlayer;
-
-    var betsArray = Object.values(bets);
-    var uniqueBetAmounts = betsArray.filter((bet, index) => {
-        return betsArray.indexOf(bet) === index;
-    });
-
-    var hasEveryoneBetTheSameAmount = (uniqueBetAmounts.length === 1);
-
-    if (hasEveryoneActed && hasEveryoneBetTheSameAmount) {
-        return null;
-    }
-
-    // No active player, then get player to left of dealer
-    if (lastActivePlayer === null) {
-        var dealer = this.game.events.project('app/round.getNextPlayerToAct.dealer', (dealer, e) => {
-            if (e instanceof events.RoundStarted) {
-                dealer = e.dealer;
-            }
-            return dealer;
-        }, null);
-        lastActivePlayer = dealer;
-    }
-
-    var currPlayerIndex = activePlayers.indexOf(lastActivePlayer);
-    // Go to the player to the left of the last active player
-    var nextPlayerIndex = ((currPlayerIndex + 1) % activePlayers.length);
-
-    return activePlayers[nextPlayerIndex];
-};
-
-RoundProjection.prototype.getAmountToPlay = function(playerId)
-{
-    if (!playerId) {
-        return null;
-    }
-    var bets = this.game.events.project('app/round.getNextPlayerToAct.playerBets', (bets, e) => {
-        if (e instanceof events.RoundStarted) {
-            bets = {};
-        }
-        if (e instanceof events.HandFolded) {
-            delete bets[e.playerId];
-        }
-        if (e instanceof events.BetPlaced) {
-            bets[e.playerId] = bets[e.playerId] || 0;
-            bets[e.playerId] += e.amount;
-        }
-        if (e instanceof events.BettingRoundClosed) {
-            bets = {};
-        }
-        return bets;
-    }, {});
-
-    var playersBet = bets[playerId] || 0;
-
-    var maxBet = Object.values(bets).reduce((maxBet, bet) => {
+    let maxBet = Object.values(bets).reduce((maxBet, bet) => {
         if (maxBet < bet) {
             maxBet = bet;
         }

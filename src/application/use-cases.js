@@ -54,7 +54,14 @@ UseCases.prototype.dealCards = function(game)
 
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundStarted.smallBlind));
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundStarted.bigBlind));
-    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
+    }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
@@ -83,8 +90,14 @@ UseCases.prototype.dealFlop = function(game)
 
     let amount = roundProjection.getPot();
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
 
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
+    }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.dealTurn = function(game)
@@ -98,7 +111,14 @@ UseCases.prototype.dealTurn = function(game)
 
     this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
+    }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.dealRiver = function(game)
@@ -113,7 +133,14 @@ UseCases.prototype.dealRiver = function(game)
 
     let amount = roundProjection.getPot();
     this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
-    this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+
+    let nextPlayerToAct = roundProjection.getNextPlayerToAct();
+    if (nextPlayerToAct) {
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        return;
+    }
+
+    triggerNextAction.call(this, game);
 };
 
 UseCases.prototype.finish = function(game)
