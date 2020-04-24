@@ -156,7 +156,9 @@ UseCases.prototype.finish = function(game)
 
     this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
 
-    triggerNextAction.call(this, game);
+    if (chipsProjection.getNumberOfPlayersWithChips() > 1) {
+        triggerNextAction.call(this, game);
+    }
 };
 
 UseCases.prototype.placeBet = function(game, playerId, amount)

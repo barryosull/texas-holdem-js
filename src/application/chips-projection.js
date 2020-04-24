@@ -16,7 +16,23 @@ ChipsProjection.prototype.getPlayerChips = function(playerId)
         return null;
     }
 
-    var playersToChips = this.game.events.project('app/chips.getPlayerChips', (playersToChips, e) => {
+    var playersToChips = getPlayersToChips.call(this);
+
+    return playersToChips[playerId];
+};
+
+ChipsProjection.prototype.getNumberOfPlayersWithChips = function()
+{
+    var playersToChips = getPlayersToChips.call(this);
+
+    return Object.values(playersToChips).filter(chips => {
+        return chips > 0;
+    }).length;
+};
+
+function getPlayersToChips()
+{
+    return this.game.events.project('app/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -26,8 +42,6 @@ ChipsProjection.prototype.getPlayerChips = function(playerId)
         }
         return playersToChips;
     }, {});
-
-    return playersToChips[playerId];
-};
+}
 
 module.exports = ChipsProjection;

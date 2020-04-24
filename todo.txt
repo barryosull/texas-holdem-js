@@ -188,17 +188,20 @@
 [x] Game should auto-deal cards/flop/turn/river/finish
     - Easy enough to do right now TBH
     - Add a delay of 5 seconds
-[ ] Once no further bets can be made (e.g. all players are all in) then the game should autoplay
+[x] Once no further bets can be made (e.g. all players are all in) then the game should autoplay
     - In progress, getNextPlayerToAct projection needs to figure out if betting is even possible
         - Get all active players
         - Do more than one of them have remaining chips?
+[x] Once the game ends and a winner is announced the game should not keep playing by itself
+[ ] Admin gives players chips
 [ ] Handle case when player does not have enough chips to play
     [x] Players can go in all in even it's less than the required amount
     [ ] Max bet in a round is the lowest players remaining chips count
     [ ] Players can only win a proportion of what they've bet
+
+
 [ ] Show hand titles
-[ ] Admin allows people into the game
-    - Not needed for Beta
+
 [ ] Handle pots
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
