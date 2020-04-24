@@ -1,6 +1,7 @@
 
 var assert = require('assert');
 var Game = require('../src/domain/game');
+var Pot = require('../src/domain/pot');
 var SeatsProjection = require('../src/application/seats-projection');
 var RoundProjection = require('../src/application/round-projection');
 var ChipsProjection = require('../src/application/chips-projection');
@@ -324,6 +325,50 @@ describe('Game', () => {
     });
 
     it ('allows split pots', () => {
+        let game = makeGame();
+        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
+        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
+        let playerC = '9e29bbb2-e76c-4cf6-8931-2e22be61f345';
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerA, 2000);
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerC, 3000);
+
+        game.startNewRound('test-seed');
+
+        // Make everyone go all in
+        game.placeBet(playerA, 2000);
+        game.placeBet(playerB, 980);
+        game.placeBet(playerC, 2960);
+
+        var roundProjection = new RoundProjection(game);
+
+        var pots = roundProjection.getPots();
+
+        assert.deepEqual(pots, [
+            new Pot(3000, [playerB, playerC, playerA]),
+            new Pot(2000, [playerC, playerA]),
+            new Pot(1000, [playerC])
+        ]);
+
+        game.dealFlop();
+        game.dealTurn();
+        game.dealRiver();
+        game.finish();
+
+        var chipsProjection = new ChipsProjection(game);
+
+        // Player B wins pot 1
+        assert.equal(chipsProjection.getPlayerChips(playerB), 3000);
+        // Player A wins pot 2
+        assert.equal(chipsProjection.getPlayerChips(playerB), 2000);
+        // Player C wins pot 3
+        assert.equal(chipsProjection.getPlayerChips(playerB), 1000);
+    });
+
+    it ('split pots include amounts from folded players that bet', () => {
 
     });
 });

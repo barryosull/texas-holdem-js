@@ -1,5 +1,6 @@
 
 var Game = require('../domain/game');
+var Pot = require('../domain/pot');
 var events = require('../domain/events');
 
 /**
@@ -278,7 +279,7 @@ function getPlayersToActionCount()
 
 function hasEveryoneBetTheSameAmount()
 {
-    let playersToAmountBet = getPlayersToAmountBet.call(this);
+    let playersToAmountBet = getActivePlayersToAmountsBet.call(this);
 
     let amountsBet = Object.values(playersToAmountBet);
 
@@ -287,9 +288,9 @@ function hasEveryoneBetTheSameAmount()
     }).length === 1;
 }
 
-function getPlayersToAmountBet()
+function getActivePlayersToAmountsBet()
 {
-    return this.game.events.project('app/round.getNextPlayerToAct.getPlayersToAmountBet', (bets, e) => {
+    return this.game.events.project('app/round.getNextPlayerToAct.getActivePlayersToAmountsBet', (bets, e) => {
         if (e instanceof events.RoundStarted) {
             bets = {};
         }
@@ -343,7 +344,7 @@ RoundProjection.prototype.getAmountToPlay = function(playerId)
     if (!playerId) {
         return null;
     }
-    let bets = getPlayersToAmountBet.call(this);
+    let bets = getActivePlayersToAmountsBet.call(this);
 
     let playersBet = bets[playerId] || 0;
 
@@ -355,6 +356,54 @@ RoundProjection.prototype.getAmountToPlay = function(playerId)
     }, 0);
 
     return maxBet - playersBet;
+};
+
+RoundProjection.prototype.getPots = function()
+{
+    let playersToBets = this.game.events.project('app/round.getPots', (playersToBets, e) => {
+        if (e instanceof events.HandWon) {
+            playersToBets = {};
+        }
+        if (e instanceof events.RoundStarted) {
+            playersToBets = {};
+        }
+        if (e instanceof events.BetPlaced) {
+            playersToBets[e.playerId] = playersToBets[e.playerId] || 0;
+            playersToBets[e.playerId] += e.amount;
+        }
+        return playersToBets;
+    }, {});
+
+    let pots = [];
+
+    while (Object.values(playersToBets).length > 1) {
+        var minBet = Object.values(playersToBets).reduce((min, amount) => {
+            min = (min !== null && min < amount) ? min : amount;
+            return min;
+        }, null);
+
+        let amount = minBet * Object.values(playersToBets).length;
+        let players = Object.keys(playersToBets).reduce((players, playerId) => {
+            players.push(playerId);
+            return players;
+        }, []);
+
+        pots.push(new Pot(amount, players));
+
+        let nextPlayersToBets = Object.keys(playersToBets).reduce((nextPotPlayersToBets, playerId) => {
+            nextPotPlayersToBets[playerId] = playersToBets[playerId] - minBet;
+            if (nextPotPlayersToBets[playerId] === 0){
+                delete nextPotPlayersToBets[playerId];
+            }
+            return nextPotPlayersToBets;
+        }, {});
+
+       playersToBets = nextPlayersToBets;
+    }
+
+    pots.push(new Pot(Object.values(playersToBets)[0], Object.keys(playersToBets)));
+
+    return pots;
 };
 
 module.exports = RoundProjection;
