@@ -194,17 +194,17 @@
         - Do more than one of them have remaining chips?
 [x] Once the game ends and a winner is announced the game should not keep playing by itself
 [x] Admin gives players chips
+[ ] Handle pots
+	- Currently defaults to the first handle winning
+	- This is fine for now, as draws are so rare
+
 [ ] Handle case when player does not have enough chips to play
     [x] Players can go in all in even it's less than the required amount
     [ ] Max bet in a round is the lowest players remaining chips count
     [ ] Players can only win a proportion of what they've bet
-
-
 [ ] Show hand titles
 
-[ ] Handle pots
-	- Currently defaults to the first handle winning
-	- This is fine for now, as draws are so rare
+
 
 
 
