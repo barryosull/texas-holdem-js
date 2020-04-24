@@ -24,10 +24,17 @@ function Player(playerId, playerName, chips, seat)
     this.seat = seat;
 }
 
-function PlayerAdded(player, isAdmin)
+function PlayerAdded(player, players, isAdmin)
 {
     this.player = player;
+    this.players = players;
     this.isAdmin = isAdmin;
+}
+
+function PlayerGivenChips(playerId, chips)
+{
+    this.playerId = playerId;
+    this.chips = chips;
 }
 
 function BetMade(playerId, total, remainingChips)
@@ -82,6 +89,7 @@ function WinnerByDefault(hand, playerChips)
 
 module.exports = {
     PlayerAdded,
+    PlayerGivenChips,
     ExistingSession,
     RoundStarted,
     PlayerDealtHand,

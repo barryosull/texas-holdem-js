@@ -24,10 +24,11 @@ UseCases.prototype.joinGame = function(game, playerId, playerName)
 
     let seatsProjection = new SeatsProjection(game);
 
-    let player = createPlayerNotification(game, playerId);
+    let player = createPlayer(game, playerId);
+    let playersList = createPlayerList(game);
     let isAdmin = seatsProjection.isAdmin(playerId);
 
-    this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, isAdmin));
+    this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, playersList , isAdmin));
 };
 
 UseCases.prototype.dealCards = function(game)
@@ -211,6 +212,8 @@ UseCases.prototype.foldHand = function(game, playerId)
 UseCases.prototype.givePlayerChips = function(game, playerId, amount)
 {
     game.givePlayerChips(playerId, amount);
+
+    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, amount));
 };
 
 function triggerNextAction(game)
@@ -255,13 +258,13 @@ function triggerNextAction(game)
 // Notifications creation methods
 //*********************************
 
-function createPlayerNotification(game, playerId)
+function createPlayer(game, playerId)
 {
     const seatsProjection = new SeatsProjection(game);
     const chipsProjection = new ChipsProjection(game);
     const playersProjection = new PlayersProjection(game);
 
-    let chips = chipsProjection.getPlayerChips(playerId);
+    let chips = chipsProjection.getPlayerChips(playerId) || 0;
     let name = playersProjection.getPlayerName(playerId);
     let seat = seatsProjection.getPlayersSeat(playerId);
     return new notifications.Player(playerId, name, chips, seat);
@@ -295,7 +298,7 @@ function createPlayerList(game)
     let players = [];
     for (let seat = 0; seat < SEAT_COUNT; seat++) {
         let playerId = seatsProjection.getPlayerInSeat(seat);
-        let chips = chipsProjection.getPlayerChips(playerId);
+        let chips = chipsProjection.getPlayerChips(playerId) || 0;
         let name = playersProjection.getPlayerName(playerId);
         players.push( new notifications.Player(playerId, name, chips, seat));
     }

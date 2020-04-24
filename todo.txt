@@ -193,7 +193,7 @@
         - Get all active players
         - Do more than one of them have remaining chips?
 [x] Once the game ends and a winner is announced the game should not keep playing by itself
-[ ] Admin gives players chips
+[x] Admin gives players chips
 [ ] Handle case when player does not have enough chips to play
     [x] Players can go in all in even it's less than the required amount
     [ ] Max bet in a round is the lowest players remaining chips count

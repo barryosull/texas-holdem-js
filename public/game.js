@@ -225,7 +225,8 @@ Controller.getGameId = function()
 
 Controller.playerAdded = function(playerAdded)
 {
-    View.renderPlayers([playerAdded.player]);
+    View.renderPlayersForAdmin(playerAdded.players);
+    View.renderPlayers([playerAdded.player], Controller.playerId);
     if (playerAdded.player.playerId !== Controller.playerId) {
         return;
     }
@@ -240,6 +241,7 @@ Controller.roundStarted = function(round)
 {
     View.clearTable();
     View.unhighlightWinner();
+    View.renderPlayersForAdmin(round.players);
     View.renderPlayers(round.players, Controller.playerId);
 
     var playersWithChips = round.players.filter(player => {
@@ -263,6 +265,11 @@ Controller.winnerByDefault = function(winner)
     View.emptyPot();
     View.disableBetting();
     View.showDealButton();
+};
+
+Controller.playerGivenChips = function(playerGivenChips)
+{
+    View.updatePlayerStack(playerGivenChips.playerId, playerGivenChips.chips);
 };
 
 Controller.winningHand = function(winner)
@@ -302,16 +309,25 @@ var View = {};
 
 View.renderPlayers = function(players, currentPlayerId)
 {
+    for (var index in players) {
+        var player = players[index];
+        if (player.playerId) {
+            View.renderSeat(player.seat, player.playerId, player.playerName, player.chips, currentPlayerId);
+        } else {
+            View.renderEmptySeat(player.seat);
+        }
+    }
+};
+
+View.renderPlayersForAdmin = function(players)
+{
     var $playerIds = $('#player_ids');
     $playerIds.html('<option value="">(Choose player)</option>');
 
     for (var index in players) {
         var player = players[index];
         if (player.playerId) {
-            View.renderSeat(player.seat, player.playerId, player.playerName, player.chips, currentPlayerId);
             $playerIds.append('<option value="' + player.playerId + '">' + player.playerName + '</option>');
-        } else {
-            View.renderEmptySeat(player.seat);
         }
     }
 };
@@ -636,6 +652,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
 {
     Controller.eventHandlers = {
         'playerAdded': Controller.playerAdded,
+        'playerGivenChips': Controller.playerGivenChips,
         'roundStarted': Controller.roundStarted,
         'playerDealtHand': Controller.playerDealtHand,
         'winningHand': Controller.winningHand,

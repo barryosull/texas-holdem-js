@@ -12,8 +12,6 @@ var Game = function(id, eventLogger)
     this.events = new EventStream(eventLogger);
 };
 
-const STARTING_CHIPS_COUNT = 1000;
-
 Game.prototype.addPlayer = function(playerId, name)
 {
     var seatsProjection = new SeatsProjection(this);
@@ -34,27 +32,12 @@ Game.prototype.addPlayer = function(playerId, name)
     }
 
     this.events.push(new events.SeatTaken(freeSeat, playerId));
-
-    if (isNewPlayer(this, playerId)) {
-        this.events.push(new events.PlayerGivenChips(playerId, STARTING_CHIPS_COUNT))
-    }
 };
 
 Game.prototype.givePlayerChips = function(playerId, amount)
 {
     this.events.push(new events.PlayerGivenChips(playerId, amount))
 };
-
-/**
- * @param game {Game}
- * @param playerId {string}
- * @returns {boolean}
- */
-function isNewPlayer(game, playerId)
-{
-    var chipsProjection = new ChipsProjection(game);
-    return chipsProjection.getPlayerChips(playerId) === 0;
-}
 
 Game.prototype.removePlayer = function(playerId)
 {

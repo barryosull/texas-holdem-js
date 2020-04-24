@@ -234,8 +234,6 @@ function nobodyHasActed()
 {
     let playersToActionCount = getPlayersToActionCount.call(this);
 
-    console.log('playersToActionCount', playersToActionCount);
-
     return Object.values(playersToActionCount).reduce((value, actionCount) => {
         return value && actionCount === 0;
     }, true);
