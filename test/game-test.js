@@ -19,6 +19,8 @@ describe('Game', () => {
         let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
         game.addPlayer(playerA, "Name");
         game.addPlayer(playerB, "Name");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         var players = (new SeatsProjection(game)).getPlayers();
 
@@ -31,6 +33,8 @@ describe('Game', () => {
         let playerB = playerA;
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         var players = (new SeatsProjection(game)).getPlayers();
 
@@ -45,6 +49,9 @@ describe('Game', () => {
         game.addPlayer(playerA, "Name");
         game.addPlayer(playerB, "Name");
         game.addPlayer(playerC, "Name");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerC, 1000);
 
         game.startNewRound("test-seed");
 
@@ -61,6 +68,8 @@ describe('Game', () => {
         let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         game.startNewRound('test-seed');
 
@@ -105,6 +114,8 @@ describe('Game', () => {
         let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         game.startNewRound('test-seed');
 
@@ -131,6 +142,8 @@ describe('Game', () => {
         let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
         game.addPlayer(playerA, "Name A");
         game.addPlayer(playerB, "Name B");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         game.startNewRound('test-seed');
 
@@ -159,6 +172,9 @@ describe('Game', () => {
         game.addPlayer(playerA, "playerA");
         game.addPlayer(playerB, "playerB");
         game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerC, 1000);
 
         game.startNewRound('test-seed');
 
@@ -193,6 +209,8 @@ describe('Game', () => {
         let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
         game.addPlayer(playerA, "playerA");
         game.addPlayer(playerB, "playerB");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         game.startNewRound('test-seed');
 
@@ -213,6 +231,8 @@ describe('Game', () => {
         let playerB = '6d53ea8e-0e7c-4d11-9551-0ec062394650';
         game.addPlayer(playerA, "Test");
         game.addPlayer(playerB, "Barry");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
 
         game.startNewRound('0.3ig391obvls');
 
@@ -249,6 +269,9 @@ describe('Game', () => {
         game.addPlayer(playerA, "playerA");
         game.addPlayer(playerB, "playerB");
         game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerC, 1000);
 
         game.startNewRound('test-seed');
 
@@ -271,6 +294,9 @@ describe('Game', () => {
         game.addPlayer(playerA, "playerA");
         game.addPlayer(playerB, "playerB");
         game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerA, 1000);
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerC, 1000);
 
         game.startNewRound('test-seeda');
 
@@ -295,6 +321,10 @@ describe('Game', () => {
 
         nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
         assert.equal(playerB, nextToAct);
+    });
+
+    it ('allows split pots', () => {
+
     });
 });
 
