@@ -155,8 +155,8 @@ RoundProjection.prototype.getNextPlayerToAct = function()
 
     let activePlayers = getPlayersActiveInRound.call(this);
 
-    if (hasEveryoneActed.call(this, activePlayers) && hasEveryoneBetTheSameAmount.call(this)) {
-        console.log('No further actions allowed');
+    if (hasEveryoneActed.call(this, activePlayers)
+        && (hasEveryoneBetTheSameAmount.call(this) || getNumberOfPlayersWithChips.call(this) === 0)) {
         return null;
     }
 

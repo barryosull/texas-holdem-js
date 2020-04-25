@@ -387,6 +387,9 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
+        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(nextToAct, null);
+
         game.dealFlop();
         game.dealTurn();
 

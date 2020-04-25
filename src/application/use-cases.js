@@ -88,9 +88,7 @@ UseCases.prototype.dealFlop = function(game)
 
     let cards = roundProjection.getCommunityCards().slice(0, 3);
     this.notifier.broadcast(game.id, new notifications.FlopDealt(cards));
-
-    let amount = roundProjection.getPot();
-    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
     let nextPlayerToAct = roundProjection.getNextPlayerToAct();
     if (nextPlayerToAct) {
@@ -101,6 +99,20 @@ UseCases.prototype.dealFlop = function(game)
     triggerNextAction.call(this, game);
 };
 
+function makePotTotalNotification(game)
+{
+    let roundProjection = new RoundProjection(game);
+
+    let pots = roundProjection.getPots().reduce((pots, pot) => {
+        if (pot.players.length > 1) {
+            pots.push(pot.amount);
+        }
+        return pots;
+    }, []);
+
+    return new notifications.PotTotal(pots);
+}
+
 UseCases.prototype.dealTurn = function(game)
 {
     game.dealTurn();
@@ -108,10 +120,9 @@ UseCases.prototype.dealTurn = function(game)
     let roundProjection = new RoundProjection(game);
 
     let card = roundProjection.getCommunityCards().slice(-1).pop();
-    let amount = roundProjection.getPot();
 
     this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
-    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
     let nextPlayerToAct = roundProjection.getNextPlayerToAct();
     if (nextPlayerToAct) {
@@ -131,9 +142,7 @@ UseCases.prototype.dealRiver = function(game)
     let card = roundProjection.getCommunityCards().slice(-1).pop();
 
     this.notifier.broadcast(game.id, new notifications.RiverDealt(card));
-
-    let amount = roundProjection.getPot();
-    this.notifier.broadcast(game.id, new notifications.PotTotal(amount));
+    this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
     let nextPlayerToAct = roundProjection.getNextPlayerToAct();
     if (nextPlayerToAct) {

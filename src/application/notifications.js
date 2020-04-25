@@ -59,9 +59,9 @@ function RiverDealt(card)
     this.card = card;
 }
 
-function PotTotal(amount)
+function PotTotal(pots)
 {
-    this.amount = amount;
+    this.pots = pots;
 }
 
 function PlayersTurn(playerId, amountToPlay)

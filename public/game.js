@@ -557,10 +557,13 @@ View.clearBets = function()
     $('.seat .bet').remove();
 };
 
-View.updatePot = function(potTotal)
+View.potTotal = function(potTotal)
 {
     View.clearBets();
-    $('#pot').show().text(potTotal.amount);
+    var chips = potTotal.pots.map(pot => {
+        return '&nbsp;<span class="chips">' + pot + '</span>';
+    });
+    $('#pot').show().html(chips);
 };
 
 View.emptyPot = function()
@@ -662,7 +665,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
         'riverDealt': View.attachRiver,
         'playerFolded': View.foldPlayerHand,
         'betMade': View.showBet,
-        'potTotal': View.updatePot,
+        'potTotal': View.potTotal,
         'playersTurn': Controller.playersTurn,
         'existingSession': View.existingSession,
     };

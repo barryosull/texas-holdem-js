@@ -199,6 +199,7 @@
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
 [ ] Display split pots
+[ ] Game breaks if a bankrupted player is given chips again
 [ ] Show hand titles
 
 
