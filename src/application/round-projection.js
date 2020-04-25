@@ -97,6 +97,20 @@ RoundProjection.prototype.getWinner = function()
     }, null);
 };
 
+RoundProjection.prototype.getWinners = function()
+{
+    return this.game.events.project('app/round.getWinner', (players, e) => {
+        if (e instanceof events.RoundStarted) {
+            players = [];
+        }
+        if (e instanceof events.HandWon) {
+            players.push(e.playerId);
+        }
+        return players;
+    }, []);
+};
+
+
 RoundProjection.prototype.getPot = function()
 {
     return this.game.events.project('app/round.getPot', (pot, e) => {
