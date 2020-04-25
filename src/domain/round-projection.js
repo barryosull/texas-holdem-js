@@ -2,6 +2,7 @@
 var Game = require('./game');
 var events = require('./events');
 var Hand = require('./hand');
+var Pot = require('./pot');
 var CommunityCards = require('./community-cards');
 var WinnerCalculator = require('./winner-calculator');
 
@@ -34,6 +35,18 @@ RoundProjection.prototype.getActiveHands = function()
     return Object.values(hands);
 };
 
+/**
+ * @returns {Hand[]}
+ */
+RoundProjection.prototype.getPlayerHands = function(players)
+{
+    let hands = this.getActiveHands();
+
+    return hands.filter(hand => {
+        return players.indexOf(hand.playerId) !== -1;
+    });
+};
+
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
     return this.getActiveHands().filter(hand => {
@@ -41,6 +54,9 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
     }).pop();
 };
 
+/**
+ * @returns {CommunityCards}
+ */
 RoundProjection.prototype.getCommunityCards = function()
 {
     let cards = this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
@@ -62,11 +78,11 @@ RoundProjection.prototype.getCommunityCards = function()
     return new CommunityCards(cards);
 };
 
-RoundProjection.prototype.chooseWinningHand = function()
+RoundProjection.prototype.chooseWinningHand = function(pot)
 {
-    var hands = this.getActiveHands();
-    var communityCards = this.getCommunityCards();
-
+    let players = pot.players;
+    let hands = this.getPlayerHands(players);
+    let communityCards = this.getCommunityCards();
     return WinnerCalculator.findWinner(hands, communityCards);
 };
 
@@ -129,5 +145,71 @@ RoundProjection.prototype.getPlayersBankruptedInRound = function()
         return bankruptPlayers;
     }, []);
 };
+
+RoundProjection.prototype.getPots = function()
+{
+    let playersToBets = getPlayersToBets.call(this);
+
+    let pots = [];
+
+    while (Object.values(playersToBets).length !== 0) {
+
+        let minBet = getMinBet(playersToBets);
+        let pot = makePotFromMinAmountBet(playersToBets, minBet);
+
+        pots.push(pot);
+
+        playersToBets = reduceByMinBetAndRemove(playersToBets, minBet);
+    }
+
+    return pots;
+};
+
+function getPlayersToBets()
+{
+    return this.game.events.project('domain/round.getPots', (playersToBets, e) => {
+        if (e instanceof events.HandWon) {
+            playersToBets = {};
+        }
+        if (e instanceof events.RoundStarted) {
+            playersToBets = {};
+        }
+        if (e instanceof events.BetPlaced) {
+            playersToBets[e.playerId] = playersToBets[e.playerId] || 0;
+            playersToBets[e.playerId] += e.amount;
+        }
+        return playersToBets;
+    }, {});
+}
+
+function getMinBet(playersToBets)
+{
+    return Object.values(playersToBets).reduce((min, amount) => {
+        min = (min !== null && min < amount) ? min : amount;
+        return min;
+    }, null);
+}
+
+function reduceByMinBetAndRemove(playersToBets, minBet)
+{
+    return Object.keys(playersToBets).reduce((nextPotPlayersToBets, playerId) => {
+        nextPotPlayersToBets[playerId] = playersToBets[playerId] - minBet;
+        if (nextPotPlayersToBets[playerId] === 0) {
+            delete nextPotPlayersToBets[playerId];
+        }
+        return nextPotPlayersToBets;
+    }, {});
+}
+
+function makePotFromMinAmountBet(playersToBets, minBet)
+{
+    let amount = minBet * Object.values(playersToBets).length;
+    let players = Object.keys(playersToBets).reduce((players, playerId) => {
+        players.push(playerId);
+        return players;
+    }, []);
+
+    return new Pot(amount, players);
+}
 
 module.exports = RoundProjection;

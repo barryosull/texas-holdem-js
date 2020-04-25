@@ -5,6 +5,7 @@ var SeatsProjection = require('./seats-projection');
 var RoundProjection = require('./round-projection');
 var DeckProjection = require('./deck-projection');
 var ChipsProjection = require('./chips-projection');
+var WinnerCalculator = require('./winner-calculator');
 
 var Game = function(id, eventLogger)
 {
@@ -95,12 +96,12 @@ Game.prototype.foldHand = function(playerId)
     }
 };
 
-function winRound(game, winningHand)
+function winRound(game, winningHand, amount)
 {
     var roundProjection = new RoundProjection(game);
 
     var handWonEvent = new events.HandWon(winningHand.playerId);
-    var pot = roundProjection.getPot();
+    var pot = amount || roundProjection.getPot();
     var playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
     game.events.push(handWonEvent, playerGivenChipsEvent);
 }
@@ -140,9 +141,17 @@ Game.prototype.finish = function()
     var roundProjection = new RoundProjection(this);
 
     this.closeRoundOfBetting();
-    var winningHand = roundProjection.chooseWinningHand();
 
-    winRound(this, winningHand);
+    let pots = roundProjection.getPots();
+
+    pots.map(pot => {
+        let players = pot.players;
+        let hands = roundProjection.getPlayerHands(players);
+        let communityCards = roundProjection.getCommunityCards();
+        let winningHand = WinnerCalculator.findWinner(hands, communityCards);
+        winRound(this, winningHand, pot.amount);
+    });
+
     this.bankruptPlayersWithNoChips();
 };
 

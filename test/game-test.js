@@ -326,14 +326,14 @@ describe('Game', () => {
 
     it ('allows split pots', () => {
         let game = makeGame();
-        let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
-        let playerB = 'c9128c1e-f4aa-4009-b0f6-0d4822c28a65';
-        let playerC = '9e29bbb2-e76c-4cf6-8931-2e22be61f345';
+        let playerA = 'a53e5f71-2dce-45ed-8639-13ad81804d7d'; // 2nd
+        let playerB = 'b9128c1e-f4aa-4009-b0f6-0d4822c28a65'; // 1st
+        let playerC = 'ce29bbb2-e76c-4cf6-8931-2e22be61f345'; // 3rd
         game.addPlayer(playerA, "playerA");
         game.addPlayer(playerB, "playerB");
         game.addPlayer(playerC, "playerC");
-        game.givePlayerChips(playerA, 2000);
         game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerA, 2000);
         game.givePlayerChips(playerC, 3000);
 
         game.startNewRound('test-seed');
@@ -363,13 +363,44 @@ describe('Game', () => {
         // Player B wins pot 1
         assert.equal(chipsProjection.getPlayerChips(playerB), 3000);
         // Player A wins pot 2
-        assert.equal(chipsProjection.getPlayerChips(playerB), 2000);
+        assert.equal(chipsProjection.getPlayerChips(playerA), 2000);
         // Player C wins pot 3
-        assert.equal(chipsProjection.getPlayerChips(playerB), 1000);
+        assert.equal(chipsProjection.getPlayerChips(playerC), 1000);
     });
 
     it ('split pots include amounts from folded players that bet', () => {
+        let game = makeGame();
+        let playerA = 'a53e5f71-2dce-45ed-8639-13ad81804d7d'; // 2nd
+        let playerB = 'b9128c1e-f4aa-4009-b0f6-0d4822c28a65'; // 1st
+        let playerC = 'ce29bbb2-e76c-4cf6-8931-2e22be61f345'; // 3rd
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerA, 2000);
+        game.givePlayerChips(playerC, 3000);
 
+        game.startNewRound('test-seed');
+
+        // Make everyone go all in
+        game.placeBet(playerA, 2000);
+        game.placeBet(playerB, 980);
+        game.placeBet(playerC, 2960);
+
+        game.dealFlop();
+        game.dealTurn();
+
+        game.foldHand(playerB);
+
+        game.dealRiver();
+        game.finish();
+
+        var chipsProjection = new ChipsProjection(game);
+
+        // Player A wins pot 1 and 2
+        assert.equal(chipsProjection.getPlayerChips(playerA), 5000);
+        // Player C wins pot 3
+        assert.equal(chipsProjection.getPlayerChips(playerC), 1000);
     });
 });
 

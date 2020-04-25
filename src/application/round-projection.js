@@ -360,7 +360,26 @@ RoundProjection.prototype.getAmountToPlay = function(playerId)
 
 RoundProjection.prototype.getPots = function()
 {
-    let playersToBets = this.game.events.project('app/round.getPots', (playersToBets, e) => {
+    let playersToBets = getPlayersToBets.call(this);
+
+    let pots = [];
+
+    while (Object.values(playersToBets).length !== 0) {
+
+        let minBet = getMinBet(playersToBets);
+        let pot = makePotFromMinAmountBet(playersToBets, minBet);
+
+        pots.push(pot);
+
+        playersToBets = reduceByMinBetAndRemove(playersToBets, minBet);
+    }
+
+    return pots;
+};
+
+function getPlayersToBets()
+{
+    return this.game.events.project('domain/round.getPots', (playersToBets, e) => {
         if (e instanceof events.HandWon) {
             playersToBets = {};
         }
@@ -373,37 +392,36 @@ RoundProjection.prototype.getPots = function()
         }
         return playersToBets;
     }, {});
+}
 
-    let pots = [];
+function getMinBet(playersToBets)
+{
+    return Object.values(playersToBets).reduce((min, amount) => {
+        min = (min !== null && min < amount) ? min : amount;
+        return min;
+    }, null);
+}
 
-    while (Object.values(playersToBets).length > 1) {
-        var minBet = Object.values(playersToBets).reduce((min, amount) => {
-            min = (min !== null && min < amount) ? min : amount;
-            return min;
-        }, null);
+function reduceByMinBetAndRemove(playersToBets, minBet)
+{
+    return Object.keys(playersToBets).reduce((nextPotPlayersToBets, playerId) => {
+        nextPotPlayersToBets[playerId] = playersToBets[playerId] - minBet;
+        if (nextPotPlayersToBets[playerId] === 0) {
+            delete nextPotPlayersToBets[playerId];
+        }
+        return nextPotPlayersToBets;
+    }, {});
+}
 
-        let amount = minBet * Object.values(playersToBets).length;
-        let players = Object.keys(playersToBets).reduce((players, playerId) => {
-            players.push(playerId);
-            return players;
-        }, []);
+function makePotFromMinAmountBet(playersToBets, minBet)
+{
+    let amount = minBet * Object.values(playersToBets).length;
+    let players = Object.keys(playersToBets).reduce((players, playerId) => {
+        players.push(playerId);
+        return players;
+    }, []);
 
-        pots.push(new Pot(amount, players));
-
-        let nextPlayersToBets = Object.keys(playersToBets).reduce((nextPotPlayersToBets, playerId) => {
-            nextPotPlayersToBets[playerId] = playersToBets[playerId] - minBet;
-            if (nextPotPlayersToBets[playerId] === 0){
-                delete nextPotPlayersToBets[playerId];
-            }
-            return nextPotPlayersToBets;
-        }, {});
-
-       playersToBets = nextPlayersToBets;
-    }
-
-    pots.push(new Pot(Object.values(playersToBets)[0], Object.keys(playersToBets)));
-
-    return pots;
-};
+    return new Pot(amount, players);
+}
 
 module.exports = RoundProjection;

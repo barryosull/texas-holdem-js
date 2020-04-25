@@ -183,8 +183,6 @@
 [x] Next round cannot start until everyone has put in the same amount
     - Or a player has put in all their chips
 [x] Write broadcast notifications
-
-## Todo:
 [x] Game should auto-deal cards/flop/turn/river/finish
     - Easy enough to do right now TBH
     - Add a delay of 5 seconds
@@ -194,14 +192,13 @@
         - Do more than one of them have remaining chips?
 [x] Once the game ends and a winner is announced the game should not keep playing by itself
 [x] Admin gives players chips
-[ ] Handle pots
+
+## Todo:
+
+[x] Handle split pots
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
-
-[ ] Handle case when player does not have enough chips to play
-    [x] Players can go in all in even it's less than the required amount
-    [ ] Max bet in a round is the lowest players remaining chips count
-    [ ] Players can only win a proportion of what they've bet
+[ ] Display split pots
 [ ] Show hand titles
 
 
