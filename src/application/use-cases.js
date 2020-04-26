@@ -226,18 +226,16 @@ UseCases.prototype.givePlayerChips = function(game, playerId, amount)
 {
     game.givePlayerChips(playerId, amount);
 
-    let totalChips = new ChipsProjection(game).getPlayerChips()[playerId];
-    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, totalChips));
+    let playerChips = (new ChipsProjection(game)).getPlayerChips(playerId);
+    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
 };
 
 function triggerNextAction(game)
 {
-    var roundProjection = new RoundProjection(game);
-    var nextAction = roundProjection.getNextAction();
+    let roundProjection = new RoundProjection(game);
+    let nextAction = roundProjection.getNextAction();
 
-    console.log('nextAction', nextAction);
-
-    var actionToUseCase = {
+    let actionToUseCase = {
         'deal': this.dealCards,
         'flop': this.dealFlop,
         'turn': this.dealTurn,
@@ -245,7 +243,7 @@ function triggerNextAction(game)
         'finish': this.finish
     };
 
-    var actionTimeTimeouts = {
+    let actionTimeTimeouts = {
         'deal': 5000,
         'flop': 1000,
         'turn': 1000,
@@ -253,15 +251,15 @@ function triggerNextAction(game)
         'finish': 1000,
     };
 
-    var nextUseCase = actionToUseCase[nextAction];
+    let nextUseCase = actionToUseCase[nextAction];
 
     if (!nextUseCase) {
         return;
     }
 
-    var timeout = actionTimeTimeouts[nextAction] || 1000;
+    let timeout = actionTimeTimeouts[nextAction] || 1000;
 
-    var useCases = this;
+    let useCases = this;
 
     setTimeout(function(){
         nextUseCase.call(useCases, game);
