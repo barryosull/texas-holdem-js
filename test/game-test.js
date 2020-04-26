@@ -157,10 +157,10 @@ describe('Game', () => {
         game.removePlayer(playerB);
 
         // Player A wins by default
-        var winningPlayer = (new RoundProjection(game)).getWinner();
+        var winningPlayers = (new RoundProjection(game)).getWinners();
         var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
         var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
-        assert.equal(playerA, winningPlayer);
+        assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
     });

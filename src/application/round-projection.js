@@ -96,19 +96,6 @@ RoundProjection.prototype.getNextAction = function()
     }, 'deal');
 };
 
-RoundProjection.prototype.getWinner = function()
-{
-    return this.game.events.project('app/round.getWinner', (playerId, e) => {
-        if (e instanceof events.RoundStarted) {
-            playerId = null;
-        }
-        if (e instanceof events.PotWon) {
-            playerId = e.playerId;
-        }
-        return playerId;
-    }, null);
-};
-
 RoundProjection.prototype.getWinners = function()
 {
     return this.game.events.project('app/round.getWinner', (players, e) => {
@@ -120,23 +107,6 @@ RoundProjection.prototype.getWinners = function()
         }
         return players;
     }, []);
-};
-
-
-RoundProjection.prototype.getPot = function()
-{
-    return this.game.events.project('app/round.getPot', (pot, e) => {
-        if (e instanceof events.PotWon) {
-            return 0;
-        }
-        if (e instanceof events.RoundStarted) {
-            return 0;
-        }
-        if (e instanceof events.BetPlaced) {
-            return pot + e.amount;
-        }
-        return pot;
-    }, 0);
 };
 
 RoundProjection.prototype.getPlayerBet = function(playerId)
@@ -301,7 +271,6 @@ function getPlayersToActionCount()
         return actions;
     }, {});
 }
-
 
 function hasEveryoneBetTheSameAmount()
 {
