@@ -4,7 +4,6 @@ var events = require('./events');
 var Hand = require('./hand');
 var Pot = require('./pot');
 var CommunityCards = require('./community-cards');
-var WinnerCalculator = require('./winner-calculator');
 
 /**
  * @param game {Game}
@@ -47,6 +46,10 @@ RoundProjection.prototype.getPlayerHands = function(players)
     });
 };
 
+/**
+ * @param playerId
+ * @returns {Hand}
+ */
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
     return this.getActiveHands().filter(hand => {
@@ -78,24 +81,6 @@ RoundProjection.prototype.getCommunityCards = function()
     return new CommunityCards(cards);
 };
 
-RoundProjection.prototype.chooseWinningHand = function(pot)
-{
-    let players = pot.players;
-    let hands = this.getPlayerHands(players);
-    let communityCards = this.getCommunityCards();
-    return WinnerCalculator.findWinner(hands, communityCards);
-};
-
-RoundProjection.prototype.getWinner = function()
-{
-    return this.game.events.project('domain/round.getWinner', (playerId, e) => {
-        if (e instanceof events.HandWon) {
-            return e.playerId;
-        }
-        return playerId;
-    }, null);
-};
-
 RoundProjection.prototype.getWinnerByDefaultHand = function()
 {
     var activeHands = this.getActiveHands();
@@ -108,7 +93,7 @@ RoundProjection.prototype.getWinnerByDefaultHand = function()
 RoundProjection.prototype.getPot = function()
 {
     return this.game.events.project('app/round.getPot', (pot, e) => {
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             return 0;
         }
         if (e instanceof events.RoundStarted) {
@@ -168,7 +153,7 @@ RoundProjection.prototype.getPots = function()
 function getPlayersToBets()
 {
     return this.game.events.project('domain/round.getPots', (playersToBets, e) => {
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             playersToBets = {};
         }
         if (e instanceof events.RoundStarted) {

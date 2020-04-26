@@ -83,29 +83,26 @@ Game.prototype.foldHand = function(playerId)
 {
     let roundProjection = new RoundProjection(this);
 
-    let playerHand = roundProjection.getPlayerHand(playerId);
-    if (!playerHand) {
+    if (!roundProjection.getPlayerHand(playerId)) {
         return;
     }
     this.events.push(new events.HandFolded(playerId));
 
-    let winnerByDefaultHand = roundProjection.getWinnerByDefaultHand();
-    if (winnerByDefaultHand) {
-        let pot = roundProjection.getPot();
-        let handWonEvent = new events.HandWon(winnerByDefaultHand.playerId);
-        let playerGivenChipsEvent = new events.PlayerGivenChips(winnerByDefaultHand.playerId, pot);
-        this.game.events.push(handWonEvent, playerGivenChipsEvent);
-
-        this.bankruptPlayersWithNoChips();
+    let activeHands = roundProjection.getActiveHands();
+    if (activeHands.length > 1) {
+        return;
     }
-};
 
-function winRound(game, winningHand, amount)
-{
-    let handWonEvent = new events.HandWon(winningHand.playerId);
-    let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, amount);
-    game.events.push(handWonEvent, playerGivenChipsEvent);
-}
+    let winningHand = activeHands[0];
+    let pot = roundProjection.getPot();
+
+    let handWonEvent = new events.PotWon(winningHand.playerId);
+    let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
+
+    this.events.push(handWonEvent, playerGivenChipsEvent);
+
+    this.bankruptPlayersWithNoChips();
+};
 
 Game.prototype.dealFlop = function()
 {
@@ -147,18 +144,23 @@ Game.prototype.finish = function()
 
     let game = this;
 
-    pots.map(pot => {
-        let players = pot.players;
-        let hands = roundProjection.getPlayerHands(players);
-        let communityCards = roundProjection.getCommunityCards();
+    let communityCards = roundProjection.getCommunityCards();
+
+    pots.forEach(pot => {
+
+        if (pot.players.length === 1) {
+            let playerGivenChipsEvent = new events.PlayerGivenChips(pot.players[0], pot.amount);
+            game.events.push(playerGivenChipsEvent);
+            return;
+        }
+
+        let hands = roundProjection.getPlayerHands(pot.players);
         let winningHand = WinnerCalculator.findWinner(hands, communityCards);
 
-        if (players.length > 1) {
-            let handWonEvent = new events.HandWon(winningHand.playerId);
-            game.events.push(handWonEvent);
-        }
+        let handWonEvent = new events.PotWon(winningHand.playerId);
         let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot.amount);
-        game.events.push(playerGivenChipsEvent);
+
+        game.events.push(handWonEvent, playerGivenChipsEvent);
     });
 
     this.bankruptPlayersWithNoChips();

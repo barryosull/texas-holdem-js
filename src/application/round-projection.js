@@ -77,7 +77,7 @@ RoundProjection.prototype.getNextAction = function()
         if (e instanceof events.RiverDealt) {
             nextAction = 'finish';
         }
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             nextAction = 'deal';
         }
         return nextAction;
@@ -90,7 +90,7 @@ RoundProjection.prototype.getWinner = function()
         if (e instanceof events.RoundStarted) {
             playerId = null;
         }
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             playerId = e.playerId;
         }
         return playerId;
@@ -103,7 +103,7 @@ RoundProjection.prototype.getWinners = function()
         if (e instanceof events.RoundStarted) {
             players = [];
         }
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             players.push(e.playerId);
         }
         return players;
@@ -114,7 +114,7 @@ RoundProjection.prototype.getWinners = function()
 RoundProjection.prototype.getPot = function()
 {
     return this.game.events.project('app/round.getPot', (pot, e) => {
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             return 0;
         }
         if (e instanceof events.RoundStarted) {
@@ -133,7 +133,7 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
         if (e instanceof events.BettingRoundClosed) {
             playersToBets = {};
         }
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             playersToBets = {};
         }
         if (e instanceof events.BetPlaced) {
@@ -149,7 +149,7 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
 RoundProjection.prototype.bankruptedInLastRound = function()
 {
     let bankrupted = this.game.events.project('app/round.bankruptedInLastRound', (bankrupted, e) => {
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             bankrupted = {};
         }
         if (e instanceof events.PlayerBankrupted) {
@@ -394,7 +394,7 @@ RoundProjection.prototype.getPots = function()
 function getPlayersToBets()
 {
     return this.game.events.project('domain/round.getPots', (playersToBets, e) => {
-        if (e instanceof events.HandWon) {
+        if (e instanceof events.PotWon) {
             playersToBets = {};
         }
         if (e instanceof events.RoundStarted) {

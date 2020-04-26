@@ -51,7 +51,7 @@ function RiverDealt(card)
     this.card = card;
 }
 
-function HandWon(playerId)
+function PotWon(playerId)
 {
     this.playerId = playerId;
 }
@@ -88,7 +88,7 @@ module.exports = {
     FlopDealt,
     TurnDealt,
     RiverDealt,
-    HandWon,
+    PotWon,
     PlayerGivenChips,
     BetPlaced,
     BettingRoundClosed,
