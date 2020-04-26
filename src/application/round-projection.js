@@ -33,6 +33,18 @@ RoundProjection.prototype.getHands = function()
     return Object.values(hands);
 };
 
+/**
+ * @returns {Hand[]}
+ */
+RoundProjection.prototype.getPlayerHands = function(players)
+{
+    let hands = this.getHands();
+
+    return hands.filter(hand => {
+        return players.indexOf(hand.playerId) !== -1;
+    });
+};
+
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
     return this.getHands().filter(hand => {

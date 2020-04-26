@@ -97,10 +97,10 @@ describe('Game', () => {
         game.finish();
 
         // Player A wins
-        var winningPlayer = (new RoundProjection(game)).getWinner();
-        var winningHand = (new RoundProjection(game)).getPlayerHand(winningPlayer);
-        assert.equal(playerA, winningPlayer);
-        assert.deepEqual(playerAHand, winningHand);
+        let winningPlayers = (new RoundProjection(game)).getWinners();
+        let winningHands = (new RoundProjection(game)).getPlayerHands(winningPlayers);
+        assert.deepEqual(winningPlayers, [playerA]);
+        assert.deepEqual(winningHands, [playerAHand]);
 
         // Winner gets chips
         var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
@@ -129,10 +129,10 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         // Player A wins by default
-        var winningPlayer = (new RoundProjection(game)).getWinner();
+        var winningPlayers = (new RoundProjection(game)).getWinners();
         var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
         var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
-        assert.equal(playerA, winningPlayer);
+        assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
     });
