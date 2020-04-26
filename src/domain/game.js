@@ -100,8 +100,6 @@ Game.prototype.foldHand = function(playerId)
     let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
 
     this.events.push(handWonEvent, playerGivenChipsEvent);
-
-    this.bankruptPlayersWithNoChips();
 };
 
 Game.prototype.dealFlop = function()
@@ -161,17 +159,6 @@ Game.prototype.finish = function()
         let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot.amount);
 
         game.events.push(handWonEvent, playerGivenChipsEvent);
-    });
-
-    this.bankruptPlayersWithNoChips();
-};
-
-Game.prototype.bankruptPlayersWithNoChips = function()
-{
-    let roundProjection = new RoundProjection(this);
-
-    roundProjection.getPlayersBankruptedInRound().forEach(playerId => {
-        this.events.push(new events.PlayerBankrupted(playerId));
     });
 };
 

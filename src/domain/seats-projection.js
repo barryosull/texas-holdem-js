@@ -42,22 +42,12 @@ SeatsProjection.prototype.getFreeSeat = function()
 SeatsProjection.prototype.getActivePlayers = function()
 {
     var playersInSeats = Object.values(mapSeatsToPlayerIds(this.game));
-    var bankruptedPlayersIds = bankruptedPlayers(this.game);
+    var playersWithChips = getPlayersToChips.call(this);
 
     return playersInSeats.filter(playerId => {
-        return !bankruptedPlayersIds.includes(playerId)
+        return playersWithChips[playerId] > 0;
     });
 };
-
-function bankruptedPlayers(game)
-{
-    return game.events.project('domain/seats.bankruptedPlayers', (playerIds, e) => {
-        if (e instanceof events.PlayerBankrupted) {
-            playerIds.push(e.playerId);
-        }
-        return playerIds;
-    }, []);
-}
 
 function mapSeatsToPlayerIds(game)
 {
@@ -84,20 +74,23 @@ SeatsProjection.prototype.getRoundStarted = function()
 
 SeatsProjection.prototype.getPlayerChips = function(playerId)
 {
-    return this.game.events.project('domain/seats.getPlayerChips', (chips, e) => {
+    let playersToChips = getPlayersToChips.call(this);
+    return playersToChips[playerId] || 0;
+};
+
+function getPlayersToChips()
+{
+    return this.game.events.project('domain/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
-            if (e.playerId === playerId) {
-                return chips + e.amount;
-            }
+            playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
+            playersToChips[e.playerId] += e.amount;
         }
         if (e instanceof events.BetPlaced) {
-            if (e.playerId === playerId) {
-                return chips - e.amount;
-            }
+            playersToChips[e.playerId] -= e.amount;
         }
-        return chips;
-    }, 0);
-};
+        return playersToChips;
+    }, {});
+}
 
 SeatsProjection.prototype.getNextThreePlayersAfterDealer = function()
 {

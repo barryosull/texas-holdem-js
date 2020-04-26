@@ -97,31 +97,6 @@ RoundProjection.prototype.getPot = function()
     }, 0);
 };
 
-RoundProjection.prototype.getPlayersBankruptedInRound = function()
-{
-    let playersToChips = this.game.events.project('domain/round.getPlayersBankruptedInRound', (playersToChips, e) => {
-
-        if (e instanceof events.PlayerGivenChips) {
-            playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
-            playersToChips[e.playerId] += e.amount;
-        }
-        if (e instanceof events.BetPlaced) {
-            playersToChips[e.playerId] -= e.amount;
-        }
-        if (e instanceof events.PlayerBankrupted) {
-            delete playersToChips[e.playerId];
-        }
-        return playersToChips;
-    }, {});
-
-    return Object.keys(playersToChips).reduce((bankruptPlayers, playerId) => {
-        if (playersToChips[playerId] === 0) {
-            bankruptPlayers.push(playerId);
-        }
-        return bankruptPlayers;
-    }, []);
-};
-
 RoundProjection.prototype.getPots = function()
 {
     let playerBets = getPlayerBets.call(this);
