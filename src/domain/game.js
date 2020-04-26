@@ -1,23 +1,23 @@
 
-var events = require('./events');
-var EventStream = require('./event-stream');
-var SeatsProjection = require('./seats-projection');
-var RoundProjection = require('./round-projection');
-var DeckProjection = require('./deck-projection');
-var ChipsProjection = require('./chips-projection');
-var WinnerCalculator = require('./winner-calculator');
+const events = require('./events');
+const EventStream = require('./event-stream');
+const SeatsProjection = require('./seats-projection');
+const RoundProjection = require('./round-projection');
+const DeckProjection = require('./deck-projection');
+const ChipsProjection = require('./chips-projection');
+const WinnerCalculator = require('./winner-calculator');
 
-var Game = function(id, eventLogger)
+function Game (id, eventLogger)
 {
     this.id = id;
     this.events = new EventStream(eventLogger);
-};
+}
 
 Game.prototype.addPlayer = function(playerId, name)
 {
-    var seatsProjection = new SeatsProjection(this);
+    let seatsProjection = new SeatsProjection(this);
 
-    var seat = seatsProjection.getPlayersSeat(playerId);
+    let seat = seatsProjection.getPlayersSeat(playerId);
 
     if (seat !== false) {
         return;
@@ -25,7 +25,7 @@ Game.prototype.addPlayer = function(playerId, name)
 
     this.events.push(new events.PlayerNamed(playerId, name));
 
-    var freeSeat = seatsProjection.getFreeSeat();
+    let freeSeat = seatsProjection.getFreeSeat();
 
     if (freeSeat == null) {
         console.log("All seats taken, no room for player " + playerId);
@@ -42,9 +42,9 @@ Game.prototype.givePlayerChips = function(playerId, amount)
 
 Game.prototype.removePlayer = function(playerId)
 {
-    var seatsProjection = new SeatsProjection(this);
+    let seatsProjection = new SeatsProjection(this);
 
-    var seat = seatsProjection.getPlayersSeat(playerId);
+    let seat = seatsProjection.getPlayersSeat(playerId);
 
     if (seat === false) {
         return;
@@ -59,19 +59,19 @@ Game.prototype.startNewRound = function(deckSeed)
 {
     deckSeed = deckSeed || Math.random().toString(36);
 
-    var seatsProjection = new SeatsProjection(this);
-    var deckProjection = new DeckProjection(this);
+    let seatsProjection = new SeatsProjection(this);
+    let deckProjection = new DeckProjection(this);
 
-    var players = seatsProjection.getNextThreePlayersAfterDealer();
+    let players = seatsProjection.getNextThreePlayersAfterDealer();
 
-    var dealer = players[0],
+    let dealer = players[0],
         smallBlind = players[1],
         bigBlind = players[2];
 
     this.events.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
     seatsProjection.getActivePlayers().forEach(playerId => {
-        var cards = deckProjection.getCards(2);
+        let cards = deckProjection.getCards(2);
         this.events.push(new events.HandDealt(playerId, cards));
     });
 
@@ -108,9 +108,9 @@ Game.prototype.dealFlop = function()
 {
     this.closeRoundOfBetting();
 
-    var deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this);
 
-    var cards = deckProjection.getCards(3);
+    let cards = deckProjection.getCards(3);
     this.events.push(new events.FlopDealt(cards));
 };
 
@@ -118,9 +118,9 @@ Game.prototype.dealTurn = function()
 {
     this.closeRoundOfBetting();
 
-    var deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this);
 
-    var card = deckProjection.getCards(1)[0];
+    let card = deckProjection.getCards(1)[0];
     this.events.push(new events.TurnDealt(card));
 };
 
@@ -128,15 +128,15 @@ Game.prototype.dealRiver = function()
 {
     this.closeRoundOfBetting();
 
-    var deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this);
 
-    var card = deckProjection.getCards(1)[0];
+    let card = deckProjection.getCards(1)[0];
     this.events.push(new events.RiverDealt(card));
 };
 
 Game.prototype.finish = function()
 {
-    var roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this);
 
     this.closeRoundOfBetting();
 
@@ -168,7 +168,7 @@ Game.prototype.finish = function()
 
 Game.prototype.bankruptPlayersWithNoChips = function()
 {
-    var roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this);
 
     roundProjection.getPlayersBankruptedInRound().forEach(playerId => {
         this.events.push(new events.PlayerBankrupted(playerId));
@@ -182,8 +182,8 @@ Game.prototype.closeRoundOfBetting = function()
 
 Game.prototype.placeBet = function(playerId, amount)
 {
-    var chipsProjection = new ChipsProjection(this);
-    var playerChips = chipsProjection.getPlayerChips(playerId);
+    let chipsProjection = new ChipsProjection(this);
+    let playerChips = chipsProjection.getPlayerChips(playerId);
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;
     this.events.push(new events.BetPlaced(playerId, amount));
