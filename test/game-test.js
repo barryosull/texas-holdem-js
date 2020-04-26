@@ -286,7 +286,7 @@ describe('Game', () => {
         assert.equal(playerC, nextToAct);
     });
 
-    it.only ('bankrupted players are not considered for next player', () => {
+    it ('bankrupted players are not considered for next player', () => {
 
         let game = makeGame();
         let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';

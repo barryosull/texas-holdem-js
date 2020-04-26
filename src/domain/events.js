@@ -73,11 +73,6 @@ function BettingRoundClosed()
 
 }
 
-function PlayerBankrupted(playerId)
-{
-    this.playerId = playerId;
-}
-
 module.exports = {
     PlayerNamed,
     SeatTaken,
@@ -91,6 +86,5 @@ module.exports = {
     PotWon,
     PlayerGivenChips,
     BetPlaced,
-    BettingRoundClosed,
-    PlayerBankrupted
+    BettingRoundClosed
 };
