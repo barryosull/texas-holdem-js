@@ -128,21 +128,6 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
     return playersToBets[playerId];
 };
 
-RoundProjection.prototype.bankruptedInLastRound = function()
-{
-    let bankrupted = this.game.events.project('app/round.bankruptedInLastRound', (bankrupted, e) => {
-        if (e instanceof events.PotWon) {
-            bankrupted = {};
-        }
-        if (e instanceof events.PlayerBankrupted) {
-            bankrupted[e.playerId] = true;
-        }
-        return bankrupted;
-    }, {});
-
-    return Object.keys(bankrupted);
-};
-
 RoundProjection.prototype.getNextPlayerToAct = function()
 {
     if (nobodyHasActed.call(this) && getNumberOfPlayersWithChips.call(this) <= 1) {
@@ -183,48 +168,20 @@ function getNumberOfPlayersWithChips()
 
 function getPlayersActiveInRound()
 {
-    let seatedPlayers = this.game.events.project('app/round.getNextPlayerToAct.seats', (seats, e) => {
-        if (e instanceof events.SeatTaken) {
-            seats[e.seat] = e.playerId;
-        }
-        if (e instanceof events.SeatEmptied) {
-            delete seats[e.seat];
-        }
-        return seats;
-    }, [null, null, null, null, null, null, null, null]).filter(Boolean);
-
-    let dealtInPlayers = this.game.events.project('app/round.getNextPlayerToAct.dealtInPlayers', (folded, e) => {
+    return this.game.events.project('app/round.getNextPlayerToAct.getPlayersActiveInRound', (folded, e) => {
         if (e instanceof events.RoundStarted) {
             folded = [];
         }
         if (e instanceof events.HandDealt) {
             folded.push(e.playerId);
         }
-        return folded;
-    }, []);
-
-    let foldedPlayers = this.game.events.project('app/round.getNextPlayerToAct.foldedPlayers', (folded, e) => {
-        if (e instanceof events.RoundStarted) {
-            folded = [];
-        }
         if (e instanceof events.HandFolded) {
-            folded.push(e.playerId);
+            folded = folded.filter(playerId => {
+                return playerId !== e.playerId;
+            });
         }
         return folded;
     }, []);
-
-    let bankruptedPlayers = this.game.events.project('app/round.getNextPlayerToAct.bankruptedPlayers', (bankrupted, e) => {
-        if (e instanceof events.PlayerBankrupted) {
-            bankrupted.push(e.playerId);
-        }
-        return bankrupted;
-    }, []);
-
-    let inactivePlayers = foldedPlayers.concat(bankruptedPlayers);
-
-    return seatedPlayers.filter(playerId => {
-        return inactivePlayers.indexOf(playerId) === -1 && dealtInPlayers.indexOf(playerId) !== -1;
-    });
 }
 
 function nobodyHasActed()

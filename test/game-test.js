@@ -286,7 +286,7 @@ describe('Game', () => {
         assert.equal(playerC, nextToAct);
     });
 
-    it ('bankrupted players are not considered for next player', () => {
+    it.only ('bankrupted players are not considered for next player', () => {
 
         let game = makeGame();
         let playerA = '553e5f71-2dce-45ed-8639-13ad81804d7d';
@@ -310,18 +310,15 @@ describe('Game', () => {
         game.dealRiver();
         game.finish();
 
-        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
-        assert.equal(playerA, nextToAct);
-
         game.startNewRound('test-seedb');
 
-        nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
-        assert.equal(playerA, nextToAct);
+        var nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
+        assert.equal(nextToAct, playerA);
 
         game.placeBet(playerA, 20);
 
         nextToAct = (new RoundProjection(game)).getNextPlayerToAct();
-        assert.equal(playerB, nextToAct);
+        assert.equal(nextToAct, playerB);
     });
 
     it ('allows split pots', () => {

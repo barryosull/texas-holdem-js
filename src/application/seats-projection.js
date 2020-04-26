@@ -30,17 +30,6 @@ SeatsProjection.prototype.getPlayers = function()
     return Object.values(mapSeatsToPlayerIds(this.game));
 };
 
-SeatsProjection.prototype.getActivePlayers = function()
-{
-    var playersInSeats = Object.values(mapSeatsToPlayerIds(this.game));
-    var bankruptedPlayersIds = bankruptedPlayers(this.game);
-
-    return playersInSeats.filter(playerId => {
-        return !bankruptedPlayersIds.includes(playerId)
-    });
-};
-
-
 SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
     var seats = this.game.events.project('app/seats.getPlayersSeat', (seats, e) => {
@@ -55,16 +44,6 @@ SeatsProjection.prototype.getPlayersSeat = function(playerId)
 
     return seats[playerId] !== undefined ? seats[playerId] : false;
 };
-
-function bankruptedPlayers(game)
-{
-    return game.events.project('app/seats.bankruptedPlayers', (playerIds, e) => {
-        if (e instanceof events.PlayerBankrupted) {
-            playerIds.push(e.playerId);
-        }
-        return playerIds;
-    }, []);
-}
 
 function mapSeatsToPlayerIds(game)
 {
