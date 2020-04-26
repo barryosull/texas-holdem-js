@@ -257,10 +257,10 @@ Controller.playerDealtHand = function(playerDealtHand)
     View.renderPlayerHand(playerDealtHand.hand);
 };
 
-Controller.winnerByDefault = function(winner)
+Controller.winnerByDefault = function(winnerByDefault)
 {
     View.disableFoldButton();
-    View.highlightWinner(winner.playerId);
+    View.highlightWinner(winnerByDefault.playerId);
     View.emptyPot();
     View.disableBetting();
     View.showDealButton();

@@ -199,12 +199,10 @@
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
 [x] Display split pots
-[ ] Announce multiple winners in pot
-[ ] Game breaks if a bankrupted player is given chips again
+[x] Announce multiple winners in pot
+[x] Game breaks if a bankrupted player is given chips again
+    - Fixed, removed bankrupted card event
 [ ] Show hand titles
-
-
-PlayerGivenChips should broadcast their total chips, not just the amount given
 
 
 

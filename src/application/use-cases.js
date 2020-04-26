@@ -205,7 +205,11 @@ UseCases.prototype.foldHand = function(game, playerId)
     let roundProjection = new RoundProjection(game);
     let chipsProjection = new ChipsProjection(game);
 
-    let activeHands = roundProjection.getActiveHands();
+    let hands = roundProjection.getHands();
+
+    let activeHands = hands.filter(hand => {
+        return hand.hasFolded === false;
+    });
 
     if (activeHands.length === 1) {
         let winningHand = activeHands[0];
