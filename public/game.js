@@ -260,8 +260,7 @@ Controller.playerDealtHand = function(playerDealtHand)
 Controller.winnerByDefault = function(winner)
 {
     View.disableFoldButton();
-    View.highlightWinner(winner.hand.playerId);
-    View.updatePlayerStack(winner.hand.playerId, winner.playerChips);
+    View.highlightWinner(winner.playerId);
     View.emptyPot();
     View.disableBetting();
     View.showDealButton();
@@ -277,7 +276,6 @@ Controller.winningHand = function(winner)
     View.renderPlayerHand(winner.hand);
     View.disableFoldButton();
     View.highlightWinner(winner.hand.playerId);
-    View.updatePlayerStack(winner.hand.playerId, winner.playerChips);
     View.emptyPot();
     View.disableBetting();
     View.showDealButton();
@@ -292,6 +290,7 @@ Controller.playersTurn = function(playersTurn)
         View.disableFoldButton();
         View.disableBetting();
     }
+    View.unhighlightPlayerToAct();
     View.highlightPlayerToAct(playersTurn.playerId);
 };
 
@@ -303,6 +302,18 @@ Controller.givePlayerChips = function()
     Game.giveChipsToPlayer(playerId, amount);
 
     $('#chips-to-give').val('');
+};
+
+Controller.betMade = function(betMade)
+{
+    View.unhighlightPlayerToAct();
+    View.showBet(betMade);
+};
+
+Controller.playerFolded = function(playerFolded)
+{
+    View.unhighlightPlayerToAct();
+    View.foldPlayerHand(playerFolded);
 };
 
 var View = {};
@@ -574,12 +585,16 @@ View.emptyPot = function()
 
 View.highlightPlayerToAct = function(playerId)
 {
-    $('.turn').removeClass('turn');
     if (!playerId){
         return;
     }
     var $seat = $('#player-' + playerId).parent('.seat');
     $seat.addClass('turn');
+};
+
+View.unhighlightPlayerToAct = function()
+{
+    $('.turn').removeClass('turn');
 };
 
 View.disableBetting = function() {
@@ -663,8 +678,8 @@ Bootstrapper.attachSocketEventListeners = function(socket)
         'flopDealt': View.attachCommunityCards,
         'turnDealt': View.attachTurn,
         'riverDealt': View.attachRiver,
-        'playerFolded': View.foldPlayerHand,
-        'betMade': View.showBet,
+        'playerFolded': Controller.foldPlayerHand,
+        'betMade': Controller.betMade,
         'potTotal': View.potTotal,
         'playersTurn': Controller.playersTurn,
         'existingSession': View.existingSession,

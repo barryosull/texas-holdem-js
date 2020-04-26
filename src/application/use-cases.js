@@ -165,7 +165,8 @@ UseCases.prototype.finish = function(game)
     winners.map(playerId => {
         let winningHand = roundProjection.getPlayerHand(playerId);
         let playerChips = chipsProjection.getPlayerChips(playerId);
-        this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand, playerChips));
+        this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand));
+        this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
     });
 
     if (chipsProjection.getNumberOfPlayersWithChips() > 1) {
@@ -199,13 +200,13 @@ UseCases.prototype.foldHand = function(game, playerId)
     let roundProjection = new RoundProjection(game);
     let chipsProjection = new ChipsProjection(game);
 
-    let winners = roundProjection.getWinners();
+    let activeHands = roundProjection.getActiveHands();
 
-    if (winners.length > 0) {
-        let winner = winners[0];
-        let winningHand = roundProjection.getPlayerHand(winner);
+    if (activeHands.length === 1) {
+        let winningHand = activeHands[0];
         let playerChips = chipsProjection.getPlayerChips(winningHand.playerId);
-        this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand, playerChips));
+        this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand.playerId));
+        this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
 
         triggerNextAction.call(this, game);
 
@@ -225,7 +226,8 @@ UseCases.prototype.givePlayerChips = function(game, playerId, amount)
 {
     game.givePlayerChips(playerId, amount);
 
-    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, amount));
+    let totalChips = new ChipsProjection(game).getPlayerChips()[playerId];
+    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, totalChips));
 };
 
 function triggerNextAction(game)

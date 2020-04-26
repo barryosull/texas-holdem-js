@@ -70,10 +70,9 @@ function PlayersTurn(playerId, amountToPlay)
     this.amountToPlay = amountToPlay;
 }
 
-function WinningHand(hand, playerChips)
+function WinningHand(hand)
 {
     this.hand = hand;
-    this.playerChips = playerChips;
 }
 
 function PlayerFolded(playerId)
@@ -81,10 +80,9 @@ function PlayerFolded(playerId)
     this.playerId = playerId;
 }
 
-function WinnerByDefault(hand, playerChips)
+function WinnerByDefault(playerId)
 {
-    this.hand = hand;
-    this.playerChips = playerChips;
+    this.playerId = playerId;
 }
 
 module.exports = {
