@@ -157,15 +157,20 @@ UseCases.prototype.finish = function(game)
 {
     game.finish();
 
+    let seatProjection = new SeatsProjection(game);
     let roundProjection = new RoundProjection(game);
     let chipsProjection = new ChipsProjection(game);
 
     let winners = roundProjection.getWinners();
+    let players = seatProjection.getPlayers();
 
-    winners.map(playerId => {
+    winners.forEach(playerId => {
         let winningHand = roundProjection.getPlayerHand(playerId);
-        let playerChips = chipsProjection.getPlayerChips(playerId);
         this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand));
+    });
+
+    players.forEach(playerId => {
+        let playerChips = chipsProjection.getPlayerChips(playerId);
         this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
     });
 
