@@ -15,5 +15,5 @@ require('./src/socket-routes')(io);
 /*******************************
  * Launch the Webserver
  *******************************/
-var port = 3000;
+var port = 80;
 http.listen(port, () => console.log("Texas holdem server running at http://localhost:" + port));
