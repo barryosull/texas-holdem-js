@@ -1,8 +1,8 @@
 
-const SeatsProjection = require('../application/seats-projection');
+const SeatsQueryable = require('../application/seats-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
-const PlayersProjection = require('./players-projection');
+const PlayersQueryable = require('./players-queryable');
 const notifications = require('./notifications');
 
 const SEAT_COUNT = 8;
@@ -22,11 +22,11 @@ UseCases.prototype.joinGame = function(game, playerId, playerName)
 {
     game.addPlayer(playerId, playerName);
 
-    let seatsProjection = new SeatsProjection(game);
+    let seatsQueryable = new SeatsQueryable(game);
 
     let player = createPlayer(game, playerId);
     let playersList = createPlayerList(game);
-    let isAdmin = seatsProjection.isAdmin(playerId);
+    let isAdmin = seatsQueryable.isAdmin(playerId);
 
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, playersList , isAdmin));
 };
@@ -63,9 +63,9 @@ UseCases.prototype.dealCards = function(game)
 
 UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
 {
-    let seatsProjection = new SeatsProjection(game);
+    let seatsQueryable = new SeatsQueryable(game);
 
-    let players = seatsProjection.getPlayers();
+    let players = seatsQueryable.getPlayers();
 
     let disconnectedPlayers = players.filter(playerId => {
         return !this.socketMapper.hasSocketForPlayer(playerId);
@@ -153,7 +153,7 @@ UseCases.prototype.finish = function(game)
 {
     game.finish();
 
-    let seatProjection = new SeatsProjection(game);
+    let seatProjection = new SeatsQueryable(game);
     let roundQueryable = new RoundQueryable(game);
     let chipsQueryable = new ChipsQueryable(game);
 
@@ -277,13 +277,13 @@ function triggerNextAction(game)
 
 function createPlayer(game, playerId)
 {
-    const seatsProjection = new SeatsProjection(game);
+    const seatsQueryable = new SeatsQueryable(game);
     const chipsQueryable = new ChipsQueryable(game);
-    const playersProjection = new PlayersProjection(game);
+    const playersQueryable = new PlayersQueryable(game);
 
     let chips = chipsQueryable.getPlayerChips(playerId) || 0;
-    let name = playersProjection.getPlayerName(playerId);
-    let seat = seatsProjection.getPlayersSeat(playerId);
+    let name = playersQueryable.getPlayerName(playerId);
+    let seat = seatsQueryable.getPlayersSeat(playerId);
     return new notifications.Player(playerId, name, chips, seat);
 }
 
@@ -303,15 +303,15 @@ function createRoundStartedNotification(game)
 
 function createPlayerList(game)
 {
-    const seatsProjection = new SeatsProjection(game);
+    const seatsQueryable = new SeatsQueryable(game);
     const chipsQueryable = new ChipsQueryable(game);
-    const playersProjection = new PlayersProjection(game);
+    const playersQueryable = new PlayersQueryable(game);
 
     let players = [];
     for (let seat = 0; seat < SEAT_COUNT; seat++) {
-        let playerId = seatsProjection.getPlayerInSeat(seat);
+        let playerId = seatsQueryable.getPlayerInSeat(seat);
         let chips = chipsQueryable.getPlayerChips(playerId) || 0;
-        let name = playersProjection.getPlayerName(playerId);
+        let name = playersQueryable.getPlayerName(playerId);
         players.push( new notifications.Player(playerId, name, chips, seat));
     }
 
