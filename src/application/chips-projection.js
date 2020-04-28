@@ -5,32 +5,12 @@ var events = require('../domain/events');
 /**
  * @param game {Game}
  */
-var ChipsProjection = function(game)
+function ChipsProjection(game)
 {
     this.game = game;
-};
+}
 
-ChipsProjection.prototype.getPlayerChips = function(playerId)
-{
-    if (!playerId) {
-        return null;
-    }
-
-    var playersToChips = getPlayersToChips.call(this);
-
-    return playersToChips[playerId];
-};
-
-ChipsProjection.prototype.getNumberOfPlayersWithChips = function()
-{
-    var playersToChips = getPlayersToChips.call(this);
-
-    return Object.values(playersToChips).filter(chips => {
-        return chips > 0;
-    }).length;
-};
-
-function getPlayersToChips()
+ChipsProjection.prototype.getPlayersToChips = function()
 {
     return this.game.events.project('app/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
@@ -42,6 +22,6 @@ function getPlayersToChips()
         }
         return playersToChips;
     }, {});
-}
+};
 
 module.exports = ChipsProjection;
