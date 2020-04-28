@@ -12,17 +12,19 @@ var PlayersProjection = function(game)
 
 PlayersProjection.prototype.getPlayerName = function(playerId)
 {
-    if (!playerId) {
-        return "";
-    }
-    var playerIdToNames = this.game.events.project('app/players.getPlayerName', (map, e) => {
+    var playerIdToNames = playersToNames.call(this);
+
+    return playerIdToNames[playerId] || "";
+};
+
+function playersToNames()
+{
+    return this.game.events.project('app/players.getPlayerName', (map, e) => {
         if (e instanceof events.PlayerNamed) {
             map[e.playerId] =  e.name;
         }
         return map;
     }, {});
-
-    return playerIdToNames[playerId];
-};
+}
 
 module.exports = PlayersProjection;

@@ -1,6 +1,5 @@
 
 var Game = require('../domain/game');
-var Pot = require('../domain/pot');
 var events = require('../domain/events');
 
 /**
@@ -18,14 +17,10 @@ RoundProjection.prototype.getHands = function()
             hands = {};
         }
         if (e instanceof events.HandDealt) {
-            hands[e.playerId] = {
-                playerId: e.playerId,
-                cards: e.cards,
-                hasFolded: false
-            };
+            hands[e.playerId] = new Hand(e.playerId, e.cards);
         }
         if (e instanceof events.HandFolded) {
-            hands[e.playerId].hasFolded = true;
+            hands[e.playerId] = hands[e.playerId].fold();
         }
         return hands;
     }, {});
@@ -33,23 +28,18 @@ RoundProjection.prototype.getHands = function()
     return Object.values(hands);
 };
 
-/**
- * @returns {Hand[]}
- */
-RoundProjection.prototype.getPlayerHands = function(players)
+function Hand(playerId, cards, hasFolded)
 {
-    let hands = this.getHands();
+    this.playerId = playerId;
+    this.cards = cards;
+    this.hasFolded = hasFolded || false;
+}
 
-    return hands.filter(hand => {
-        return players.indexOf(hand.playerId) !== -1;
-    });
-};
-
-RoundProjection.prototype.getPlayerHand = function(playerId)
+Hand.prototype.fold = function()
 {
-    return this.getHands().filter(hand => {
-        return hand.playerId === playerId;
-    }).pop();
+    let copy = {...this};
+    copy.hasFolded = true;
+    return copy;
 };
 
 /**
@@ -109,9 +99,9 @@ RoundProjection.prototype.getWinners = function()
     }, []);
 };
 
-RoundProjection.prototype.getPlayerBet = function(playerId)
+RoundProjection.prototype.getPlayersToBets = function()
 {
-    let playersToBets = this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
+    return this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
             playersToBets = {};
         }
@@ -124,31 +114,11 @@ RoundProjection.prototype.getPlayerBet = function(playerId)
         }
         return playersToBets;
     }, {});
-
-    return playersToBets[playerId];
 };
 
-RoundProjection.prototype.getNextPlayerToAct = function()
+RoundProjection.prototype.getPlayersToChips = function()
 {
-    if (nobodyHasActed.call(this) && getNumberOfPlayersWithChips.call(this) <= 1) {
-        return null;
-    }
-
-    let activePlayers = getPlayersActiveInRound.call(this);
-
-    if (hasEveryoneActed.call(this, activePlayers)
-        && (hasEveryoneBetTheSameAmount.call(this) || getNumberOfPlayersWithChips.call(this) === 0)) {
-        return null;
-    }
-
-    let lastActivePlayer = getLastActivePlayer.call(this);
-
-    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayers);
-};
-
-function getNumberOfPlayersWithChips()
-{
-    let playersToChipCount = this.game.events.project('app/round.getPlayerChips', (playersToChips, e) => {
+    return this.game.events.project('app/round.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -158,57 +128,29 @@ function getNumberOfPlayersWithChips()
         }
         return playersToChips;
     }, {});
+};
 
-    let playersWithChips = Object.values(playersToChipCount).filter(chipAmount => {
-        return chipAmount > 0;
-    });
-
-    return playersWithChips.length;
-}
-
-function getPlayersActiveInRound()
+RoundProjection.prototype.getPlayersActiveInRound = function()
 {
-    return this.game.events.project('app/round.getNextPlayerToAct.getPlayersActiveInRound', (folded, e) => {
+    return this.game.events.project('app/round.getPlayersActiveInRound', (active, e) => {
         if (e instanceof events.RoundStarted) {
-            folded = [];
+            active = [];
         }
         if (e instanceof events.HandDealt) {
-            folded.push(e.playerId);
+            active.push(e.playerId);
         }
         if (e instanceof events.HandFolded) {
-            folded = folded.filter(playerId => {
+            active = active.filter(playerId => {
                 return playerId !== e.playerId;
             });
         }
-        return folded;
+        return active;
     }, []);
-}
+};
 
-function nobodyHasActed()
+RoundProjection.prototype.getPlayersToActionCount = function()
 {
-    let playersToActionCount = getPlayersToActionCount.call(this);
-
-    return Object.values(playersToActionCount).reduce((value, actionCount) => {
-        return value && actionCount === 0;
-    }, true);
-}
-
-function hasEveryoneActed(activePlayers)
-{
-    let playersToActionCount = getPlayersToActionCount.call(this);
-
-    let hasActionCountForEachPlayer = Object.values(playersToActionCount).length === activePlayers.length;
-
-    let havePlayersActedOnce = Object.values(playersToActionCount).reduce((value, actionCount) => {
-        return value && actionCount > 0;
-    }, true);
-
-    return hasActionCountForEachPlayer && havePlayersActedOnce;
-}
-
-function getPlayersToActionCount()
-{
-    return this.game.events.project('app/round.getNextPlayerToAct.actions', (actions, e) => {
+    return this.game.events.project('app/round.getPlayersToActionCount', (actions, e) => {
         if (e instanceof events.RoundStarted) {
             actions = {};
             // Big and small blinds still need to "act" even though they have bet
@@ -227,22 +169,11 @@ function getPlayersToActionCount()
         }
         return actions;
     }, {});
-}
+};
 
-function hasEveryoneBetTheSameAmount()
+RoundProjection.prototype.getActivePlayersToAmountsBet = function()
 {
-    let playersToAmountBet = getActivePlayersToAmountsBet.call(this);
-
-    let amountsBet = Object.values(playersToAmountBet);
-
-    return amountsBet.filter((bet, index) => {
-        return amountsBet.indexOf(bet) === index;
-    }).length === 1;
-}
-
-function getActivePlayersToAmountsBet()
-{
-    return this.game.events.project('app/round.getNextPlayerToAct.getActivePlayersToAmountsBet', (bets, e) => {
+    return this.game.events.project('app/round.getActivePlayersToAmountsBet', (bets, e) => {
         if (e instanceof events.RoundStarted) {
             bets = {};
         }
@@ -258,11 +189,21 @@ function getActivePlayersToAmountsBet()
         }
         return bets;
     }, {});
-}
+};
 
-function getLastActivePlayer()
+RoundProjection.prototype.getDealer = function()
 {
-    let lastActivePlayer = this.game.events.project('app/round.getNextPlayerToAct.lastActivePlayer', (player, e) => {
+    return this.game.events.project('app/round.getDealer', (dealer, e) => {
+        if (e instanceof events.RoundStarted) {
+            dealer = e.dealer;
+        }
+        return dealer;
+    }, null);
+};
+
+RoundProjection.prototype.getLastActivePlayer = function ()
+{
+    return this.game.events.project('app/round.getLastActivePlayer', (player, e) => {
         if (e instanceof events.BetPlaced) {
             player = e.playerId;
         }
@@ -270,110 +211,17 @@ function getLastActivePlayer()
             player = null;
         }
         return player;
-    }, null);
-
-    if (lastActivePlayer !== null) {
-        return lastActivePlayer;
-    }
-
-    return this.game.events.project('app/round.getNextPlayerToAct.dealer', (dealer, e) => {
-        if (e instanceof events.RoundStarted) {
-            dealer = e.dealer;
-        }
-        return dealer;
-    }, null);
-}
-
-function getPlayerToLeftOfPlayer(playerId, activePlayers)
-{
-    let currPlayerIndex = activePlayers.indexOf(playerId);
-    let nextPlayerIndex = ((currPlayerIndex + 1) % activePlayers.length);
-    return activePlayers[nextPlayerIndex];
-}
-
-RoundProjection.prototype.getAmountToPlay = function(playerId)
-{
-    if (!playerId) {
-        return null;
-    }
-    let bets = getActivePlayersToAmountsBet.call(this);
-
-    let playersBet = bets[playerId] || 0;
-
-    let maxBet = Object.values(bets).reduce((maxBet, bet) => {
-        if (maxBet < bet) {
-            maxBet = bet;
-        }
-        return maxBet;
-    }, 0);
-
-    return maxBet - playersBet;
+    });
 };
 
-RoundProjection.prototype.getPots = function()
+RoundProjection.prototype.getRoundStarted = function()
 {
-    let playersToBets = getPlayersToBets.call(this);
-
-    let pots = [];
-
-    while (Object.values(playersToBets).length !== 0) {
-
-        let minBet = getMinBet(playersToBets);
-        let pot = makePotFromMinAmountBet(playersToBets, minBet);
-
-        pots.push(pot);
-
-        playersToBets = reduceByMinBetAndRemove(playersToBets, minBet);
-    }
-
-    return pots;
-};
-
-function getPlayersToBets()
-{
-    return this.game.events.project('domain/round.getPots', (playersToBets, e) => {
-        if (e instanceof events.PotWon) {
-            playersToBets = {};
-        }
+    return this.game.events.project('app/seats.getRoundStarted', (value, e) => {
         if (e instanceof events.RoundStarted) {
-            playersToBets = {};
+            value =  e;
         }
-        if (e instanceof events.BetPlaced) {
-            playersToBets[e.playerId] = playersToBets[e.playerId] || 0;
-            playersToBets[e.playerId] += e.amount;
-        }
-        return playersToBets;
-    }, {});
-}
-
-function getMinBet(playersToBets)
-{
-    return Object.values(playersToBets).reduce((min, amount) => {
-        min = (min !== null && min < amount) ? min : amount;
-        return min;
+        return value;
     }, null);
-}
-
-function reduceByMinBetAndRemove(playersToBets, minBet)
-{
-    return Object.keys(playersToBets).reduce((nextPotPlayersToBets, playerId) => {
-        nextPotPlayersToBets[playerId] = playersToBets[playerId] - minBet;
-        if (nextPotPlayersToBets[playerId] === 0) {
-            delete nextPotPlayersToBets[playerId];
-        }
-        return nextPotPlayersToBets;
-    }, {});
-}
-
-function makePotFromMinAmountBet(playersToBets, minBet)
-{
-    let amount = minBet * Object.values(playersToBets).length;
-    let players = Object.keys(playersToBets).reduce((players, playerId) => {
-        players.push(playerId);
-        return players;
-    }, []);
-
-    return new Pot(amount, players);
-}
+};
 
 module.exports = RoundProjection;
