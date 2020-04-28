@@ -17,4 +17,4 @@ PlayersQueryable.prototype.getPlayerName = function(playerId)
     return playerIdToNames[playerId] || "";
 };
 
-module.exports = PlayersProjection;
+module.exports = PlayersQueryable;

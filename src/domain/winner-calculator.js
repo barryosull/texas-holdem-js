@@ -1,9 +1,9 @@
 
-var pokerTools = require('poker-tools');
-var Hand = require('./hand');
+const pokerTools = require('poker-tools');
+const Hand = require('./hand');
 
 
-var WinnerCalculator = {};
+let WinnerCalculator = {};
 
 /**
  * @param hands {Hand[]}
@@ -12,20 +12,58 @@ var WinnerCalculator = {};
  */
 WinnerCalculator.findWinner = function(hands, communityCards)
 {
-    var pokerToolsHands = hands.map(hand => {
+    let pokerToolsHands = hands.map(hand => {
         return pokerTools.CardGroup.fromString(
             PokerToolsAdapter.convertToPokerToolsString(hand.cards)
         );
     });
-    var board = pokerTools.CardGroup.fromString(
+    let board = pokerTools.CardGroup.fromString(
         PokerToolsAdapter.convertToPokerToolsString(communityCards.cards)
     );
 
     const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
 
+    console.log(result[0][0].handrank);
+
     var winnerIndex = result[0][0].index;
 
     return hands[winnerIndex];
+};
+
+/**
+ * @param hand {Hand}
+ * @param communityCards {CommunityCards}
+ * @returns {string}
+ */
+WinnerCalculator.getHandTitle = function(hand, communityCards)
+{
+    let pokerToolsHands = [hand].map(hand => {
+        return pokerTools.CardGroup.fromString(
+            PokerToolsAdapter.convertToPokerToolsString(hand.cards)
+        );
+    });
+
+    let board = pokerTools.CardGroup.fromString(
+        PokerToolsAdapter.convertToPokerToolsString(communityCards.cards)
+    );
+
+    let equity = pokerTools.OddsCalculator.calculateEquity(pokerToolsHands, board);
+
+    let rank = parseInt(equity.handranks[0].rank);
+
+    let rankToTitle = {
+        1: "high card",
+        2: "pair",
+        3: "two pair",
+        4: "three of a kind",
+        5: "straight",
+        6: 'flush',
+        7: "full house",
+        8: "four of a kind",
+        9: "straight flush",
+    };
+
+    return rankToTitle[rank];
 };
 
 var PokerToolsAdapter = {};

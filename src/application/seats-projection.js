@@ -25,7 +25,7 @@ SeatsProjection.prototype.getPlayersToSeats = function()
 
 SeatsProjection.prototype.getSeatsToPlayers = function()
 {
-    return game.events.project('app/seats.getSeatsToPlayers', (seatsToPlayerIds, e) => {
+    return this.game.events.project('app/seats.getSeatsToPlayers', (seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }

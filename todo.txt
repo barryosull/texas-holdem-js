@@ -192,9 +192,6 @@
         - Do more than one of them have remaining chips?
 [x] Once the game ends and a winner is announced the game should not keep playing by itself
 [x] Admin gives players chips
-
-## Todo:
-
 [x] Handle split pots
 	- Currently defaults to the first handle winning
 	- This is fine for now, as draws are so rare
@@ -202,8 +199,10 @@
 [x] Announce multiple winners in pot
 [x] Game breaks if a bankrupted player is given chips again
     - Fixed, removed bankrupted card event
-[ ] Show hand titles
 
+## Todo:
+[ ] Show hand titles
+[ ] Pass event stream to queryable/projections rather than game
 
 
 
