@@ -2,7 +2,7 @@
 var Notifier = require('../application/notifier');
 var SocketMapper = require('./socket-mapper');
 var GameRepo = require('../domain/game-repository');
-var SeatsProjection = require('../application/seats-projection');
+var SeatsQueryable = require('../application/seats-queryable');
 var UseCases = require('../application/use-cases');
 
 /**
@@ -172,9 +172,9 @@ function isGameAdmin(controller, game, req)
     var socketId = req.header('Authorization').replace("Bearer ", "");
     var playerId = controller.socketMapper.getPlayerIdForSocket(socketId);
 
-    var seatsProjection = new SeatsProjection(game);
+    var seatsQueryable = new SeatsQueryable(game);
 
-    return seatsProjection.isAdmin(playerId);
+    return seatsQueryable.isAdmin(playerId);
 }
 
 module.exports = HttpController;

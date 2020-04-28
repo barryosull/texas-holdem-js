@@ -616,6 +616,11 @@ View.existingSession = function()
     alert("Other tab/window already opened on this machine. Please go to the active tab/window to play.");
 };
 
+View.playerHandTitle = function(playerHandTitle)
+{
+    console.log('Hand title: ' + playerHandTitle.title);
+};
+
 var Bootstrapper = {};
 
 Bootstrapper.boot = function()
@@ -673,6 +678,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
         'playerGivenChips': Controller.playerGivenChips,
         'roundStarted': Controller.roundStarted,
         'playerDealtHand': Controller.playerDealtHand,
+        'playerHandTitle': View.playerHandTitle,
         'winningHand': Controller.winningHand,
         'winnerByDefault': Controller.winnerByDefault,
         'flopDealt': View.attachCommunityCards,

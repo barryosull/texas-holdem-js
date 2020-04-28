@@ -3,6 +3,7 @@ const SeatsQueryable = require('../application/seats-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
 const PlayersQueryable = require('./players-queryable');
+const WinnerCalculator = require('../domain/winner-calculator');
 const notifications = require('./notifications');
 
 const SEAT_COUNT = 8;
@@ -46,7 +47,9 @@ UseCases.prototype.dealCards = function(game)
 
     hands.forEach(hand => {
         let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
+        let handTitle = WinnerCalculator.getHandTitle(hand, []);
         this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
+        this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerHandTitle(handTitle));
     });
 
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getSmallBlindPlayer()));

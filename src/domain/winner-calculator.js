@@ -23,8 +23,6 @@ WinnerCalculator.findWinner = function(hands, communityCards)
 
     const result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
 
-    console.log(result[0][0].handrank);
-
     var winnerIndex = result[0][0].index;
 
     return hands[winnerIndex];
@@ -32,10 +30,10 @@ WinnerCalculator.findWinner = function(hands, communityCards)
 
 /**
  * @param hand {Hand}
- * @param communityCards {CommunityCards}
+ * @param cards {String[]}
  * @returns {string}
  */
-WinnerCalculator.getHandTitle = function(hand, communityCards)
+WinnerCalculator.getHandTitle = function(hand, cards)
 {
     let pokerToolsHands = [hand].map(hand => {
         return pokerTools.CardGroup.fromString(
@@ -44,12 +42,12 @@ WinnerCalculator.getHandTitle = function(hand, communityCards)
     });
 
     let board = pokerTools.CardGroup.fromString(
-        PokerToolsAdapter.convertToPokerToolsString(communityCards.cards)
+        PokerToolsAdapter.convertToPokerToolsString(cards)
     );
 
-    let equity = pokerTools.OddsCalculator.calculateEquity(pokerToolsHands, board);
+    let result = pokerTools.OddsCalculator.calculateWinner(pokerToolsHands, board);
 
-    let rank = parseInt(equity.handranks[0].rank);
+    let rank = parseInt(result[0][0].handrank.rank);
 
     let rankToTitle = {
         1: "high card",
