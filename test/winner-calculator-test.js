@@ -20,12 +20,10 @@ describe('Find the clear winner in a round of texas holdem', () => {
         assert.equal(handA, winner);
     });
 
-    it.only('it names hands', () => {
+    it('it names hands', () => {
         var hand = new Hand('a', ['10_of_spades', 'ace_of_diamonds']);
 
-        var cards = new CommunityCards(
-            [ '2_of_diamonds', '10_of_diamonds', 'king_of_hearts', '8_of_diamonds', 'jack_of_diamonds']
-        );
+        var cards = [ '2_of_diamonds', '10_of_diamonds', 'king_of_hearts', '8_of_diamonds', 'jack_of_diamonds'];
 
         var winner = WinnerCalculator.getHandTitle(hand, cards);
 

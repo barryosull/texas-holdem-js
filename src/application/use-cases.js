@@ -47,7 +47,6 @@ UseCases.prototype.dealCards = function(game)
 
     hands.forEach(hand => {
         let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
-        let handTitle = WinnerCalculator.getHandTitle(hand, []);
         this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
         this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerHandTitle(handTitle));
     });

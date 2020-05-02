@@ -1,14 +1,14 @@
 
-var assert = require('assert');
-var Game = require('../src/domain/game');
-var Pot = require('../src/domain/pot');
-var SeatsProjection = require('../src/application/seats-projection');
-var RoundQueryable = require('../src/application/round-queryable');
-var ChipsProjection = require('../src/application/chips-projection');
+const assert = require('assert');
+const Game = require('../src/domain/game');
+const Pot = require('../src/domain/pot');
+const SeatsQueryable = require('../src/application/seats-queryable');
+const RoundQueryable = require('../src/application/round-queryable');
+const ChipsQueryable = require('../src/application/chips-queryable');
 
 function makeGame()
 {
-    var fakeLogger = () => {};
+    let fakeLogger = () => {};
     return new Game("c92a18ab-ad0c-4a60-958c-7146ead2cfa8", fakeLogger);
 }
 
@@ -23,7 +23,7 @@ describe('Game', () => {
         game.givePlayerChips(playerA, 1000);
         game.givePlayerChips(playerB, 1000);
 
-        var players = (new SeatsProjection(game)).getPlayers();
+        let players = (new SeatsQueryable(game)).getPlayers();
 
         assert.deepEqual([playerA, playerB], players);
     });
@@ -37,7 +37,7 @@ describe('Game', () => {
         game.givePlayerChips(playerA, 1000);
         game.givePlayerChips(playerB, 1000);
 
-        var players = (new SeatsProjection(game)).getPlayers();
+        let players = (new SeatsQueryable(game)).getPlayers();
 
         assert.deepEqual([playerA], players);
     });
@@ -56,8 +56,8 @@ describe('Game', () => {
 
         game.startNewRound("test-seed");
 
-        var smallBlind = (new RoundQueryable(game)).getPlayerBet(playerB);
-        var bigBlind = (new RoundQueryable(game)).getPlayerBet(playerC);
+        let smallBlind = (new RoundQueryable(game)).getPlayerBet(playerB);
+        let bigBlind = (new RoundQueryable(game)).getPlayerBet(playerC);
 
         assert.equal(20, smallBlind);
         assert.equal(40, bigBlind);
@@ -74,7 +74,7 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        var playerAHand = (new RoundQueryable(game)).getPlayerHand(playerA);
+        let playerAHand = (new RoundQueryable(game)).getPlayerHand(playerA);
 
         // Small blind limping in
         game.placeBet(playerB, 20);
@@ -103,8 +103,8 @@ describe('Game', () => {
         assert.deepEqual(winningHands, [playerAHand]);
 
         // Winner gets chips
-        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
+        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
         assert.equal(1160, playerAChips);
         assert.equal(840, playerBChips);
     });
@@ -129,9 +129,9 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         // Player A wins by default
-        var winningPlayers = (new RoundQueryable(game)).getWinners();
-        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
+        let winningPlayers = (new RoundQueryable(game)).getWinners();
+        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
         assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -157,9 +157,9 @@ describe('Game', () => {
         game.removePlayer(playerB);
 
         // Player A wins by default
-        var winningPlayers = (new RoundQueryable(game)).getWinners();
-        var playerAChips = (new ChipsProjection(game)).getPlayerChips(playerA);
-        var playerBChips = (new ChipsProjection(game)).getPlayerChips(playerB);
+        let winningPlayers = (new RoundQueryable(game)).getWinners();
+        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
         assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -179,7 +179,7 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        var nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
         assert.equal(playerA, nextToAct);
 
         game.placeBet(playerA, 40);
@@ -222,7 +222,7 @@ describe('Game', () => {
 
         game.placeBet(playerB, 40);
 
-        var nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
         assert.equal(playerA, nextToAct);
     });
 
@@ -282,7 +282,7 @@ describe('Game', () => {
 
         game.dealFlop();
 
-        var nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
         assert.equal(playerC, nextToAct);
     });
 
@@ -312,7 +312,7 @@ describe('Game', () => {
 
         game.startNewRound('test-seedb');
 
-        var nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
         assert.equal(nextToAct, playerA);
 
         game.placeBet(playerA, 20);
@@ -340,9 +340,9 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
-        var roundQueryable = new RoundQueryable(game);
+        let roundQueryable = new RoundQueryable(game);
 
-        var pots = roundQueryable.getPots();
+        let pots = roundQueryable.getPots();
 
         assert.deepEqual(pots, [
             new Pot(3000, [playerB, playerC, playerA]),
@@ -355,14 +355,14 @@ describe('Game', () => {
         game.dealRiver();
         game.finish();
 
-        var chipsProjection = new ChipsProjection(game);
+        let chipsQueryable = new ChipsQueryable(game);
 
         // Player B wins pot 1
-        assert.equal(chipsProjection.getPlayerChips(playerB), 3000);
+        assert.equal(chipsQueryable.getPlayerChips(playerB), 3000);
         // Player A wins pot 2
-        assert.equal(chipsProjection.getPlayerChips(playerA), 2000);
+        assert.equal(chipsQueryable.getPlayerChips(playerA), 2000);
         // Player C wins pot 3
-        assert.equal(chipsProjection.getPlayerChips(playerC), 1000);
+        assert.equal(chipsQueryable.getPlayerChips(playerC), 1000);
     });
 
     it ('split pots include amounts from folded players that bet', () => {
@@ -384,7 +384,7 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
-        var nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
         assert.equal(nextToAct, null);
 
         game.dealFlop();
@@ -395,12 +395,12 @@ describe('Game', () => {
         game.dealRiver();
         game.finish();
 
-        var chipsProjection = new ChipsProjection(game);
+        let chipsQueryable = new ChipsQueryable(game);
 
         // Player A wins pot 1 and 2
-        assert.equal(chipsProjection.getPlayerChips(playerA), 5000);
+        assert.equal(chipsQueryable.getPlayerChips(playerA), 5000);
         // Player C wins pot 3
-        assert.equal(chipsProjection.getPlayerChips(playerC), 1000);
+        assert.equal(chipsQueryable.getPlayerChips(playerC), 1000);
     });
 });
 
