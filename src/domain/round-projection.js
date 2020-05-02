@@ -58,7 +58,7 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
 };
 
 /**
- * @returns {CommunityCards}
+ * @returns {String}
  */
 RoundProjection.prototype.getCommunityCards = function()
 {
@@ -79,6 +79,25 @@ RoundProjection.prototype.getCommunityCards = function()
     }, []);
 
     return new CommunityCards(cards);
+};
+
+RoundProjection.prototype.getStageOfRound = function()
+{
+    return this.game.events.project('domain/round.getStageOfRound', (stage, e) => {
+        if (e instanceof events.RoundStarted) {
+            stage = 'start';
+        }
+        if (e instanceof events.FlopDealt) {
+            stage = 'flop';
+        }
+        if (e instanceof events.TurnDealt) {
+            stage = 'turn';
+        }
+        if (e instanceof events.RiverDealt) {
+            stage = 'river';
+        }
+        return stage;
+    }, 'start');
 };
 
 RoundProjection.prototype.getPot = function()

@@ -48,7 +48,6 @@ UseCases.prototype.dealCards = function(game)
     hands.forEach(hand => {
         let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
         this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
-        this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerHandTitle(handTitle));
     });
 
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getSmallBlindPlayer()));

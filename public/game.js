@@ -352,15 +352,15 @@ View.renderEmptySeats = function()
 
 View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 {
-    var title = (seat + 1) + ": " + playerName;
-    if (playerId === currentPlayerId) {
-        title = "<b>" + title + "</b>";
-    }
+    console.log('currentPlayerId', currentPlayerId);
+    console.log('playerId', playerId);
+    var playerClass = (playerId === currentPlayerId) ? 'player' : '';
 
     var $seat = $(`#seat-${seat}`);
     if ($seat.length) {
         $seat.removeClass('empty');
-        $seat.find('.name').html(title);
+        $seat.removeClass(playerClass).addClass(playerClass);
+        $seat.find('.name').html(playerName);
         $seat.find('.cards').attr('id', 'player-' + playerId);
         $seat.removeClass('empty');
         $seat.find('.stack').show().text(chips);
@@ -368,8 +368,8 @@ View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
     }
 
     var seatHtml =
-        "<div id='seat-" + seat + "' class='seat'>" +
-            "<div class='name'>" + title + "</div>" +
+        "<div id='seat-" + seat + "' class='seat " + playerClass + "'>" +
+            "<div class='name'>" + playerName + "</div>" +
             "<span class='cards' id='player-" + playerId + "'></span>" +
             "<span class='chips stack'>" + chips + "</span>" +
         "</div>";

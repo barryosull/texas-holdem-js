@@ -185,13 +185,21 @@ body {
 
 .seat {
     position: relative;
-    width: 166px;
-    height: 145px;
+    width: 168px;
+    height: 147px;
     border: 1px solid #aaa;
     margin: 0 23px;
     border-radius: 10px;
+    box-sizing: border-box;
 }
 
+.seat.player {
+    border: 2px solid #fff;
+}
+
+.seat.player .name {
+    font-weight: bold;
+}
 
 .seat .dealer {
     display: inline-block;
@@ -214,10 +222,24 @@ body {
 
 .seat.turn {
     border-color: #fff;
-    background-color: rgba(46, 149, 255, 0.58);
-    -webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-    box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+}
+
+.seat.turn:after {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 20px;
+    width: 170px;
+    display: block;
+    text-align: center;
+    position: relative;
+    content: "- - - - - - - - - - - ";
+}
+
+.seat.turn.player {
+    -webkit-box-shadow: 0px 0px 10px 3px rgba(255,255,255,1);
+    -moz-box-shadow: 0px 0px 10px 3px rgba(255,255,255,1);
+    box-shadow: 0px 0px 10px 3px rgba(255,255,255,1);
 }
 
 .seat.winner {

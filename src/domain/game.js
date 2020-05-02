@@ -57,10 +57,17 @@ Game.prototype.removePlayer = function(playerId)
 
 Game.prototype.startNewRound = function(deckSeed)
 {
-    deckSeed = deckSeed || Math.random().toString(36);
-
     let seatsProjection = new SeatsProjection(this);
     let deckProjection = new DeckProjection(this);
+
+    let activePlayers = seatsProjection.getActivePlayers();
+
+    // Do not start a round if there are no players that can play
+    if (activePlayers.length === 0) {
+        return;
+    }
+
+    deckSeed = deckSeed || Math.random().toString(36);
 
     let players = seatsProjection.getNextThreePlayersAfterDealer();
 
@@ -70,7 +77,7 @@ Game.prototype.startNewRound = function(deckSeed)
 
     this.events.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
-    seatsProjection.getActivePlayers().forEach(playerId => {
+    activePlayers.forEach(playerId => {
         let cards = deckProjection.getCards(2);
         this.events.push(new events.HandDealt(playerId, cards));
     });
@@ -104,6 +111,11 @@ Game.prototype.foldHand = function(playerId)
 
 Game.prototype.dealFlop = function()
 {
+    let roundProjection = new RoundProjection(this);
+    if (roundProjection.getStageOfRound() !== 'start') {
+        return;
+    }
+
     this.closeRoundOfBetting();
 
     let deckProjection = new DeckProjection(this);
@@ -114,6 +126,11 @@ Game.prototype.dealFlop = function()
 
 Game.prototype.dealTurn = function()
 {
+    let roundProjection = new RoundProjection(this);
+    if (roundProjection.getStageOfRound() !== 'flop') {
+        return;
+    }
+
     this.closeRoundOfBetting();
 
     let deckProjection = new DeckProjection(this);
@@ -124,6 +141,11 @@ Game.prototype.dealTurn = function()
 
 Game.prototype.dealRiver = function()
 {
+    let roundProjection = new RoundProjection(this);
+    if (roundProjection.getStageOfRound() !== 'turn') {
+        return;
+    }
+
     this.closeRoundOfBetting();
 
     let deckProjection = new DeckProjection(this);
@@ -135,6 +157,9 @@ Game.prototype.dealRiver = function()
 Game.prototype.finish = function()
 {
     let roundProjection = new RoundProjection(this);
+    if (roundProjection.getStageOfRound() !== 'river') {
+        return;
+    }
 
     this.closeRoundOfBetting();
 
