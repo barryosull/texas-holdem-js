@@ -1,0 +1,59 @@
+<html>
+<head>
+
+<link href="/style.css" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js" integrity="sha256-Dul4c09cdrWKXVtallPxF558lwxMwCC8dXJdZ0PVW54=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js" integrity="sha256-oE03O+I6Pzff4fiMqwEGHbdfcW7a3GRRxlL+U49L5sA=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+function makeUUID(){
+    var dt = new Date().getTime();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (dt + Math.random()*16)%16 | 0;
+        dt = Math.floor(dt/16);
+        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+    });
+}
+
+$(function(){
+    $('#create').click(function(){
+        var baseUri = window.location.href.replace("start.html", "");
+        console.log(baseUri);
+        window.location.href = baseUri + '?gameId=' + makeUUID();
+    });
+});
+</script>
+</head>
+<body style="margin: 0;">
+<div class="table-border">
+<div class="table">
+
+    <div style="height:100px; width: 800px">
+
+    </div>
+    <div style="clear:both"></div>
+
+    <div id="center">
+        <div id="center-branding">Texas Hold'em</div>
+        <div id="cards"></div>
+        <div id="pot" class="pot"></div>
+    </div>
+
+    <div style="padding: 40px 0px; text-align: center;">
+        <button class="lg" id="create">Create Game Room</button>
+    </div>
+    <div style="clear:both"></div>
+
+</div>
+</div>
+<footer>
+    Barry O Sullivan, 2020. <a href="https://twitter.com/barryosull">@barryosull</a>
+</footer>
+</body>
+</html>

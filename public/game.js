@@ -103,7 +103,7 @@ var Controller = {
 Controller.startGame = function()
 {
     Game.dealHands();
-    View.showFlopButton();
+    //View.showFlopButton();
 };
 
 Controller.dealFlop = function()
@@ -352,8 +352,6 @@ View.renderEmptySeats = function()
 
 View.renderSeat = function(seat, playerId, playerName, chips, currentPlayerId)
 {
-    console.log('currentPlayerId', currentPlayerId);
-    console.log('playerId', playerId);
     var playerClass = (playerId === currentPlayerId) ? 'player' : '';
 
     var $seat = $(`#seat-${seat}`);
@@ -627,7 +625,8 @@ Bootstrapper.boot = function()
 {
     var gameId = Controller.getGameId();
     if (!gameId) {
-        window.location.href = window.location.href + "?gameId=" + uuidv4();
+        var uri = new Uri(window.location.href);
+        window.location.href = "/?gameId=" + uuidv4();
         return;
     }
 
