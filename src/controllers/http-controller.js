@@ -1,9 +1,9 @@
 
-var Notifier = require('../application/notifier');
-var SocketMapper = require('./socket-mapper');
-var GameRepo = require('../domain/game-repository');
-var SeatsQueryable = require('../application/seats-queryable');
-var UseCases = require('../application/use-cases');
+const Notifier = require('../application/notifier');
+const SocketMapper = require('./socket-mapper');
+const GameRepo = require('../domain/game-repository');
+const SeatsQueryable = require('../application/seats-queryable');
+const UseCases = require('../application/use-cases');
 
 /**
  * @param notifier {Notifier}
@@ -19,120 +19,114 @@ function HttpController(notifier, socketMapper)
 
 HttpController.prototype.join = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    var socketId = req.header('Authorization').replace("Bearer ", "");
-    var playerId = req.body.playerId;
-    var playerName = req.body.playerName;
+    let socketId = req.header('Authorization').replace("Bearer ", "");
+    let playerId = req.body.playerId;
+    let playerName = req.body.playerName;
 
-    var existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
+    let existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        this.useCases.existingPlayer(game, playerId, playerName);
+        this.useCases.existingPlayer(gameId, playerId, playerName);
         return;
     }
 
-    this.socketMapper.associate(socketId, game.id, playerId);
+    this.socketMapper.associate(socketId, gameId, playerId);
 
-    this.useCases.joinGame(game, playerId, playerName);
+    this.useCases.joinGame(gameId, playerId, playerName);
 
-    var notificationList = this.notifier.getRoundNotifications(game.id, playerId);
+    let notificationList = this.notifier.getRoundNotifications(gameId, playerId);
 
     res.json(notificationList);
 };
 
 HttpController.prototype.dealCards = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    if (!isGameAdmin(this,game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('');
         return;
     }
 
-    this.useCases.dealCards(game);
+    this.useCases.dealCards(gameId);
 
     res.send('');
 };
 
 HttpController.prototype.dealFlop = function(req, res)
 {
-    var gameId = req.params.gameId;
+    let gameId = req.params.gameId;
 
-    var game = GameRepo.fetchOrCreate(gameId);
-
-    if (!isGameAdmin(this, game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('');
         return;
     }
 
-    this.useCases.dealFlop(game);
+    this.useCases.dealFlop(gameId);
 
     res.send('');
 };
 
 HttpController.prototype.dealTurn = function(req, res)
 {
-    var gameId = req.params.gameId;
+    let gameId = req.params.gameId;
 
-    var game = GameRepo.fetchOrCreate(gameId);
-
-    if (!isGameAdmin(this,game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('');
         return;
     }
 
-    this.useCases.dealTurn(game);
+    this.useCases.dealTurn(gameId);
 
     res.send('');
 };
 
 HttpController.prototype.dealRiver = function(req, res)
 {
-    var gameId = req.params.gameId;
+    let gameId = req.params.gameId;
 
-    var game = GameRepo.fetchOrCreate(gameId);
-
-    if (!isGameAdmin(this, game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('');
         return;
     }
 
-    this.useCases.dealRiver(game);
+    this.useCases.dealRiver(gameId);
 
     res.send('');
 };
 
 HttpController.prototype.finish = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    if (!isGameAdmin(this,game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('');
         return;
     }
 
-    this.useCases.finish(game);
+    this.useCases.finish(gameId);
 
     res.send('');
 };
 
 HttpController.prototype.givePlayerChips = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    if (!isGameAdmin(this,game, req)) {
+    if (!isGameAdmin(this, gameId, req)) {
         res.send('Nice try bucko');
         return;
     }
-    var playerId = req.body.playerId;
-    var amount = parseInt(req.body.amount);
+    let playerId = req.body.playerId;
+    let amount = parseInt(req.body.amount);
 
     if (!playerId) {
         return;
     }
 
-    this.useCases.givePlayerChips(game, playerId, amount);
+    this.useCases.givePlayerChips(gameId, playerId, amount);
 
     res.send('');
 };
@@ -140,39 +134,37 @@ HttpController.prototype.givePlayerChips = function(req, res)
 
 HttpController.prototype.placeBet = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    var socketId = req.header('Authorization').replace("Bearer ", "");
-    var playerId = this.socketMapper.getPlayerIdForSocket(socketId);
-    var amount = parseInt(req.body.amount);
+    let socketId = req.header('Authorization').replace("Bearer ", "");
+    let playerId = this.socketMapper.getPlayerIdForSocket(socketId);
+    let amount = parseInt(req.body.amount);
 
-    this.useCases.placeBet(game, playerId, amount);
-
-    // Figure out the next action
+    this.useCases.placeBet(gameId, playerId, amount);
 
     res.send('');
 };
 
 HttpController.prototype.foldHand = function(req, res)
 {
-    var game = GameRepo.fetchOrCreate(req.params.gameId);
+    let gameId = req.params.gameId;
 
-    var socketId = req.header('Authorization').replace("Bearer ", "");
-    var playerId = this.socketMapper.getPlayerIdForSocket(socketId);
+    let socketId = req.header('Authorization').replace("Bearer ", "");
+    let playerId = this.socketMapper.getPlayerIdForSocket(socketId);
 
-    this.useCases.foldHand(game, playerId);
-
-    // Figure out next action
+    this.useCases.foldHand(gameId, playerId);
 
     res.send('');
 };
 
-function isGameAdmin(controller, game, req)
+function isGameAdmin(controller, gameId, req)
 {
-    var socketId = req.header('Authorization').replace("Bearer ", "");
-    var playerId = controller.socketMapper.getPlayerIdForSocket(socketId);
+    let game = GameRepo.fetchOrCreate(gameId);
 
-    var seatsQueryable = new SeatsQueryable(game);
+    let socketId = req.header('Authorization').replace("Bearer ", "");
+    let playerId = controller.socketMapper.getPlayerIdForSocket(socketId);
+
+    let seatsQueryable = new SeatsQueryable(game);
 
     return seatsQueryable.isAdmin(playerId);
 }

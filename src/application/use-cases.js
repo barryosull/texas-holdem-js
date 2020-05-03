@@ -1,4 +1,5 @@
 
+var GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
@@ -18,8 +19,9 @@ UseCases.prototype.existingPlayer = function(game, playerId, socketId)
     this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
 };
 
-UseCases.prototype.joinGame = function(game, playerId, playerName)
+UseCases.prototype.joinGame = function(gameId, playerId, playerName)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.addPlayer(playerId, playerName);
 
     let seatsQueryable = new SeatsQueryable(game);
@@ -31,8 +33,9 @@ UseCases.prototype.joinGame = function(game, playerId, playerName)
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, playersList , isAdmin));
 };
 
-UseCases.prototype.dealCards = function(game)
+UseCases.prototype.dealCards = function(gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     this.removeDisconnectedPlayers(this, game);
 
     game.startNewRound();
@@ -62,8 +65,9 @@ UseCases.prototype.dealCards = function(game)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
+UseCases.prototype.removeDisconnectedPlayers = function(controller, gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     let seatsQueryable = new SeatsQueryable(game);
 
     let players = seatsQueryable.getPlayers();
@@ -77,8 +81,9 @@ UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
     });
 };
 
-UseCases.prototype.dealFlop = function(game)
+UseCases.prototype.dealFlop = function(gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.dealFlop();
 
     let roundQueryable = new RoundQueryable(game);
@@ -110,8 +115,9 @@ function makePotTotalNotification(game)
     return new notifications.PotTotal(pots);
 }
 
-UseCases.prototype.dealTurn = function(game)
+UseCases.prototype.dealTurn = function(gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.dealTurn();
 
     let roundQueryable = new RoundQueryable(game);
@@ -130,8 +136,9 @@ UseCases.prototype.dealTurn = function(game)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.dealRiver = function(game)
+UseCases.prototype.dealRiver = function(gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.dealRiver();
 
     let roundQueryable = new RoundQueryable(game);
@@ -150,8 +157,9 @@ UseCases.prototype.dealRiver = function(game)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.finish = function(game)
+UseCases.prototype.finish = function(gameId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.finish();
 
     let seatProjection = new SeatsQueryable(game);
@@ -176,8 +184,9 @@ UseCases.prototype.finish = function(game)
     }
 };
 
-UseCases.prototype.placeBet = function(game, playerId, amount)
+UseCases.prototype.placeBet = function(gameId, playerId, amount)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.placeBet(playerId, amount);
 
     let notification = createBetMadeNotification(game, playerId);
@@ -194,8 +203,9 @@ UseCases.prototype.placeBet = function(game, playerId, amount)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.foldHand = function(game, playerId)
+UseCases.prototype.foldHand = function(gameId, playerId)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.foldHand(playerId);
 
     this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
@@ -229,8 +239,9 @@ UseCases.prototype.foldHand = function(game, playerId)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.givePlayerChips = function(game, playerId, amount)
+UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
 {
+    let game = GameRepo.fetchOrCreate(gameId);
     game.givePlayerChips(playerId, amount);
 
     let playerChips = (new ChipsQueryable(game)).getPlayerChips(playerId);
