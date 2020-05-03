@@ -1,0 +1,76 @@
+Texas holdem server running at http://localhost:80
+PlayerNamed {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  name: 'Test' }
+SeatTaken { seat: 0, playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505' }
+Removing game + 586993d2-1693-485d-b29a-0a3d6d0c6411
+PlayerNamed {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  name: 'Test' }
+SeatTaken { seat: 0, playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505' }
+Removing game + 586993d2-1693-485d-b29a-0a3d6d0c6411
+PlayerNamed {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  name: 'Test' }
+SeatTaken { seat: 0, playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505' }
+Removing game + 586993d2-1693-485d-b29a-0a3d6d0c6411
+PlayerNamed {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  name: 'Barold' }
+SeatTaken { seat: 0, playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505' }
+PlayerGivenChips {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  amount: 10000 }
+PlayerNamed {
+  playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb',
+  name: 'ndog' }
+SeatTaken { seat: 1, playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb' }
+PlayerNamed {
+  playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a',
+  name: 'fuck' }
+SeatTaken { seat: 2, playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a' }
+PlayerGivenChips {
+  playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb',
+  amount: 10000 }
+PlayerGivenChips {
+  playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a',
+  amount: 10000 }
+PlayerNamed {
+  playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56',
+  name: 'Simon' }
+SeatTaken { seat: 3, playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56' }
+PlayerGivenChips {
+  playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56',
+  amount: 10000 }
+RoundStarted {
+  deckSeed: '0.yht4oqc3bpq',
+  dealer: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  smallBlind: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb',
+  bigBlind: '0f68dab6-5032-486e-b349-81fef1d7ec3a' }
+HandDealt {
+  playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505',
+  cards: [ '6_of_hearts', '3_of_clubs' ] }
+HandDealt {
+  playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb',
+  cards: [ '8_of_spades', '10_of_clubs' ] }
+HandDealt {
+  playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a',
+  cards: [ '5_of_spades', '7_of_diamonds' ] }
+HandDealt {
+  playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56',
+  cards: [ '4_of_clubs', 'king_of_hearts' ] }
+BetPlaced { playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb', amount: 20 }
+BetPlaced { playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a', amount: 40 }
+BetPlaced { playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56', amount: 40 }
+BetPlaced { playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505', amount: 40 }
+BetPlaced { playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb', amount: 20 }
+BetPlaced { playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a', amount: 0 }
+BettingRoundClosed {}
+FlopDealt { cards: [ '2_of_spades', 'king_of_clubs', '5_of_diamonds' ] }
+BetPlaced { playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb', amount: 0 }
+BetPlaced { playerId: '0f68dab6-5032-486e-b349-81fef1d7ec3a', amount: 50 }
+BetPlaced { playerId: 'd7dd167f-80b7-4479-b4e0-c0d53235ae56', amount: 50 }
+BetPlaced { playerId: 'b24c3386-c44d-4f38-b789-0f9298c01505', amount: 50 }
+HandFolded { playerId: 'e0b5693c-1cf7-4ac6-9804-b68b4321ceeb' }
+Removing game + 586993d2-1693-485d-b29a-0a3d6d0c6411
+Removing game + undefined
