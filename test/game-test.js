@@ -1,5 +1,6 @@
 
 const assert = require('assert');
+const EventStream = require('../src/domain/event-stream');
 const Game = require('../src/domain/game');
 const Pot = require('../src/domain/pot');
 const SeatsQueryable = require('../src/application/seats-queryable');
@@ -9,7 +10,8 @@ const ChipsQueryable = require('../src/application/chips-queryable');
 function makeGame()
 {
     let fakeLogger = () => {};
-    return new Game("c92a18ab-ad0c-4a60-958c-7146ead2cfa8", fakeLogger);
+    let eventStream = new EventStream(fakeLogger);
+    return new Game("c92a18ab-ad0c-4a60-958c-7146ead2cfa8", eventStream);
 }
 
 describe('Game', () => {

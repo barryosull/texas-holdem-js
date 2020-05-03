@@ -7,10 +7,15 @@ const DeckProjection = require('./deck-projection');
 const ChipsProjection = require('./chips-projection');
 const WinnerCalculator = require('./winner-calculator');
 
-function Game (id, eventLogger)
+/**
+ * @param id {String}
+ * @param eventStream {EventStream}
+ * @constructor
+ */
+function Game (id, eventStream)
 {
     this.id = id;
-    this.events = new EventStream(eventLogger);
+    this.events = eventStream;
 }
 
 Game.prototype.addPlayer = function(playerId, name)

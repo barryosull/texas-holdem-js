@@ -3,7 +3,6 @@ const SeatsQueryable = require('../application/seats-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
 const PlayersQueryable = require('./players-queryable');
-const WinnerCalculator = require('../domain/winner-calculator');
 const notifications = require('./notifications');
 
 const SEAT_COUNT = 8;

@@ -5,7 +5,7 @@ const LogParser = require('../src/application/log-parser');
 
 describe('LogParser', () => {
 
-    it.only ('parses a log file', () => {
+    it ('parses a log file', () => {
         let gameId = '586993d2-1693-485d-b29a-0a3d6d0c6411';
 
         let parser = new LogParser();
