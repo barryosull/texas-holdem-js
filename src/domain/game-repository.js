@@ -1,10 +1,12 @@
 
-var Game = require('./game');
-var EventRepositoryFilesystem = require('./event-repo-filesystem');
+const Game = require('./game');
+const EventRepositoryFilesystem = require('./event-repo-filesystem');
 
-var GameRepository = {
+let GameRepository = {
     games: []
 };
+
+let eventRepo = new EventRepositoryFilesystem();
 
 GameRepository.store = function(game)
 {
@@ -19,7 +21,6 @@ GameRepository.fetchOrCreate = function(gameId)
 {
     let game = GameRepository.games[gameId];
     if (!game) {
-        let eventRepo = new EventRepositoryFilesystem();
         let eventStream = eventRepo.loadStream(gameId);
         game = new Game(gameId, eventStream);
         GameRepository.store(game);
@@ -34,6 +35,7 @@ GameRepository.remove = function (gameId)
 {
     console.log("Removing game + " + gameId);
     delete GameRepository.games[gameId];
+    eventRepo.clear(gameId);
 };
 
 module.exports = GameRepository;
