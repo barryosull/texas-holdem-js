@@ -250,8 +250,6 @@ function triggerNextAction(game)
         'finish': this.finish
     };
 
-    console.log('nextAction', nextAction);
-
     let actionTimeTimeouts = {
         'deal': 5000,
         'flop': 1000,
@@ -270,11 +268,7 @@ function triggerNextAction(game)
 
     let useCases = this;
 
-    console.log('timeout', timeout);
-    console.log('entering timeout');
-
     setTimeout(function(){
-        console.log('in timeout');
         nextUseCase.call(useCases, game);
     }, timeout);
 }
