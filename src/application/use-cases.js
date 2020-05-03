@@ -53,6 +53,7 @@ UseCases.prototype.dealCards = function(game)
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getBigBlindPlayer()));
 
     let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+
     if (nextPlayerToAct) {
         this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
         return;
@@ -184,6 +185,7 @@ UseCases.prototype.placeBet = function(game, playerId, amount)
 
     let roundQueryable = new RoundQueryable(game);
     let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+
     if (nextPlayerToAct) {
         this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
         return;
