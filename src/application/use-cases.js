@@ -1,5 +1,5 @@
 
-var GameRepo = require('../domain/game-repository');
+const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
@@ -14,9 +14,9 @@ function UseCases(notifier, socketMapper)
     this.socketMapper = socketMapper;
 }
 
-UseCases.prototype.existingPlayer = function(game, playerId, socketId)
+UseCases.prototype.existingPlayer = function(gameId, playerId, socketId)
 {
-    this.notifier.broadcastToPlayer(game.id, playerId, socketId, new notifications.ExistingSession());
+    this.notifier.broadcastToPlayer(gameId, playerId, socketId, new notifications.ExistingSession());
 };
 
 UseCases.prototype.joinGame = function(gameId, playerId, playerName)
@@ -65,9 +65,8 @@ UseCases.prototype.dealCards = function(gameId)
     triggerNextAction.call(this, game);
 };
 
-UseCases.prototype.removeDisconnectedPlayers = function(controller, gameId)
+UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
     let seatsQueryable = new SeatsQueryable(game);
 
     let players = seatsQueryable.getPlayers();
@@ -280,7 +279,7 @@ function triggerNextAction(game)
     let useCases = this;
 
     setTimeout(function(){
-        nextUseCase.call(useCases, game);
+        nextUseCase.call(useCases, game.id);
     }, timeout);
 }
 

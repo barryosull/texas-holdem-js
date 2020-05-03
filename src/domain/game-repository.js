@@ -14,7 +14,7 @@ GameRepository.store = function(game)
 };
 
 /**
- * @param gameId
+ * @param gameId {String}
  * @returns {Game}
  */
 GameRepository.fetchOrCreate = function(gameId)
