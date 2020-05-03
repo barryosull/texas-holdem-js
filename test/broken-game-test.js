@@ -1,6 +1,7 @@
+//*************************************
+//  Test to diagnose why a particular game failed
+//*************************************
 
-const assert = require('assert');
-const events = require('../src/domain/events');
 const LogParser = require('../src/application/log-parser');
 const Game = require('../src/domain/game');
 const UseCases = require('../src/application/use-cases');
@@ -18,8 +19,12 @@ describe('BrokenGame', () => {
         let game = new Game(gameId, eventStream);
 
         let fakeNotifier = {
-            broadcast : function() {},
-            broadcastToPlayer : function() {},
+            broadcast : function() {
+                //console.log(arguments);
+            },
+            broadcastToPlayer : function() {
+                //console.log(arguments);
+            },
         };
 
         let useCases = new UseCases(fakeNotifier, SocketMapper);

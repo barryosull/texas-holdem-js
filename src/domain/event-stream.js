@@ -1,7 +1,19 @@
 
-var EventStream = function(eventLogger)
+const EventRepo = require('./event-repo');
+
+/**
+ * @param eventRepo {EventRepo}
+ * @param gameId {String}
+ * @constructor
+ */
+var EventStream = function(eventRepo, gameId)
 {
-    this.eventLogger = eventLogger || function(event){ console.log(event) };
+    this.gameId = gameId;
+    this.eventRepo = eventRepo || {
+        write: function(gameId, event){
+            console.log(gameId, event)
+        }
+    };
 
     this.events = [];
     this.projectionSnapshots = new ProjectionSnapshots();
@@ -11,7 +23,7 @@ EventStream.prototype.push = function(...args)
 {
     this.events.push(...args);
     for (var i = 0; i< arguments.length; i++) {
-        this.eventLogger(arguments[i]);
+        this.eventRepo.write(this.gameId, arguments[i]);
     }
 };
 

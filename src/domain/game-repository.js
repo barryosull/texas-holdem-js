@@ -1,5 +1,6 @@
 
 var Game = require('./game');
+var EventRepositoryFilesystem = require('./event-repo-filesystem');
 
 var GameRepository = {
     games: []
@@ -16,9 +17,11 @@ GameRepository.store = function(game)
  */
 GameRepository.fetchOrCreate = function(gameId)
 {
-    var game = GameRepository.games[gameId];
+    let game = GameRepository.games[gameId];
     if (!game) {
-        game = new Game(gameId);
+        let eventRepo = new EventRepositoryFilesystem();
+        let eventStream = eventRepo.loadStream(gameId);
+        game = new Game(gameId, eventStream);
         GameRepository.store(game);
     }
     return game;
