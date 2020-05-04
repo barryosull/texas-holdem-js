@@ -28,7 +28,7 @@ describe('Game', () => {
         game.givePlayerChips(playerA, 1000);
         game.givePlayerChips(playerB, 1000);
 
-        let players = (new SeatsQueryable(game)).getPlayers();
+        let players = (new SeatsQueryable(game.events)).getPlayers();
 
         assert.deepEqual([playerA, playerB], players);
     });
@@ -42,7 +42,7 @@ describe('Game', () => {
         game.givePlayerChips(playerA, 1000);
         game.givePlayerChips(playerB, 1000);
 
-        let players = (new SeatsQueryable(game)).getPlayers();
+        let players = (new SeatsQueryable(game.events)).getPlayers();
 
         assert.deepEqual([playerA], players);
     });
@@ -61,8 +61,8 @@ describe('Game', () => {
 
         game.startNewRound("test-seed");
 
-        let smallBlind = (new RoundQueryable(game)).getPlayerBet(playerB);
-        let bigBlind = (new RoundQueryable(game)).getPlayerBet(playerC);
+        let smallBlind = (new RoundQueryable(game.events)).getPlayerBet(playerB);
+        let bigBlind = (new RoundQueryable(game.events)).getPlayerBet(playerC);
 
         assert.equal(20, smallBlind);
         assert.equal(40, bigBlind);
@@ -79,7 +79,7 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        let playerAHand = (new RoundQueryable(game)).getPlayerHand(playerA);
+        let playerAHand = (new RoundQueryable(game.events)).getPlayerHand(playerA);
 
         // Small blind limping in
         game.placeBet(playerB, 20);
@@ -102,14 +102,14 @@ describe('Game', () => {
         game.finish();
 
         // Player A wins
-        let winningPlayers = (new RoundQueryable(game)).getWinners();
-        let winningHands = (new RoundQueryable(game)).getPlayerHands(winningPlayers);
+        let winningPlayers = (new RoundQueryable(game.events)).getWinners();
+        let winningHands = (new RoundQueryable(game.events)).getPlayerHands(winningPlayers);
         assert.deepEqual(winningPlayers, [playerA]);
         assert.deepEqual(winningHands, [playerAHand]);
 
         // Winner gets chips
-        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
-        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
+        let playerAChips = (new ChipsQueryable(game.events)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game.events)).getPlayerChips(playerB);
         assert.equal(1160, playerAChips);
         assert.equal(840, playerBChips);
     });
@@ -134,9 +134,9 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         // Player A wins by default
-        let winningPlayers = (new RoundQueryable(game)).getWinners();
-        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
-        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
+        let winningPlayers = (new RoundQueryable(game.events)).getWinners();
+        let playerAChips = (new ChipsQueryable(game.events)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game.events)).getPlayerChips(playerB);
         assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -162,9 +162,9 @@ describe('Game', () => {
         game.removePlayer(playerB);
 
         // Player A wins by default
-        let winningPlayers = (new RoundQueryable(game)).getWinners();
-        let playerAChips = (new ChipsQueryable(game)).getPlayerChips(playerA);
-        let playerBChips = (new ChipsQueryable(game)).getPlayerChips(playerB);
+        let winningPlayers = (new RoundQueryable(game.events)).getWinners();
+        let playerAChips = (new ChipsQueryable(game.events)).getPlayerChips(playerA);
+        let playerBChips = (new ChipsQueryable(game.events)).getPlayerChips(playerB);
         assert.deepEqual(winningPlayers, [playerA]);
         assert.equal(1040, playerAChips);
         assert.equal(960, playerBChips);
@@ -184,28 +184,28 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerA, nextToAct);
 
         game.placeBet(playerA, 40);
 
-        nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerB, nextToAct);
 
         game.placeBet(playerB, 20);
 
-        nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         // Big blind has bet 40 but has not acted, so they get a turn to act
         assert.equal(playerC, nextToAct);
 
         game.placeBet(playerC, 0);
 
-        nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(null, nextToAct);
 
         game.dealFlop();
 
-        nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerB, nextToAct);
     });
 
@@ -227,7 +227,7 @@ describe('Game', () => {
 
         game.placeBet(playerB, 40);
 
-        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerA, nextToAct);
     });
 
@@ -287,7 +287,7 @@ describe('Game', () => {
 
         game.dealFlop();
 
-        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerC, nextToAct);
     });
 
@@ -317,12 +317,12 @@ describe('Game', () => {
 
         game.startNewRound('test-seedb');
 
-        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(nextToAct, playerA);
 
         game.placeBet(playerA, 20);
 
-        nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(nextToAct, playerB);
     });
 
@@ -345,7 +345,7 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
-        let roundQueryable = new RoundQueryable(game);
+        let roundQueryable = new RoundQueryable(game.events);
 
         let pots = roundQueryable.getPots();
 
@@ -360,7 +360,7 @@ describe('Game', () => {
         game.dealRiver();
         game.finish();
 
-        let chipsQueryable = new ChipsQueryable(game);
+        let chipsQueryable = new ChipsQueryable(game.events);
 
         // Player B wins pot 1
         assert.equal(chipsQueryable.getPlayerChips(playerB), 3000);
@@ -389,7 +389,7 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
-        let nextToAct = (new RoundQueryable(game)).getNextPlayerToAct();
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(nextToAct, null);
 
         game.dealFlop();
@@ -400,7 +400,7 @@ describe('Game', () => {
         game.dealRiver();
         game.finish();
 
-        let chipsQueryable = new ChipsQueryable(game);
+        let chipsQueryable = new ChipsQueryable(game.events);
 
         // Player A wins pot 1 and 2
         assert.equal(chipsQueryable.getPlayerChips(playerA), 5000);

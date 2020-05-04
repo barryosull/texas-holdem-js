@@ -20,7 +20,7 @@ function Game (id, eventStream)
 
 Game.prototype.addPlayer = function(playerId, name)
 {
-    let seatsProjection = new SeatsProjection(this);
+    let seatsProjection = new SeatsProjection(this.events);
 
     let seat = seatsProjection.getPlayersSeat(playerId);
 
@@ -47,7 +47,7 @@ Game.prototype.givePlayerChips = function(playerId, amount)
 
 Game.prototype.removePlayer = function(playerId)
 {
-    let seatsProjection = new SeatsProjection(this);
+    let seatsProjection = new SeatsProjection(this.events);
 
     let seat = seatsProjection.getPlayersSeat(playerId);
 
@@ -62,8 +62,8 @@ Game.prototype.removePlayer = function(playerId)
 
 Game.prototype.startNewRound = function(deckSeed)
 {
-    let seatsProjection = new SeatsProjection(this);
-    let deckProjection = new DeckProjection(this);
+    let seatsProjection = new SeatsProjection(this.events);
+    let deckProjection = new DeckProjection(this.events);
 
     let activePlayers = seatsProjection.getActivePlayers();
 
@@ -93,7 +93,7 @@ Game.prototype.startNewRound = function(deckSeed)
 
 Game.prototype.foldHand = function(playerId)
 {
-    let roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this.events);
 
     if (!roundProjection.getPlayerHand(playerId)) {
         return;
@@ -116,14 +116,14 @@ Game.prototype.foldHand = function(playerId)
 
 Game.prototype.dealFlop = function()
 {
-    let roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this.events);
     if (roundProjection.getStageOfRound() !== 'start') {
         return;
     }
 
     this.closeRoundOfBetting();
 
-    let deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this.events);
 
     let cards = deckProjection.getCards(3);
     this.events.push(new events.FlopDealt(cards));
@@ -131,14 +131,14 @@ Game.prototype.dealFlop = function()
 
 Game.prototype.dealTurn = function()
 {
-    let roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this.events);
     if (roundProjection.getStageOfRound() !== 'flop') {
         return;
     }
 
     this.closeRoundOfBetting();
 
-    let deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this.events);
 
     let card = deckProjection.getCards(1)[0];
     this.events.push(new events.TurnDealt(card));
@@ -146,14 +146,14 @@ Game.prototype.dealTurn = function()
 
 Game.prototype.dealRiver = function()
 {
-    let roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this.events);
     if (roundProjection.getStageOfRound() !== 'turn') {
         return;
     }
 
     this.closeRoundOfBetting();
 
-    let deckProjection = new DeckProjection(this);
+    let deckProjection = new DeckProjection(this.events);
 
     let card = deckProjection.getCards(1)[0];
     this.events.push(new events.RiverDealt(card));
@@ -161,7 +161,7 @@ Game.prototype.dealRiver = function()
 
 Game.prototype.finish = function()
 {
-    let roundProjection = new RoundProjection(this);
+    let roundProjection = new RoundProjection(this.events);
     if (roundProjection.getStageOfRound() !== 'river') {
         return;
     }
@@ -199,7 +199,7 @@ Game.prototype.closeRoundOfBetting = function()
 
 Game.prototype.placeBet = function(playerId, amount)
 {
-    let chipsProjection = new ChipsProjection(this);
+    let chipsProjection = new ChipsProjection(this.events);
     let playerChips = chipsProjection.getPlayerChips(playerId);
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;

@@ -1,24 +1,23 @@
 
-var Game = require('./game');
-var events = require('./events');
-var Hand = require('./hand');
-var Pot = require('./pot');
-var CommunityCards = require('./community-cards');
+const events = require('./events');
+const Hand = require('./hand');
+const Pot = require('./pot');
+const CommunityCards = require('./community-cards');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var RoundProjection = function(game)
+function RoundProjection(eventStream)
 {
-    this.game = game;
-};
+    this.eventStream = eventStream;
+}
 
 /**
  * @returns {Hand[]}
  */
 RoundProjection.prototype.getActiveHands = function()
 {
-    let hands = this.game.events.project('domain/round.getActiveHands', (hands, e) => {
+    let hands =  this.eventStream.project('domain/round.getActiveHands', (hands, e) => {
         if (e instanceof events.RoundStarted) {
             hands = {};
         }
@@ -62,7 +61,7 @@ RoundProjection.prototype.getPlayerHand = function(playerId)
  */
 RoundProjection.prototype.getCommunityCards = function()
 {
-    let cards = this.game.events.project('domain/round.getCommunityCards', (cards, e) => {
+    let cards =  this.eventStream.project('domain/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.RoundStarted) {
             cards = [];
         }
@@ -83,7 +82,7 @@ RoundProjection.prototype.getCommunityCards = function()
 
 RoundProjection.prototype.getStageOfRound = function()
 {
-    return this.game.events.project('domain/round.getStageOfRound', (stage, e) => {
+    return  this.eventStream.project('domain/round.getStageOfRound', (stage, e) => {
         if (e instanceof events.RoundStarted) {
             stage = 'start';
         }
@@ -102,7 +101,7 @@ RoundProjection.prototype.getStageOfRound = function()
 
 RoundProjection.prototype.getPot = function()
 {
-    return this.game.events.project('app/round.getPot', (pot, e) => {
+    return  this.eventStream.project('app/round.getPot', (pot, e) => {
         if (e instanceof events.PotWon) {
             return 0;
         }
@@ -135,7 +134,7 @@ RoundProjection.prototype.getPots = function()
 
 function getPlayerBets()
 {
-    let playersToBets = this.game.events.project('domain/round.getPots', (playersToBets, e) => {
+    let playersToBets =  this.eventStream.project('domain/round.getPots', (playersToBets, e) => {
         if (e instanceof events.RoundStarted) {
             playersToBets = {};
         }

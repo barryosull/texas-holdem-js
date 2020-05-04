@@ -1,18 +1,17 @@
 
-var Game = require('../domain/game');
-var PlayersProjection = require('./players-projection');
+const PlayersProjection = require('./players-projection');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var PlayersQueryable = function(game)
+function PlayersQueryable(eventStream)
 {
-    this.projection = new PlayersProjection(game);
-};
+    this.projection = new PlayersProjection(eventStream);
+}
 
 PlayersQueryable.prototype.getPlayerName = function(playerId)
 {
-    var playerIdToNames = this.projection.getPlayersToNames();
+    let playerIdToNames = this.projection.getPlayersToNames();
 
     return playerIdToNames[playerId] || "";
 };

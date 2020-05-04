@@ -1,18 +1,17 @@
 
-var Game = require('./../domain/game');
-var events = require('./../domain/events');
+const events = require('./../domain/events');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-function SeatsProjection(game)
+function SeatsProjection(eventStream)
 {
-    this.game = game;
+    this.eventStream = eventStream;
 }
 
 SeatsProjection.prototype.getPlayersToSeats = function()
 {
-    return this.game.events.project('app/seats.getPlayersToSeats', (seats, e) => {
+    return this.eventStream.project('app/seats.getPlayersToSeats', (seats, e) => {
         if (e instanceof events.SeatTaken) {
             seats[e.playerId] = e.seat;
         }
@@ -25,7 +24,7 @@ SeatsProjection.prototype.getPlayersToSeats = function()
 
 SeatsProjection.prototype.getSeatsToPlayers = function()
 {
-    return this.game.events.project('app/seats.getSeatsToPlayers', (seatsToPlayerIds, e) => {
+    return this.eventStream.project('app/seats.getSeatsToPlayers', (seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }

@@ -1,24 +1,21 @@
 
-var Game = require('./../domain/game');
-var SeatsProjection = require('./seats-projection');
+const SeatsProjection = require('./seats-projection');
 
-var SEAT_COUNT = 8;
-
+const SEAT_COUNT = 8;
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-function SeatsQueryable(game)
+function SeatsQueryable(eventStream)
 {
-    this.game = game;
-    this.projection = new SeatsProjection(game);
+    this.projection = new SeatsProjection(eventStream);
 }
 
 SeatsQueryable.prototype.isAdmin = function(playerId)
 {
-    var seatsToPlayers = this.projection.getSeatsToPlayers();
+    let seatsToPlayers = this.projection.getSeatsToPlayers();
 
-    for (var i = 0; i < SEAT_COUNT; i++) {
+    for (let i = 0; i < SEAT_COUNT; i++) {
         if (seatsToPlayers[i]) {
             return seatsToPlayers[i] === playerId;
         }
@@ -34,14 +31,14 @@ SeatsQueryable.prototype.getPlayers = function()
 
 SeatsQueryable.prototype.getPlayersSeat = function(playerId)
 {
-    var playersToSeats = this.projection.getPlayersToSeats();
+    let playersToSeats = this.projection.getPlayersToSeats();
 
     return playersToSeats[playerId] !== undefined ? playersToSeats[playerId] : false;
 };
 
 SeatsQueryable.prototype.getPlayerInSeat = function(seat)
 {
-    var seatsToPlayers = this.projection.getSeatsToPlayers();
+    let seatsToPlayers = this.projection.getSeatsToPlayers();
 
     return seatsToPlayers[seat.toString()];
 };

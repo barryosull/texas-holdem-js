@@ -1,14 +1,14 @@
 
 const RoundProjection = require('./round-projection');
-var Pot = require('../domain/pot');
+const Pot = require('../domain/pot');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var RoundQueryable = function(game)
+function RoundQueryable(eventStream)
 {
-    this.projection = new RoundProjection(game);
-};
+    this.projection = new RoundProjection(eventStream);
+}
 
 RoundQueryable.prototype.getHands = function()
 {

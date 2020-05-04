@@ -1,19 +1,18 @@
 
-var Game = require('./game');
-var Deck = require('./deck');
-var events = require('./events');
+const Deck = require('./deck');
+const events = require('./events');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var DeckProjection = function(game)
+function DeckProjection(eventStream)
 {
-    this.game = game;
-};
+    this.eventStream = eventStream;
+}
 
 DeckProjection.prototype.getCards = function(number)
 {
-    let deckState = this.game.events.project('domain/deck.getCards', (deckState, e) => {
+    let deckState = this.eventStream.project('domain/deck.getCards', (deckState, e) => {
         if (e instanceof events.RoundStarted) {
             deckState.seed = e.deckSeed;
             deckState.cardsDealt = 0;
@@ -36,7 +35,7 @@ DeckProjection.prototype.getCards = function(number)
         seed: 0
     },);
 
-    var deck = Deck.makeNew(deckState.seed).burnCards(deckState.cardsDealt);
+    let deck = Deck.makeNew(deckState.seed).burnCards(deckState.cardsDealt);
 
     return deck.getCards(number);
 };

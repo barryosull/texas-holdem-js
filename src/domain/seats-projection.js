@@ -1,20 +1,19 @@
 
-var Game = require('./game');
-var events = require('./events');
+const events = require('./events');
 
-var SEAT_COUNT = 8;
+const SEAT_COUNT = 8;
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var SeatsProjection = function(game)
+function SeatsProjection(eventStream)
 {
-    this.game = game;
-};
+    this.eventStream = eventStream;
+}
 
 SeatsProjection.prototype.getPlayersSeat = function(playerId)
 {
-    var seats = this.game.events.project('domain/seats.getPlayersSeat', (seats, e) => {
+    let seats =  this.eventStream.project('domain/seats.getPlayersSeat', (seats, e) => {
         if (e instanceof events.SeatTaken) {
             seats[e.playerId] = e.seat;
         }
@@ -29,9 +28,9 @@ SeatsProjection.prototype.getPlayersSeat = function(playerId)
 
 SeatsProjection.prototype.getFreeSeat = function()
 {
-    var seatsToPlayers = mapSeatsToPlayerIds(this.game);
+    let seatsToPlayers = mapSeatsToPlayerIds(this.eventStream);
 
-    for (var seat = 0; seat < SEAT_COUNT; seat++) {
+    for (let seat = 0; seat < SEAT_COUNT; seat++) {
         if (seatsToPlayers[seat] === undefined) {
             return seat;
         }
@@ -41,17 +40,17 @@ SeatsProjection.prototype.getFreeSeat = function()
 
 SeatsProjection.prototype.getActivePlayers = function()
 {
-    var playersInSeats = Object.values(mapSeatsToPlayerIds(this.game));
-    var playersWithChips = getPlayersToChips.call(this);
+    let playersInSeats = Object.values(mapSeatsToPlayerIds(this.eventStream));
+    let playersWithChips = getPlayersToChips.call(this);
 
     return playersInSeats.filter(playerId => {
         return playersWithChips[playerId] > 0;
     });
 };
 
-function mapSeatsToPlayerIds(game)
+function mapSeatsToPlayerIds(eventStream)
 {
-    return game.events.project('domain/seats.mapSeatsToPlayerIds', (seatsToPlayerIds, e) => {
+    return eventStream.project('domain/seats.mapSeatsToPlayerIds', (seatsToPlayerIds, e) => {
         if (e instanceof events.SeatTaken) {
             seatsToPlayerIds[e.seat] = e.playerId;
         }
@@ -64,7 +63,7 @@ function mapSeatsToPlayerIds(game)
 
 SeatsProjection.prototype.getRoundStarted = function()
 {
-    return this.game.events.project('domain/seats.getRoundStarted', (value, e) => {
+    return  this.eventStream.project('domain/seats.getRoundStarted', (value, e) => {
         if (e instanceof events.RoundStarted) {
             return e;
         }
@@ -80,7 +79,7 @@ SeatsProjection.prototype.getPlayerChips = function(playerId)
 
 function getPlayersToChips()
 {
-    return this.game.events.project('domain/chips.getPlayerChips', (playersToChips, e) => {
+    return  this.eventStream.project('domain/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -95,17 +94,17 @@ function getPlayersToChips()
 SeatsProjection.prototype.getNextThreePlayersAfterDealer = function()
 {
     let lastRound = this.getRoundStarted();
-    var activePlayers = this.getActivePlayers();
-    var seat = -1;
+    let activePlayers = this.getActivePlayers();
+    let seat = -1;
     if (lastRound) {
         seat = this.getPlayersSeat(lastRound.dealer);
     }
 
-    var seatsToPlayerIds = mapSeatsToPlayerIds(this.game);
+    let seatsToPlayerIds = mapSeatsToPlayerIds(this.eventStream);
 
-    var nextDealerSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat);
-    var smallBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, nextDealerSeat);
-    var bigBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, smallBlindSeat);
+    let nextDealerSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, seat);
+    let smallBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, nextDealerSeat);
+    let bigBlindSeat = getNextSeatWithActivePlayer(seatsToPlayerIds, activePlayers, smallBlindSeat);
 
     return [
         seatsToPlayerIds[nextDealerSeat],

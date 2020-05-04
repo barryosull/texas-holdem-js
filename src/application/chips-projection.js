@@ -1,18 +1,17 @@
 
-var Game = require('../domain/game');
-var events = require('../domain/events');
+const events = require('../domain/events');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-function ChipsProjection(game)
+function ChipsProjection(eventStream)
 {
-    this.game = game;
+    this.eventStream = eventStream;
 }
 
 ChipsProjection.prototype.getPlayersToChips = function()
 {
-    return this.game.events.project('app/chips.getPlayerChips', (playersToChips, e) => {
+    return this.eventStream.project('app/chips.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;

@@ -1,18 +1,17 @@
 
-var Game = require('../domain/game');
-var events = require('../domain/events');
+const events = require('../domain/events');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var PlayersProjection = function(game)
+function PlayersProjection(eventStream)
 {
-    this.game = game;
-};
+    this.eventStream = eventStream;
+}
 
 PlayersProjection.prototype.getPlayersToNames = function()
 {
-    return this.game.events.project('app/players.getPlayerName', (map, e) => {
+    return this.eventStream.project('app/players.getPlayerName', (map, e) => {
         if (e instanceof events.PlayerNamed) {
             map[e.playerId] =  e.name;
         }

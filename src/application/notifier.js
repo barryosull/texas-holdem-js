@@ -1,5 +1,5 @@
 
-var notifications = require('./notifications');
+const notifications = require('./notifications');
 
 function Notifier(io)
 {

@@ -1,13 +1,12 @@
 
-var Game = require('../domain/game');
-var ChipsProjection = require('./chips-projection');
+const ChipsProjection = require('./chips-projection');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-function ChipsQueryable(game)
+function ChipsQueryable(eventStream)
 {
-    this.projection = new ChipsProjection(game);
+    this.projection = new ChipsProjection(eventStream);
 }
 
 ChipsQueryable.prototype.getPlayerChips = function(playerId)
@@ -16,14 +15,14 @@ ChipsQueryable.prototype.getPlayerChips = function(playerId)
         return null;
     }
 
-    var playersToChips = this.projection.getPlayersToChips();
+    let playersToChips = this.projection.getPlayersToChips();
 
     return playersToChips[playerId];
 };
 
 ChipsQueryable.prototype.getNumberOfPlayersWithChips = function()
 {
-    var playersToChips = this.projection.getPlayersToChips();
+    let playersToChips = this.projection.getPlayersToChips();
 
     return Object.values(playersToChips).filter(chips => {
         return chips > 0;

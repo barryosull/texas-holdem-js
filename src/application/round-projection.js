@@ -1,18 +1,17 @@
 
-var Game = require('../domain/game');
-var events = require('../domain/events');
+const events = require('../domain/events');
 
 /**
- * @param game {Game}
+ * @param eventStream {EventStream}
  */
-var RoundProjection = function(game)
+function RoundProjection(eventStream)
 {
-    this.game = game;
-};
+    this.eventStream = eventStream;
+}
 
 RoundProjection.prototype.getHands = function()
 {
-    let hands = this.game.events.project('app/round.getHands', (hands, e) => {
+    let hands =  this.eventStream.project('app/round.getHands', (hands, e) => {
         if (e instanceof events.RoundStarted) {
             hands = {};
         }
@@ -47,7 +46,7 @@ Hand.prototype.fold = function()
  */
 RoundProjection.prototype.getCommunityCards = function()
 {
-    return this.game.events.project('app/round.getCommunityCards', (cards, e) => {
+    return  this.eventStream.project('app/round.getCommunityCards', (cards, e) => {
         if (e instanceof events.FlopDealt) {
             cards = e.cards.slice();
         }
@@ -66,7 +65,7 @@ RoundProjection.prototype.getCommunityCards = function()
 
 RoundProjection.prototype.getNextAction = function()
 {
-    return this.game.events.project('app/round.getNextAction', (nextAction, e) => {
+    return  this.eventStream.project('app/round.getNextAction', (nextAction, e) => {
         if (e instanceof events.RoundStarted) {
             nextAction = 'flop';
         }
@@ -88,7 +87,7 @@ RoundProjection.prototype.getNextAction = function()
 
 RoundProjection.prototype.getWinners = function()
 {
-    return this.game.events.project('app/round.getWinner', (players, e) => {
+    return  this.eventStream.project('app/round.getWinner', (players, e) => {
         if (e instanceof events.RoundStarted) {
             players = [];
         }
@@ -101,7 +100,7 @@ RoundProjection.prototype.getWinners = function()
 
 RoundProjection.prototype.getPlayersToBets = function()
 {
-    return this.game.events.project('app/round.getPlayerBet', (playersToBets, e) => {
+    return  this.eventStream.project('app/round.getPlayerBet', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
             playersToBets = {};
         }
@@ -118,7 +117,7 @@ RoundProjection.prototype.getPlayersToBets = function()
 
 RoundProjection.prototype.getPlayersToChips = function()
 {
-    return this.game.events.project('app/round.getPlayerChips', (playersToChips, e) => {
+    return  this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -132,7 +131,7 @@ RoundProjection.prototype.getPlayersToChips = function()
 
 RoundProjection.prototype.getPlayersActiveInRound = function()
 {
-    return this.game.events.project('app/round.getPlayersActiveInRound', (active, e) => {
+    return  this.eventStream.project('app/round.getPlayersActiveInRound', (active, e) => {
         if (e instanceof events.RoundStarted) {
             active = [];
         }
@@ -150,7 +149,7 @@ RoundProjection.prototype.getPlayersActiveInRound = function()
 
 RoundProjection.prototype.getPlayersToActionCount = function()
 {
-    return this.game.events.project('app/round.getPlayersToActionCount', (actions, e) => {
+    return  this.eventStream.project('app/round.getPlayersToActionCount', (actions, e) => {
         if (e instanceof events.RoundStarted) {
             actions = {};
             // Big and small blinds still need to "act" even though they have bet
@@ -173,7 +172,7 @@ RoundProjection.prototype.getPlayersToActionCount = function()
 
 RoundProjection.prototype.getActivePlayersToAmountsBet = function()
 {
-    return this.game.events.project('app/round.getActivePlayersToAmountsBet', (bets, e) => {
+    return  this.eventStream.project('app/round.getActivePlayersToAmountsBet', (bets, e) => {
         if (e instanceof events.RoundStarted) {
             bets = {};
         }
@@ -193,7 +192,7 @@ RoundProjection.prototype.getActivePlayersToAmountsBet = function()
 
 RoundProjection.prototype.getDealer = function()
 {
-    return this.game.events.project('app/round.getDealer', (dealer, e) => {
+    return  this.eventStream.project('app/round.getDealer', (dealer, e) => {
         if (e instanceof events.RoundStarted) {
             dealer = e.dealer;
         }
@@ -203,7 +202,7 @@ RoundProjection.prototype.getDealer = function()
 
 RoundProjection.prototype.getLastActivePlayer = function ()
 {
-    return this.game.events.project('app/round.getLastActivePlayer', (player, e) => {
+    return  this.eventStream.project('app/round.getLastActivePlayer', (player, e) => {
         if (e instanceof events.BetPlaced) {
             player = e.playerId;
         }
@@ -216,7 +215,7 @@ RoundProjection.prototype.getLastActivePlayer = function ()
 
 RoundProjection.prototype.getRoundStarted = function()
 {
-    return this.game.events.project('app/seats.getRoundStarted', (value, e) => {
+    return  this.eventStream.project('app/seats.getRoundStarted', (value, e) => {
         if (e instanceof events.RoundStarted) {
             value =  e;
         }
