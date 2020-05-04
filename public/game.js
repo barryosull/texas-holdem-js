@@ -625,8 +625,7 @@ Bootstrapper.boot = function()
 {
     var gameId = Controller.getGameId();
     if (!gameId) {
-        var uri = new Uri(window.location.href);
-        window.location.href = "/?gameId=" + uuidv4();
+        window.location.href = "/start.html";
         return;
     }
 
