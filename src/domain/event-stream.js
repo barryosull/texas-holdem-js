@@ -1,20 +1,11 @@
 
-const EventRepo = require('./event-repo');
-
 /**
- * @param eventRepo {EventRepo}
  * @param gameId {String}
  * @constructor
  */
-var EventStream = function(eventRepo, gameId)
+var EventStream = function(gameId)
 {
     this.gameId = gameId;
-    this.eventRepo = eventRepo || {
-        write: function(gameId, event){
-            console.log(gameId, event)
-        }
-    };
-
     this.events = [];
     this.projectionSnapshots = new ProjectionSnapshots();
 };
@@ -22,9 +13,6 @@ var EventStream = function(eventRepo, gameId)
 EventStream.prototype.push = function(...args)
 {
     this.events.push(...args);
-    for (var i = 0; i< arguments.length; i++) {
-        this.eventRepo.write(this.gameId, arguments[i]);
-    }
 };
 
 EventStream.prototype.project = function(name, reduceFunction, initial)

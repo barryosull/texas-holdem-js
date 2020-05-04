@@ -10,10 +10,7 @@ const ChipsQueryable = require('../src/application/chips-queryable');
 function makeGame()
 {
     let gameId = "c92a18ab-ad0c-4a60-958c-7146ead2cfa8";
-    let fakeEventRepo = {
-        write: function(gameId, event){}
-    };
-    let eventStream = new EventStream(fakeEventRepo, gameId);
+    let eventStream = new EventStream(gameId);
     return new Game(gameId, eventStream);
 }
 

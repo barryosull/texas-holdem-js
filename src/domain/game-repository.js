@@ -8,8 +8,12 @@ let GameRepository = {
 
 let eventRepo = new EventRepositoryFilesystem();
 
+/**
+ * @param game {Game}
+ */
 GameRepository.store = function(game)
 {
+    eventRepo.store(game.events);
     GameRepository.games[game.id] = game;
 };
 

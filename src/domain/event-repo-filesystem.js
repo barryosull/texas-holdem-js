@@ -10,7 +10,7 @@ const events = require('./events');
  */
 function EventRepositoryFilesystem()
 {
-
+    this.eventStreamToLength = {};
 }
 
 /**
@@ -24,7 +24,9 @@ EventRepositoryFilesystem.prototype.loadStream = function(gameId)
     try {
         log = fs.readFileSync(logPath, 'utf8');
     } catch(e) {
-        return new EventStream(this, gameId);
+        let stream = new EventStream(gameId);
+        this.eventStreamToLength[gameId] = stream.events.length;
+        return stream;
     }
 
     log = sanitizeInput(log);
@@ -34,8 +36,9 @@ EventRepositoryFilesystem.prototype.loadStream = function(gameId)
     let events = storedEvents.map(storedEvent => {
         return makeEventFromStoredEvent(storedEvent);
     });
-    let stream = new EventStream(this, gameId);
+    let stream = new EventStream(gameId);
     stream.events = events;
+    this.eventStreamToLength[gameId] = stream.events.length;
 
     return stream;
 };
@@ -74,6 +77,13 @@ EventRepositoryFilesystem.prototype.write = function(gameId, event)
     };
 
     fs.appendFileSync(logPath, JSON.stringify(storedEvent) + ",\n");
+};
+
+EventRepositoryFilesystem.prototype.store = function(eventStream)
+{
+    let oldStreamLength = this.eventStreamToLength[eventStream.gameId] || 0;
+    let events = eventStream.events.slice(oldStreamLength, eventStream.events.length);
+    events.forEach(event => this.write(eventStream.gameId, event));
 };
 
 EventRepositoryFilesystem.prototype.clear = function(gameId)

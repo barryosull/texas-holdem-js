@@ -17,6 +17,8 @@ describe('EventRepositoryFilesystem', () => {
         eventStream.push(new events.PlayerNamed(playerId, "Name"));
         eventStream.push(new events.PlayerNamed(playerId, "Name"));
 
+        eventRepo.store(eventStream);
+
         let eventStream2 = eventRepo.loadStream(gameId);
 
         assert.equal(eventStream2.events.length, 3);
