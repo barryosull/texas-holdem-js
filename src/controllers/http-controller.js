@@ -164,7 +164,7 @@ function isGameAdmin(controller, gameId, req)
     let socketId = req.header('Authorization').replace("Bearer ", "");
     let playerId = controller.socketMapper.getPlayerIdForSocket(socketId);
 
-    let seatsQueryable = new SeatsQueryable(game);
+    let seatsQueryable = new SeatsQueryable(game.events);
 
     return seatsQueryable.isAdmin(playerId);
 }
