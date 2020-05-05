@@ -57,9 +57,10 @@ $(function(){
     setInterval(function(){
         if (uiAdapter.isPlayersGo()) {
             var action = bot.chooseNextAction();
+
             uiAdapter.performAction(action);
         }
-    }, 1000);
+    }, 4000);
 
 });
 
