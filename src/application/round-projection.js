@@ -100,16 +100,16 @@ RoundProjection.prototype.getWinners = function()
 
 RoundProjection.prototype.getPlayersToBets = function(playerIds)
 {
-    let playersToBets = this.eventStream.project('app/round.getPlayerBet', (playersToBets, e) => {
-        if (e instanceof events.BettingRoundClosed) {
-            playersToBets = {};
-        }
-        if (e instanceof events.PotWon) {
+    let playersToBets = this.eventStream.project('app/round.getPlayersToBets', (playersToBets, e) => {
+        if (e instanceof events.RoundStarted) {
             playersToBets = {};
         }
         if (e instanceof events.BetPlaced) {
-            playersToBets[e.playerId] =  playersToBets[e.playerId] || 0;
+            playersToBets[e.playerId] = playersToBets[e.playerId] || 0;
             playersToBets[e.playerId] += e.amount;
+        }
+        if (e instanceof events.PotWon) {
+            playersToBets = {};
         }
         return playersToBets;
     }, {});

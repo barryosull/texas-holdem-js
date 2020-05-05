@@ -84,6 +84,7 @@ EventRepositoryFilesystem.prototype.store = function(eventStream)
     let oldStreamLength = this.eventStreamToLength[eventStream.gameId] || 0;
     let events = eventStream.events.slice(oldStreamLength, eventStream.events.length);
     events.forEach(event => this.write(eventStream.gameId, event));
+    this.eventStreamToLength[eventStream.gameId] = eventStream.events.length;
 };
 
 EventRepositoryFilesystem.prototype.clear = function(gameId)
