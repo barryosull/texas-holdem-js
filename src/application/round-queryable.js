@@ -69,7 +69,7 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
     }
 
     let activePlayers = this.projection.getPlayersActiveInRound();
-    let playersToAmountBet = this.projection.getPlayersToBets();
+    let playersToAmountBet = this.projection.getPlayersToBets(activePlayers);
 
     if (hasEveryoneActed(activePlayers, playersToActionCount)
         && (hasEveryoneBetTheSameAmount(playersToAmountBet) || numberOfPlayersWithChips === 0)) {

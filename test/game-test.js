@@ -282,9 +282,11 @@ describe('Game', () => {
         game.foldHand(playerB);
         game.placeBet(playerC, 0);
 
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        assert.equal(nextToAct, null, "All players (acted and bet same amount) or folded.");
         game.dealFlop();
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(playerC, nextToAct);
     });
 

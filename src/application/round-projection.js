@@ -98,9 +98,9 @@ RoundProjection.prototype.getWinners = function()
     }, []);
 };
 
-RoundProjection.prototype.getPlayersToBets = function()
+RoundProjection.prototype.getPlayersToBets = function(playerIds)
 {
-    return  this.eventStream.project('app/round.getPlayerBet', (playersToBets, e) => {
+    let playersToBets = this.eventStream.project('app/round.getPlayerBet', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
             playersToBets = {};
         }
@@ -112,6 +112,15 @@ RoundProjection.prototype.getPlayersToBets = function()
             playersToBets[e.playerId] += e.amount;
         }
         return playersToBets;
+    }, {});
+
+    if (!playerIds) {
+        return playersToBets;
+    }
+
+    return playerIds.reduce((reducedPlayersToBets, playerId) => {
+        reducedPlayersToBets[playerId] = playersToBets[playerId];
+        return reducedPlayersToBets;
     }, {});
 };
 
