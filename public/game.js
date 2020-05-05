@@ -727,7 +727,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
         'flopDealt': View.attachCommunityCards,
         'turnDealt': View.attachTurn,
         'riverDealt': View.attachRiver,
-        'playerFolded': Controller.foldPlayerHand,
+        'playerFolded': Controller.playerFolded,
         'betMade': Controller.betMade,
         'potTotal': View.potTotal,
         'playersTurn': Controller.playersTurn,

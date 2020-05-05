@@ -60,7 +60,7 @@ $(function(){
 
             uiAdapter.performAction(action);
         }
-    }, 4000);
+    }, 2000);
 
 });
 
