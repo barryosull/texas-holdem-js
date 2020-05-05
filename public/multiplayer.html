@@ -67,12 +67,14 @@ $(function(){
 
     $("#player").attr('src', gameUrl + "&playerId=" + playerId + '&playerName=' + playerName);
 
-    var playerIndex = 0;
-    $(".other-player").each(function(){
-        playerId = uuidv4();
-        playerName = "Player " + (playerIndex + 1);
-        $(this).attr('src', gameUrl +'&playerId=' + playerId + '&playerName=' + playerName);
-        ++playerIndex;
+    $("#player").ready(function (){
+        var playerIndex = 0;
+        $(".other-player").each(function(){
+            playerId = uuidv4();
+            playerName = "Player " + (playerIndex + 1);
+            $(this).attr('src', gameUrl +'&playerId=' + playerId + '&playerName=' + playerName + '&isBot=1');
+            ++playerIndex;
+        });
     });
 });
 

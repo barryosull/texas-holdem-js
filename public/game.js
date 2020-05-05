@@ -192,8 +192,8 @@ Controller.getPlayerName = function()
 
 Controller.getPlayerNameFromUrl = function()
 {
-    var url_string = window.location.href;
-    var url = new URL(url_string);
+    var urlString = window.location.href;
+    var url = new URL(urlString);
     return url.searchParams.get("playerName");
 };
 
