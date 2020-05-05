@@ -64,7 +64,7 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
     let playersToChipCount = this.projection.getPlayersToChips();
     let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
 
-    if (nobodyHasActed(playersToActionCount) && numberOfPlayersWithChips < 2) {
+    if (isStartOfBetting(playersToActionCount) && numberOfPlayersWithChips <= 1) {
         return null;
     }
 
@@ -141,7 +141,7 @@ function getNumberOfPlayersWithChips(playersToChipCount)
     return playersWithChips.length;
 }
 
-function nobodyHasActed(playersToActionCount)
+function isStartOfBetting(playersToActionCount)
 {
     return Object.values(playersToActionCount).reduce((value, actionCount) => {
         return value && actionCount === 0;

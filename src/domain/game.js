@@ -94,7 +94,7 @@ Game.prototype.startNewRound = function(deckSeed)
 Game.prototype.foldHand = function(playerId)
 {
     let roundProjection = new RoundProjection(this.events);
-
+    console.log('roundProjection.getPlayerHand(playerId)', roundProjection.getPlayerHand(playerId));
     if (!roundProjection.getPlayerHand(playerId)) {
         return;
     }

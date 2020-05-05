@@ -119,14 +119,14 @@ RoundProjection.prototype.getPlayersToBets = function(playerIds)
     }
 
     return playerIds.reduce((reducedPlayersToBets, playerId) => {
-        reducedPlayersToBets[playerId] = playersToBets[playerId];
+        reducedPlayersToBets[playerId] = playersToBets[playerId] || 0;
         return reducedPlayersToBets;
     }, {});
 };
 
 RoundProjection.prototype.getPlayersToChips = function()
 {
-    return  this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
+    return this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -140,7 +140,7 @@ RoundProjection.prototype.getPlayersToChips = function()
 
 RoundProjection.prototype.getPlayersActiveInRound = function()
 {
-    return  this.eventStream.project('app/round.getPlayersActiveInRound', (active, e) => {
+    return this.eventStream.project('app/round.getPlayersActiveInRound', (active, e) => {
         if (e instanceof events.RoundStarted) {
             active = [];
         }
