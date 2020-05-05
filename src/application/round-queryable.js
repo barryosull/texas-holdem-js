@@ -72,23 +72,20 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
 
 function noFurtherMovesCanBeMade(projection)
 {
+    let activePlayers = projection.getPlayersActiveInRound();
     let playersToActionCount = projection.getPlayersToActionCount();
-    let playersToChipCount = projection.getPlayersToChips();
-    let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
+    if (!hasEveryoneActed(activePlayers, playersToActionCount)) {
+        return false;
+    }
 
+    let playersToChipCount = projection.getPlayersToChips(activePlayers);
+    let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
     if (isStartOfBetting(playersToActionCount) && numberOfPlayersWithChips <= 1) {
         return true;
     }
 
-    let activePlayers = projection.getPlayersActiveInRound();
     let playersToAmountBet = projection.getPlayersToBets(activePlayers);
-
-    if (hasEveryoneActed(activePlayers, playersToActionCount)
-        && (hasEveryoneBetTheSameAmount(playersToAmountBet) || numberOfPlayersWithChips === 0)) {
-        return true;
-    }
-
-    return false;
+    return (everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount));
 }
 
 RoundQueryable.prototype.getAmountToPlay = function(playerId)
@@ -169,13 +166,15 @@ function hasEveryoneActed(activePlayers, playersToActionCount)
     return hasActionCountForEachPlayer && havePlayersActedOnce;
 }
 
-function hasEveryoneBetTheSameAmount(playersToAmountBet)
+function everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount)
 {
-    let amountsBet = Object.values(playersToAmountBet);
+    let maxBet = Math.max(...Object.values(playersToAmountBet));
 
-    return amountsBet.filter((bet, index) => {
-        return amountsBet.indexOf(bet) === index;
-    }).length === 1;
+    let playersThatCanBet = Object.keys(playersToAmountBet).filter(playerId => {
+        return playersToAmountBet[playerId] !== maxBet && playersToChipCount[playerId] !== 0;
+    });
+
+    return playersThatCanBet.length === 0;
 }
 
 function getPlayerToLeftOfPlayer(playerId, activePlayers)

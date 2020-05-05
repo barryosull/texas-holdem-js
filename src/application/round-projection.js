@@ -124,9 +124,9 @@ RoundProjection.prototype.getPlayersToBets = function(playerIds)
     }, {});
 };
 
-RoundProjection.prototype.getPlayersToChips = function()
+RoundProjection.prototype.getPlayersToChips = function(playerIds)
 {
-    return this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
+    let playersToChips = this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -135,6 +135,15 @@ RoundProjection.prototype.getPlayersToChips = function()
             playersToChips[e.playerId] -= e.amount;
         }
         return playersToChips;
+    }, {});
+
+    if (!playerIds) {
+        return playersToChips;
+    }
+
+    return playerIds.reduce((reducedPlayersToChips, playerId) => {
+        reducedPlayersToChips[playerId] = playersToChips[playerId] || 0;
+        return reducedPlayersToChips;
     }, {});
 };
 

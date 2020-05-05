@@ -423,7 +423,7 @@ describe('Game', () => {
 
         game.placeBet(playerA, 2000);
         game.placeBet(playerB, 980);
-        game.placeBet(playerC, 2000);
+        game.placeBet(playerC, 1960);
 
         let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
         assert.equal(nextToAct, null, "No other moves can be made, everyone has matched the bet");
