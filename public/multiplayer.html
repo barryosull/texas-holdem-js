@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Texas Hold'em Multiplayer Test App</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<style>
+
+body {
+    margin:0;
+}
+
+iframe {
+    border: none;
+    margin: 0;
+    padding: 0;
+
+}
+
+#player {
+    height: 75%;
+    width: 100%;
+    position: absolute;
+}
+
+#other-players {
+    position: absolute;
+    bottom: 0px;
+    height: 25%;
+    width: 100%;
+}
+
+.wrapper {
+    width: 25%;
+    height: 150px;
+    padding: 0;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.other-player {
+    border-width: 0;
+    margin:0;
+    padding:0;
+    width: 1000px;
+    height: 600px;
+    -ms-zoom: 0.25;
+    -moz-transform: scale(0.25);
+    -moz-transform-origin: 0 0;
+    -o-transform: scale(0.25);
+    -o-transform-origin: 0 0;
+    -webkit-transform: scale(0.25);
+    -webkit-transform-origin: 0 0;
+}
+
+</style>
+<script>
+
+$(function(){
+
+    var gameId = uuidv4();
+
+    var gameUrl = "/?gameId=" + gameId;
+
+    var playerId = uuidv4();
+    var playerName = "Main";
+
+    $("#player").attr('src', gameUrl + "&playerId=" + playerId + '&playerName=' + playerName);
+
+    var playerIndex = 0;
+    $(".other-player").each(function(){
+        playerId = uuidv4();
+        playerName = "Player " + (playerIndex + 1);
+        $(this).attr('src', gameUrl +'&playerId=' + playerId + '&playerName=' + playerName);
+        ++playerIndex;
+    });
+});
+
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+</script>
+</head>
+<body>
+<iframe id="player">
+
+</iframe>
+<div id="other-players">
+    <div class="wrapper">
+        <iframe class="other-player">
+
+        </iframe>
+    </div>
+    <div class="wrapper">
+        <iframe class="other-player">
+
+        </iframe>
+    </div>
+    <div class="wrapper">
+        <iframe class="other-player">
+
+        </iframe>
+    </div>
+    <div class="wrapper">
+        <iframe class="other-player">
+
+        </iframe>
+    </div>
+</div>
+</body>
+</html>

@@ -154,7 +154,7 @@ Controller.joinGame = function()
 {
     var isValidName = false;
     var wantsToChangeName = Controller.wantsToChangeName();
-    var playerName = Cookies.get('playerName');
+    var playerName = Controller.getPlayerName();
 
     while ((!playerName || wantsToChangeName) && !isValidName) {
         playerName = prompt("What is your screen name?");
@@ -185,7 +185,36 @@ Controller.replayNotifications = function(notificationList)
     }
 };
 
+Controller.getPlayerName = function()
+{
+    return Controller.getPlayerNameFromUrl() || Controller.getPlayerNameFromCookie();
+};
+
+Controller.getPlayerNameFromUrl = function()
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    return url.searchParams.get("playerName");
+};
+
+Controller.getPlayerNameFromCookie = function()
+{
+    return Cookies.get('playerName');
+};
+
 Controller.getPlayerId = function()
+{
+    return Controller.getPlayerIdFromUrl() || Controller.getPlayerIdFromCookie();
+};
+
+Controller.getPlayerIdFromUrl = function()
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    return url.searchParams.get("playerId");
+};
+
+Controller.getPlayerIdFromCookie = function()
 {
     return Cookies.get('playerId');
 };
@@ -218,8 +247,9 @@ Controller.wantsToChangeName = function()
 
 Controller.getGameId = function()
 {
-    var url_string = window.location.href;
-    var url = new URL(url_string);
+    var urlString = window.location.href;
+    var url = new URL(urlString);
+    console.log(url);
     return url.searchParams.get("gameId");
 };
 
