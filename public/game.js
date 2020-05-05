@@ -334,6 +334,18 @@ Controller.givePlayerChips = function()
     $('#chips-to-give').val('');
 };
 
+Controller.giveAllPlayerChips = function()
+{
+    var amount = parseInt($('#chips-to-give').val());
+
+    $('#player_ids option').each(function(){
+        var playerId = $(this).attr('value');
+        Game.giveChipsToPlayer(playerId, amount);
+    });
+
+    $('#chips-to-give').val('');
+};
+
 Controller.betMade = function(betMade)
 {
     View.unhighlightPlayerToAct();
@@ -693,6 +705,9 @@ Bootstrapper.attachHtmlEventListeners = function()
     });
     $("#give-chips").click(function(){
         Controller.givePlayerChips();
+    });
+    $("#give-all-chips").click(function(){
+        Controller.giveAllPlayerChips();
     });
     $('#bet').click(function(){
         Controller.placeBet();
