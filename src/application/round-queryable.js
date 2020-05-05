@@ -54,7 +54,7 @@ RoundQueryable.prototype.getWinners = function()
 
 RoundQueryable.prototype.getPlayerBet = function(playerId)
 {
-    let playersToBets = this.projection.getPlayersToBets();
+    let playersToBets = this.projection.getPlayersToBetsInBettingRound();
     return playersToBets[playerId] || 0;
 };
 
@@ -66,8 +66,13 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
 
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
     let activePlayers = this.projection.getPlayersActiveInRound();
+    let playersToChipCount = this.projection.getPlayersToChips(activePlayers);
 
-    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayers);
+    let activePlayersWithChips = activePlayers.filter(playerId => {
+        return playersToChipCount[playerId] !== 0;
+    });
+
+    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips);
 };
 
 function noFurtherMovesCanBeMade(projection)
@@ -84,7 +89,7 @@ function noFurtherMovesCanBeMade(projection)
         return true;
     }
 
-    let playersToAmountBet = projection.getPlayersToBets(activePlayers);
+    let playersToAmountBet = projection.getPlayersToBetsInBettingRound(activePlayers);
     return (everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount));
 }
 
@@ -124,7 +129,7 @@ RoundQueryable.prototype.getBigBlindPlayer = function()
 
 RoundQueryable.prototype.getPots = function()
 {
-    let playerBets = new PlayerBets(this.projection.getPlayersToBets());
+    let playerBets = new PlayerBets(this.projection.getPlayersToBetsInRound());
 
     let pots = [];
 
