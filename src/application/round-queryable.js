@@ -78,14 +78,19 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
 function noFurtherMovesCanBeMade(projection)
 {
     let activePlayers = projection.getPlayersActiveInRound();
+    let playersToChipCount = projection.getPlayersToChips(activePlayers);
+    let playersWithChips = getPlayersWithChips(playersToChipCount);
     let playersToActionCount = projection.getPlayersToActionCount();
-    if (!hasEveryoneActed(activePlayers, playersToActionCount)) {
+
+    let playersThatCanAct = activePlayers.filter(playerId => {
+        return playersWithChips.indexOf(playerId) !== -1;
+    });
+
+    if (!hasEveryoneActed(playersThatCanAct, playersToActionCount)) {
         return false;
     }
 
-    let playersToChipCount = projection.getPlayersToChips(activePlayers);
-    let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
-    if (isStartOfBetting(playersToActionCount) && numberOfPlayersWithChips <= 1) {
+    if (isStartOfBetting(playersToActionCount) && playersWithChips(playersToChipCount).length <= 1) {
         return true;
     }
 
@@ -144,13 +149,11 @@ RoundQueryable.prototype.getPots = function()
     return pots;
 };
 
-function getNumberOfPlayersWithChips(playersToChipCount)
+function getPlayersWithChips(playersToChipCount)
 {
-    let playersWithChips = Object.values(playersToChipCount).filter(chipAmount => {
-        return chipAmount > 0;
+    return Object.keys(playersToChipCount).filter(playerId => {
+        return playersToChipCount[playerId] > 0;
     });
-
-    return playersWithChips.length;
 }
 
 function isStartOfBetting(playersToActionCount)
@@ -162,10 +165,10 @@ function isStartOfBetting(playersToActionCount)
 
 function hasEveryoneActed(activePlayers, playersToActionCount)
 {
-    let hasActionCountForEachPlayer = Object.values(playersToActionCount).length === activePlayers.length;
+    let hasActionCountForEachPlayer = Object.values(playersToActionCount).length >= activePlayers.length;
 
-    let havePlayersActedOnce = Object.values(playersToActionCount).reduce((value, actionCount) => {
-        return value && actionCount > 0;
+    let havePlayersActedOnce = activePlayers.reduce((hasActed, playerId) => {
+        return hasActed && playersToActionCount[playerId] > 0;
     }, true);
 
     return hasActionCountForEachPlayer && havePlayersActedOnce;
