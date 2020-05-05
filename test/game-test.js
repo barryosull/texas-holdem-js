@@ -406,5 +406,27 @@ describe('Game', () => {
         // Player C wins pot 3
         assert.equal(chipsQueryable.getPlayerChips(playerC), 1000);
     });
+
+    it ('two players can be all while the chip leader simply matches the bet', () => {
+        let game = makeGame();
+        let playerA = 'a53e5f71-2dce-45ed-8639-13ad81804d7d'; // 2nd
+        let playerB = 'b9128c1e-f4aa-4009-b0f6-0d4822c28a65'; // 1st
+        let playerC = 'ce29bbb2-e76c-4cf6-8931-2e22be61f345'; // 3rd
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerA, 2000);
+        game.givePlayerChips(playerC, 3000);
+
+        game.startNewRound('test-seed');
+
+        game.placeBet(playerA, 2000);
+        game.placeBet(playerB, 980);
+        game.placeBet(playerC, 2000);
+
+        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        assert.equal(nextToAct, null, "No other moves can be made, everyone has matched the bet");
+    });
 });
 

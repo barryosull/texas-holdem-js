@@ -12,7 +12,7 @@ const assert = require('assert');
 
 describe('BrokenGame', () => {
 
-    it.only ('figures out why the game did nothing', () => {
+    it ('figures out why the game did nothing', () => {
         let gameId = '586993d2-1693-485d-b29a-0a3d6d0c6411';
 
         let parser = new LogParser();

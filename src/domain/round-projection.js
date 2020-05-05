@@ -51,7 +51,6 @@ RoundProjection.prototype.getPlayerHands = function(players)
  */
 RoundProjection.prototype.getPlayerHand = function(playerId)
 {
-    console.log('this.getActiveHands()', this.getActiveHands());
     return this.getActiveHands().filter(hand => {
         return hand.playerId === playerId;
     }).pop();

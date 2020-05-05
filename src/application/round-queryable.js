@@ -60,26 +60,36 @@ RoundQueryable.prototype.getPlayerBet = function(playerId)
 
 RoundQueryable.prototype.getNextPlayerToAct = function()
 {
-    let playersToActionCount = this.projection.getPlayersToActionCount();
-    let playersToChipCount = this.projection.getPlayersToChips();
-    let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
-
-    if (isStartOfBetting(playersToActionCount) && numberOfPlayersWithChips <= 1) {
-        return null;
-    }
-
-    let activePlayers = this.projection.getPlayersActiveInRound();
-    let playersToAmountBet = this.projection.getPlayersToBets(activePlayers);
-
-    if (hasEveryoneActed(activePlayers, playersToActionCount)
-        && (hasEveryoneBetTheSameAmount(playersToAmountBet) || numberOfPlayersWithChips === 0)) {
-        return null;
+    if (noFurtherMovesCanBeMade(this.projection)) {
+        return;
     }
 
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
+    let activePlayers = this.projection.getPlayersActiveInRound();
 
     return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayers);
 };
+
+function noFurtherMovesCanBeMade(projection)
+{
+    let playersToActionCount = projection.getPlayersToActionCount();
+    let playersToChipCount = projection.getPlayersToChips();
+    let numberOfPlayersWithChips = getNumberOfPlayersWithChips(playersToChipCount);
+
+    if (isStartOfBetting(playersToActionCount) && numberOfPlayersWithChips <= 1) {
+        return true;
+    }
+
+    let activePlayers = projection.getPlayersActiveInRound();
+    let playersToAmountBet = projection.getPlayersToBets(activePlayers);
+
+    if (hasEveryoneActed(activePlayers, playersToActionCount)
+        && (hasEveryoneBetTheSameAmount(playersToAmountBet) || numberOfPlayersWithChips === 0)) {
+        return true;
+    }
+
+    return false;
+}
 
 RoundQueryable.prototype.getAmountToPlay = function(playerId)
 {
