@@ -65,7 +65,6 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
     }
 
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
-
     let activePlayersWithChips = getActivePlayersWithChips(this.projection);
 
     return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips);
@@ -101,16 +100,10 @@ RoundQueryable.prototype.getAmountToPlay = function(playerId)
     if (!playerId) {
         return null;
     }
-    let bets = this.projection.getActivePlayersToAmountsBet();
+    let playersToBetsInBettingRound = this.projection.getPlayersToBetsInBettingRound();
 
-    let playersBet = bets[playerId] || 0;
-
-    let maxBet = Object.values(bets).reduce((maxBet, bet) => {
-        if (maxBet < bet) {
-            maxBet = bet;
-        }
-        return maxBet;
-    }, 0);
+    let playersBet = playersToBetsInBettingRound[playerId] || 0;
+    let maxBet = Math.max(...Object.values(playersToBetsInBettingRound));
 
     return maxBet - playersBet;
 };
@@ -132,7 +125,10 @@ RoundQueryable.prototype.getBigBlindPlayer = function()
 
 RoundQueryable.prototype.getPots = function()
 {
-    let playerBets = new PlayerBets(this.projection.getPlayersToBetsInRound());
+    let playerBets = new PlayerBets(
+        this.projection.getPlayersToBetsInRound(),
+        this.projection.getPlayersActiveInRound()
+    );
 
     let pots = [];
 
@@ -179,9 +175,10 @@ function getPlayerToLeftOfPlayer(playerId, activePlayers)
     return activePlayers[nextPlayerIndex];
 }
 
-function PlayerBets(playersToBets)
+function PlayerBets(playersToBets, activePlayers)
 {
     this.playersToBets = playersToBets;
+    this.activePlayers = activePlayers;
 }
 
 PlayerBets.prototype.hasBets = function()
@@ -191,7 +188,15 @@ PlayerBets.prototype.hasBets = function()
 
 PlayerBets.prototype.getMinBet = function()
 {
-    return Object.values(this.playersToBets).reduce((min, amount) => {
+    let activePlayers = this.activePlayers;
+    let activePlayerBets = Object.keys(this.playersToBets).reduce((activePlayerBets, playerId) => {
+        if (activePlayers.indexOf(playerId) !== -1) {
+            activePlayerBets[playerId] = this.playersToBets[playerId];
+        }
+        return activePlayerBets;
+    }, {});
+
+    return Object.values(activePlayerBets).reduce((min, amount) => {
         min = (min !== null && min < amount) ? min : amount;
         return min;
     }, null);
@@ -202,14 +207,14 @@ PlayerBets.prototype.reduceBetsByMinBet = function()
     let minBet = this.getMinBet();
 
     let playersToBets = Object.keys(this.playersToBets).reduce((nextPotPlayersToBets, playerId) => {
-        nextPotPlayersToBets[playerId] = this.playersToBets[playerId] - minBet;
+        nextPotPlayersToBets[playerId] = Math.max(this.playersToBets[playerId] - minBet, 0);
         if (nextPotPlayersToBets[playerId] === 0) {
             delete nextPotPlayersToBets[playerId];
         }
         return nextPotPlayersToBets;
     }, {});
 
-    return new PlayerBets(playersToBets);
+    return new PlayerBets(playersToBets, this.activePlayers);
 };
 
 PlayerBets.prototype.makePotFromMinAmountBet = function()
