@@ -199,10 +199,13 @@
 [x] Announce multiple winners in pot
 [x] Game breaks if a bankrupted player is given chips again
     - Fixed, removed bankrupted card event
+[x] Pass event stream to queryable/projections rather than game
 
 ## Todo:
 [ ] Show hand titles
-[ ] Pass event stream to queryable/projections rather than game
+[x] Look into bug with game-92ebb9e6-2101-4ff5-a4d4-f6e13be314cb.json
+    - Allowed a player to "check" instead of bet all in and picked the wrong player as next act (a4a1d198-e6ef-4119-9bff-33d95e985b7a)
+    - ac2aad15-bd6f-4a32-ba7c-93c24c6961ec should not have been able to "check" as they had chips (according to the UI)
 
 
 

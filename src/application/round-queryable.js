@@ -65,9 +65,10 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
     }
 
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
+    let activeInRoundPlayers = this.projection.getPlayersActiveInRound();
     let activePlayersWithChips = getActivePlayersWithChips(this.projection);
 
-    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips);
+    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips, activeInRoundPlayers);
 };
 
 function noFurtherActionsCanBeMade(projection)
@@ -168,11 +169,14 @@ function everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount)
     return playersThatCanBet.length === 0;
 }
 
-function getPlayerToLeftOfPlayer(playerId, activePlayers)
+function getPlayerToLeftOfPlayer(previousPlayerId, activePlayersWithChips, activeInRoundPlayers)
 {
-    let currPlayerIndex = activePlayers.indexOf(playerId);
-    let nextPlayerIndex = ((currPlayerIndex + 1) % activePlayers.length);
-    return activePlayers[nextPlayerIndex];
+    let playerList = activeInRoundPlayers.filter(playerId => {
+        return activePlayersWithChips.indexOf(playerId) !== -1 || playerId === previousPlayerId;
+    });
+    let currPlayerIndex = playerList.indexOf(previousPlayerId);
+    let nextPlayerIndex = ((currPlayerIndex + 1) % playerList.length);
+    return playerList[nextPlayerIndex];
 }
 
 function PlayerBets(playersToBets, activePlayers)
