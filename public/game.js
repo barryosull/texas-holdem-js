@@ -347,7 +347,7 @@ Controller.playersTurn = function(playersTurn)
 {
     if (playersTurn.playerId === Controller.playerId) {
         View.enableFoldButton();
-        View.enableBetting(playersTurn.amountToPlay);
+        View.enableBetting(playersTurn.amountToPlay, playersTurn.minBet);
     } else {
         View.disableFoldButton();
         View.disableBetting();
@@ -678,13 +678,19 @@ View.disableBetting = function() {
     View.disableFoldButton();
 };
 
-View.enableBetting = function(minAmount)
+View.enableBetting = function(minAmount, minBet)
 {
     var $amount = $('#amount');
     $amount.attr('min', minAmount);
 
-    if (minAmount > 0 && $amount.val() === "") {
-        $('#amount').val(minAmount);
+    if (minAmount === 0) {
+        $('#bet').text('Raise');
+        $amount.val(minBet);
+    } else {
+        $('#bet').text('Bet');
+        if ($amount.val() === "") {
+            $('#amount').val(minAmount);
+        }
     }
 
     $('#bet').removeAttr('disabled');

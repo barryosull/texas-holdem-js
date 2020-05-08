@@ -23,4 +23,14 @@ ChipsProjection.prototype.getPlayersToChips = function()
     }, {});
 };
 
+ChipsProjection.prototype.getSmallBlind = function()
+{
+    return this.eventStream.project('app/chips.getSmallBlind', (amount, e) => {
+        if (e instanceof events.SmallBlindSet) {
+            amount = e.amount;
+        }
+        return amount;
+    }, 20);
+};
+
 module.exports = ChipsProjection;

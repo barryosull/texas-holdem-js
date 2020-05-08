@@ -29,4 +29,9 @@ ChipsQueryable.prototype.getNumberOfPlayersWithChips = function()
     }).length;
 };
 
+ChipsQueryable.prototype.getSmallBlind = function()
+{
+    return this.projection.getSmallBlind();
+};
+
 module.exports = ChipsQueryable;

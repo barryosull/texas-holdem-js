@@ -369,12 +369,13 @@ function createNextPlayersTurnNotification(game, nextPlayerToAct)
     let chipsQueryable = new ChipsQueryable(game.events);
 
     let amountToPlay = roundQueryable.getAmountToPlay(nextPlayerToAct);
+    let minBet = chipsQueryable.getSmallBlind() * 2;
 
     let playerChips = chipsQueryable.getPlayerChips(nextPlayerToAct);
 
     amountToPlay = Math.min(playerChips, amountToPlay);
 
-    return new notifications.PlayersTurn(nextPlayerToAct, amountToPlay);
+    return new notifications.PlayersTurn(nextPlayerToAct, amountToPlay, minBet);
 }
 
 module.exports = UseCases;

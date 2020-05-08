@@ -69,10 +69,11 @@ function PotTotal(pots)
     this.pots = pots;
 }
 
-function PlayersTurn(playerId, amountToPlay)
+function PlayersTurn(playerId, amountToPlay, minBet)
 {
     this.playerId = playerId;
     this.amountToPlay = amountToPlay;
+    this.minBet = minBet;
 }
 
 function WinningHand(hand)
