@@ -157,6 +157,20 @@ Controller.placeBet = function()
         return;
     }
     Game.makeBet(Controller.playerId, amount);
+    View.resetAmount();
+    View.disableBetting();
+    View.disableFoldButton();
+};
+
+Controller.check = function()
+{
+    var $amount = $('#amount');
+    var minAmount = parseInt($amount.attr('min'));
+    if (minAmount !== 0) {
+        alert("Can't check, min amount is "+minAmount);
+        return;
+    }
+    Game.makeBet(Controller.playerId, 0);
     $amount.val('');
     View.disableBetting();
     View.disableFoldButton();
@@ -612,6 +626,12 @@ View.showBet = function(bet)
     $seat.append('<div class="chips bet">' + betTotal + '</div>')
 };
 
+View.clearBet = function(playerId)
+{
+    var $seat = $('#player-' + playerId).parent('.seat');
+    $seat.find('.bet').remove();
+};
+
 View.updatePlayerStack = function(playerId, chips)
 {
     var $seat = $('#player-' + playerId).parent('.seat');
@@ -654,16 +674,32 @@ View.unhighlightPlayerToAct = function()
 
 View.disableBetting = function() {
     $('#bet').attr('disabled', 'disabled');
+    $('#check').attr('disabled', 'disabled');
+    View.disableFoldButton();
 };
 
 View.enableBetting = function(minAmount)
 {
-    $('#amount').attr('min', minAmount);
-    if (minAmount > 0) {
+    var $amount = $('#amount');
+    $amount.attr('min', minAmount);
+
+    if (minAmount > 0 && $amount.val() === "") {
         $('#amount').val(minAmount);
     }
 
     $('#bet').removeAttr('disabled');
+
+    if (minAmount === 0) {
+        $('#check').removeAttr('disabled');
+    } else {
+        $('#check').attr('disabled', 'disabled');
+    }
+};
+
+View.resetAmount = function()
+{
+    var $amount = $('#amount');
+    $amount.val('');
 };
 
 View.existingSession = function()
@@ -726,6 +762,9 @@ Bootstrapper.attachHtmlEventListeners = function()
     });
     $('#bet').click(function(){
         Controller.placeBet();
+    });
+    $('#check').click(function(){
+        Controller.check();
     });
 };
 
