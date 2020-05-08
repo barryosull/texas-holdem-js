@@ -1,31 +1,37 @@
 
 const Game = require('./game');
+const EventRepository = require('./event-repo');
 const EventRepositoryFilesystem = require('./event-repo-filesystem');
 
-let GameRepository = {
-    games: []
-};
+let cachedGames = [];
 
-let eventRepo = new EventRepositoryFilesystem();
+/**
+ * @param eventRepo {EventRepository|null}
+ * @constructor
+ */
+function GameRepository(eventRepo)
+{
+    this.eventRepo = eventRepo || new EventRepositoryFilesystem();
+}
 
 /**
  * @param game {Game}
  */
-GameRepository.store = function(game)
+GameRepository.prototype.store = function(game)
 {
-    eventRepo.store(game.events);
-    GameRepository.games[game.id] = game;
+    this.eventRepo.store(game.events);
+    cachedGames[game.id] = game;
 };
 
 /**
  * @param gameId {String}
  * @returns {Game}
  */
-GameRepository.fetchOrCreate = function(gameId)
+GameRepository.prototype.fetchOrCreate = function(gameId)
 {
-    let game = GameRepository.games[gameId];
+    let game = cachedGames[gameId];
     if (!game) {
-        let eventStream = eventRepo.loadStream(gameId);
+        let eventStream = this.eventRepo.loadStream(gameId);
         game = new Game(gameId, eventStream);
         GameRepository.store(game);
     }
@@ -35,11 +41,11 @@ GameRepository.fetchOrCreate = function(gameId)
 /**
  * @param gameId {string}
  */
-GameRepository.remove = function (gameId)
+GameRepository.prototype.remove = function (gameId)
 {
     console.log("Removing game + " + gameId);
-    delete GameRepository.games[gameId];
-    eventRepo.clear(gameId);
+    delete cachedGames[gameId];
+    this.eventRepo.clear(gameId);
 };
 
 module.exports = GameRepository;

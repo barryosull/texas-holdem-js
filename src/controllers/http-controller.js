@@ -5,6 +5,8 @@ const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const UseCases = require('../application/use-cases');
 
+let gameRepo = new GameRepo();
+
 /**
  * @param notifier {Notifier}
  * @param socketMapper {SocketMapper}
@@ -159,7 +161,7 @@ HttpController.prototype.foldHand = function(req, res)
 
 function isGameAdmin(controller, gameId, req)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = (new GameRepo()).fetchOrCreate(gameId);
 
     let socketId = req.header('Authorization').replace("Bearer ", "");
     let playerId = controller.socketMapper.getPlayerIdForSocket(socketId);

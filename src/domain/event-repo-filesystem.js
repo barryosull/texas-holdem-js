@@ -6,10 +6,12 @@ const events = require('./events');
 
 /**
  * @extends {EventRepo}
+ * @param rootFolderPath {String}
  * @constructor
  */
-function EventRepositoryFilesystem()
+function EventRepositoryFilesystem(rootFolderPath)
 {
+    this.rootFolderPath = rootFolderPath || __dirname + '/../../logs';
     this.eventStreamToLength = {};
 }
 
@@ -19,7 +21,7 @@ function EventRepositoryFilesystem()
  */
 EventRepositoryFilesystem.prototype.loadStream = function(gameId)
 {
-    let logPath = getLogPath(gameId);
+    let logPath = getLogPath(gameId, this.rootFolderPath);
     let log = null;
     try {
         log = fs.readFileSync(logPath, 'utf8');
@@ -46,8 +48,8 @@ EventRepositoryFilesystem.prototype.loadStream = function(gameId)
 function sanitizeInput(log)
 {
     let removedLastCharacter = log.slice(0, log.length-2);
-    let suuroundWithBrackets = "[" + removedLastCharacter + "]";
-    return suuroundWithBrackets;
+    let surroundWithBrackets = "[" + removedLastCharacter + "]";
+    return surroundWithBrackets;
 }
 
 function makeEventFromStoredEvent(storedEvent)
@@ -62,14 +64,14 @@ function makeEventFromStoredEvent(storedEvent)
     return event;
 }
 
-function getLogPath(gameId)
+function getLogPath(gameId, rootFolderPath)
 {
-    return __dirname + '/../../logs/game-' + gameId + '.json';
+    return rootFolderPath + '/game-' + gameId + '.json';
 }
 
 EventRepositoryFilesystem.prototype.write = function(gameId, event)
 {
-    let logPath = getLogPath(gameId);
+    let logPath = getLogPath(gameId, this.rootFolderPath);
 
     let storedEvent = {
         type: event.constructor.name,
@@ -89,7 +91,7 @@ EventRepositoryFilesystem.prototype.store = function(eventStream)
 
 EventRepositoryFilesystem.prototype.clear = function(gameId)
 {
-    let logPath = getLogPath(gameId);
+    let logPath = getLogPath(gameId, this.rootFolderPath);
     try {
         fs.unlinkSync(logPath);
     } catch (e) {

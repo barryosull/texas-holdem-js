@@ -2,6 +2,8 @@
 var GameRepo = require('../domain/game-repository');
 var SocketMapper = require('./socket-mapper');
 
+let gameRepo = new GameRepo();
+
 /**
  * @param socketMapper {SocketMapper}
  */
@@ -19,7 +21,7 @@ SocketController.prototype.playerDisconnected = function(socket)
     this.socketMapper.disassociate(socketId);
 
     if (this.socketMapper.isGameEmpty(gameId)) {
-        GameRepo.remove(gameId);
+        gameRepo.remove(gameId);
     }
 };
 

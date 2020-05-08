@@ -8,6 +8,8 @@ const notifications = require('./notifications');
 
 const SEAT_COUNT = 8;
 
+let gameRepo = new GameRepo();
+
 function UseCases(notifier, socketMapper)
 {
     this.notifier = notifier;
@@ -21,9 +23,9 @@ UseCases.prototype.existingPlayer = function(gameId, playerId, socketId)
 
 UseCases.prototype.joinGame = function(gameId, playerId, playerName)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.addPlayer(playerId, playerName);
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let seatsQueryable = new SeatsQueryable(game.events);
 
@@ -36,10 +38,10 @@ UseCases.prototype.joinGame = function(gameId, playerId, playerName)
 
 UseCases.prototype.dealCards = function(gameId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     this.removeDisconnectedPlayers(this, game);
     game.startNewRound();
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let roundQueryable = new RoundQueryable(game.events);
 
@@ -83,9 +85,9 @@ UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
 
 UseCases.prototype.dealFlop = function(gameId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.dealFlop();
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let roundQueryable = new RoundQueryable(game.events);
 
@@ -118,9 +120,9 @@ function makePotTotalNotification(game)
 
 UseCases.prototype.dealTurn = function(gameId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.dealTurn();
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let roundQueryable = new RoundQueryable(game.events);
 
@@ -140,9 +142,9 @@ UseCases.prototype.dealTurn = function(gameId)
 
 UseCases.prototype.dealRiver = function(gameId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.dealRiver();
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let roundQueryable = new RoundQueryable(game.events);
 
@@ -162,9 +164,9 @@ UseCases.prototype.dealRiver = function(gameId)
 
 UseCases.prototype.finish = function(gameId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.finish();
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let seatProjection = new SeatsQueryable(game.events);
     let roundQueryable = new RoundQueryable(game.events);
@@ -190,9 +192,9 @@ UseCases.prototype.finish = function(gameId)
 
 UseCases.prototype.placeBet = function(gameId, playerId, amount)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.placeBet(playerId, amount);
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let notification = createBetMadeNotification(game, playerId);
     this.notifier.broadcast(game.id, notification);
@@ -210,9 +212,9 @@ UseCases.prototype.placeBet = function(gameId, playerId, amount)
 
 UseCases.prototype.foldHand = function(gameId, playerId)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.foldHand(playerId);
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
 
@@ -247,9 +249,9 @@ UseCases.prototype.foldHand = function(gameId, playerId)
 
 UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
 {
-    let game = GameRepo.fetchOrCreate(gameId);
+    let game = gameRepo.fetchOrCreate(gameId);
     game.givePlayerChips(playerId, amount);
-    GameRepo.store(game);
+    gameRepo.store(game);
 
     let playerChips = (new ChipsQueryable(game.events)).getPlayerChips(playerId);
     this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
