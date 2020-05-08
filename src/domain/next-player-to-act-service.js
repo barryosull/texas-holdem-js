@@ -3,54 +3,51 @@ let NextPlayerToActService = {};
 
 NextPlayerToActService.selectPlayer = function(
     lastPlayerToAct,
-    playersWithChips,
+    playersInRound,
+    playersThatFolded,
     playersToActionCount,
-    activeInRoundPlayers,
     playersToChipCount,
     playersToAmountBet
 )
 {
-    let indexOfLastPlayer = activeInRoundPlayers.indexOf(lastPlayerToAct);
+    let indexOfLastPlayerToAct = playersInRound.indexOf(lastPlayerToAct);
 
     let queryable = new CanPlayerActQueryable(
-        playersWithChips,
+        playersThatFolded,
         playersToActionCount,
-        activeInRoundPlayers,
         playersToChipCount,
         playersToAmountBet
     );
 
-    for (let i = 0; i < activeInRoundPlayers.length; i++) {
+    for (let i = 0; i < playersInRound.length; i++) {
 
-        let offset = (i + indexOfLastPlayer + 1) % activeInRoundPlayers.length;
-        if (queryable.canPlayerAct(activeInRoundPlayers[offset])) {
-            return activeInRoundPlayers[offset];
+        let offset = (i + indexOfLastPlayerToAct + 1) % playersInRound.length;
+        if (queryable.canPlayerAct(playersInRound[offset])) {
+            return playersInRound[offset];
         }
     }
     return;
 };
 
 function CanPlayerActQueryable(
-    playersWithChips,
+    playersThatFolded,
     playersToActionCount,
-    activeInRoundPlayers,
     playersToChipCount,
     playersToAmountBet
 )
 {
+    this.playersThatFolded = playersThatFolded;
     this.playersToActionCount = playersToActionCount;
-    this.activeInRoundPlayers = activeInRoundPlayers;
     this.playersToChipCount = playersToChipCount;
     this.playersToAmountBet = playersToAmountBet;
 }
 
 CanPlayerActQueryable.prototype.canPlayerAct = function(playerId)
 {
-    if (!this.doesPlayerHaveChips(playerId)) {
+    if (this.hasPlayerFolded(playerId)) {
         return false;
     }
-
-    if (this.hasPlayerFolded(playerId)) {
+    if (!this.doesPlayerHaveChips(playerId)) {
         return false;
     }
 
@@ -65,14 +62,14 @@ CanPlayerActQueryable.prototype.canPlayerAct = function(playerId)
     return true;
 };
 
+CanPlayerActQueryable.prototype.hasPlayerFolded = function(playerId)
+{
+    return this.playersThatFolded.indexOf(playerId) !== -1;
+};
+
 CanPlayerActQueryable.prototype.doesPlayerHaveChips = function(playerId)
 {
     return this.playersToChipCount[playerId] !== undefined && this.playersToChipCount[playerId] > 0;
-};
-
-CanPlayerActQueryable.prototype.hasPlayerFolded = function(playerId)
-{
-    return this.activeInRoundPlayers.indexOf(playerId) === -1;
 };
 
 CanPlayerActQueryable.prototype.hasBetMinAmountToPlay = function(playerId)

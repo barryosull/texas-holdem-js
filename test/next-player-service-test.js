@@ -11,21 +11,20 @@ describe('Select the next player to act', () => {
         let player3 = 'player-3';
         let player4 = 'player-4';
 
-        let playersWithChips = [
+        let playersInRound = [
             player1,
             player2,
             player3,
+        ];
+
+        let playersThatFolded = [
+            player2
         ];
 
         let playersToActionCount = {};
         playersToActionCount[player1] = 1;
         playersToActionCount[player2] = 1;
         playersToActionCount[player3] = 1;
-
-        let activeInRoundPlayers = [
-            player1,
-            player3,
-        ];
 
         let playersToChipCount = {};
         playersToChipCount[player1] = 1000;
@@ -40,9 +39,9 @@ describe('Select the next player to act', () => {
 
         let nextPlayer = NextPlayerToActService.selectPlayer(
             lastPlayerToAct,
-            playersWithChips,
+            playersInRound,
+            playersThatFolded,
             playersToActionCount,
-            activeInRoundPlayers,
             playersToChipCount,
             playersToAmountBet
         );

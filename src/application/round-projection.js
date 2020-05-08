@@ -98,9 +98,9 @@ RoundProjection.prototype.getWinners = function()
     }, []);
 };
 
-RoundProjection.prototype.getPlayersToBetsInRound = function(playerIds)
+RoundProjection.prototype.getPlayersToBetsInRound = function()
 {
-    let playersToBets = this.eventStream.project('app/round.getPlayersToBetsInRound', (playersToBets, e) => {
+    return this.eventStream.project('app/round.getPlayersToBetsInRound', (playersToBets, e) => {
         if (e instanceof events.RoundStarted) {
             playersToBets = {};
         }
@@ -112,15 +112,6 @@ RoundProjection.prototype.getPlayersToBetsInRound = function(playerIds)
             playersToBets = {};
         }
         return playersToBets;
-    }, {});
-
-    if (!playerIds) {
-        return playersToBets;
-    }
-
-    return playerIds.reduce((reducedPlayersToBets, playerId) => {
-        reducedPlayersToBets[playerId] = playersToBets[playerId] || 0;
-        return reducedPlayersToBets;
     }, {});
 };
 
@@ -147,9 +138,9 @@ RoundProjection.prototype.getPlayersToBetsInBettingRound = function(playerIds)
     }, {});
 };
 
-RoundProjection.prototype.getPlayersToChips = function(playerIds)
+RoundProjection.prototype.getPlayersToChips = function()
 {
-    let playersToChips = this.eventStream.project('app/round.getPlayerChips', (playersToChips, e) => {
+    return this.eventStream.project('app/round.getPlayersToChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -159,32 +150,31 @@ RoundProjection.prototype.getPlayersToChips = function(playerIds)
         }
         return playersToChips;
     }, {});
-
-    if (!playerIds) {
-        return playersToChips;
-    }
-
-    return playerIds.reduce((reducedPlayersToChips, playerId) => {
-        reducedPlayersToChips[playerId] = playersToChips[playerId] || 0;
-        return reducedPlayersToChips;
-    }, {});
 };
 
-RoundProjection.prototype.getPlayersActiveInRound = function()
+RoundProjection.prototype.getPlayersPlayingInRound = function()
 {
-    return this.eventStream.project('app/round.getPlayersActiveInRound', (active, e) => {
+    return this.eventStream.project('app/round.getPlayersPlayingInRound', (active, e) => {
         if (e instanceof events.RoundStarted) {
             active = [];
         }
         if (e instanceof events.HandDealt) {
             active.push(e.playerId);
         }
-        if (e instanceof events.HandFolded) {
-            active = active.filter(playerId => {
-                return playerId !== e.playerId;
-            });
-        }
         return active;
+    }, []);
+};
+
+RoundProjection.prototype.getPlayersThatFolded = function()
+{
+    return this.eventStream.project('app/round.getPlayersThatFolded', (folded, e) => {
+        if (e instanceof events.RoundStarted) {
+            folded = [];
+        }
+        if (e instanceof events.HandFolded) {
+            folded.push(e.playerId);
+        }
+        return folded;
     }, []);
 };
 
@@ -198,7 +188,8 @@ RoundProjection.prototype.getPlayersToActionCount = function()
             actions[e.bigBlind] = -1;
         }
         if (e instanceof events.HandFolded) {
-            delete actions[e.playerId];
+            actions[e.playerId] = actions[e.playerId] || 0;
+            ++actions[e.playerId];
         }
         if (e instanceof events.BetPlaced) {
             actions[e.playerId] = actions[e.playerId] || 0;

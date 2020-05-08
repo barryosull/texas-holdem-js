@@ -62,32 +62,21 @@ RoundQueryable.prototype.getPlayerBet = function(playerId)
 RoundQueryable.prototype.getNextPlayerToAct = function()
 {
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
-    let activePlayersWithChips = getActivePlayersWithChips(this.projection);
+    let playersInRound = this.projection.getPlayersPlayingInRound();
+    let playersThatFolded = this.projection.getPlayersThatFolded();
     let playersToActionCount = this.projection.getPlayersToActionCount();
-    let activeInRoundPlayers = this.projection.getPlayersActiveInRound();
-    let playersToChipCount = this.projection.getPlayersToChips(activeInRoundPlayers);
-    let playersToAmountBet = this.projection.getPlayersToBetsInRound(activeInRoundPlayers);
+    let playersToChipCount = this.projection.getPlayersToChips();
+    let playersToAmountBet = this.projection.getPlayersToBetsInRound();
 
     return NextPlayerToActService.selectPlayer(
         lastActivePlayer,
-        activePlayersWithChips,
+        playersInRound,
+        playersThatFolded,
         playersToActionCount,
-        activeInRoundPlayers,
         playersToChipCount,
         playersToAmountBet
     );
 };
-
-function getActivePlayersWithChips(projection)
-{
-    let activePlayers = projection.getPlayersActiveInRound();
-    let playersToChipCount = projection.getPlayersToChips(activePlayers);
-    let playersWithChips = getPlayersWithChips(playersToChipCount);
-
-    return activePlayers.filter(playerId => {
-        return playersWithChips.indexOf(playerId) !== -1;
-    });
-}
 
 RoundQueryable.prototype.getAmountToPlay = function(playerId)
 {
@@ -121,7 +110,7 @@ RoundQueryable.prototype.getPots = function()
 {
     let playerBets = new PlayerBets(
         this.projection.getPlayersToBetsInRound(),
-        this.projection.getPlayersActiveInRound()
+        this.projection.getPlayersThatFolded()
     );
 
     let pots = [];
@@ -137,17 +126,10 @@ RoundQueryable.prototype.getPots = function()
     return pots;
 };
 
-function getPlayersWithChips(playersToChipCount)
-{
-    return Object.keys(playersToChipCount).filter(playerId => {
-        return playersToChipCount[playerId] > 0;
-    });
-}
-
-function PlayerBets(playersToBets, activePlayers)
+function PlayerBets(playersToBets, playerThatFolded)
 {
     this.playersToBets = playersToBets;
-    this.activePlayers = activePlayers;
+    this.playerThatFolded = playerThatFolded;
 }
 
 PlayerBets.prototype.hasBets = function()
@@ -157,9 +139,9 @@ PlayerBets.prototype.hasBets = function()
 
 PlayerBets.prototype.getMinBet = function()
 {
-    let activePlayers = this.activePlayers;
+    let playerThatFolded = this.playerThatFolded;
     let activePlayerBets = Object.keys(this.playersToBets).reduce((activePlayerBets, playerId) => {
-        if (activePlayers.indexOf(playerId) !== -1) {
+        if (playerThatFolded.indexOf(playerId) === -1) {
             activePlayerBets[playerId] = this.playersToBets[playerId];
         }
         return activePlayerBets;
@@ -183,7 +165,7 @@ PlayerBets.prototype.reduceBetsByMinBet = function()
         return nextPotPlayersToBets;
     }, {});
 
-    return new PlayerBets(playersToBets, this.activePlayers);
+    return new PlayerBets(playersToBets, this.playerThatFolded);
 };
 
 PlayerBets.prototype.makePotFromMinAmountBet = function()
