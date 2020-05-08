@@ -10,58 +10,6 @@ NextPlayerToActService.selectPlayer = function(
     playersToAmountBet
 )
 {
-    if (noFurtherActionsCanBeMade(playersWithChips, playersToActionCount, playersToChipCount, playersToAmountBet)) {
-        return;
-    }
-
-    return getPlayerToLeftOfPlayer(lastPlayerToAct, playersWithChips, activeInRoundPlayers);
-};
-
-function noFurtherActionsCanBeMade(playersWithChips, playersToActionCount, playersToChipCount, playersToAmountBet)
-{
-    if (waitingForPlayerToAct(playersWithChips, playersToActionCount)) {
-        return false;
-    }
-    return (everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount));
-}
-
-function getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips, activeInRoundPlayers)
-{
-    let playerList = activeInRoundPlayers.filter(playerId => {
-        return activePlayersWithChips.indexOf(playerId) !== -1 || playerId === lastActivePlayer;
-    });
-    let currPlayerIndex = playerList.indexOf(lastActivePlayer);
-    let nextPlayerIndex = ((currPlayerIndex + 1) % playerList.length);
-    return playerList[nextPlayerIndex];
-}
-
-function waitingForPlayerToAct(activePlayers, playersToActionCount)
-{
-    return !activePlayers.reduce((hasActed, playerId) => {
-        return hasActed && playersToActionCount[playerId] > 0;
-    }, true);
-}
-
-function everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount)
-{
-    let maxBet = Math.max(...Object.values(playersToAmountBet));
-
-    let playersThatCanBet = Object.keys(playersToAmountBet).filter(playerId => {
-        return playersToAmountBet[playerId] !== maxBet && playersToChipCount[playerId] !== 0;
-    });
-
-    return playersThatCanBet.length === 0;
-}
-
-NextPlayerToActService.selectPlayerImproved = function(
-    lastPlayerToAct,
-    playersWithChips,
-    playersToActionCount,
-    activeInRoundPlayers,
-    playersToChipCount,
-    playersToAmountBet
-)
-{
     let indexOfLastPlayer = activeInRoundPlayers.indexOf(lastPlayerToAct);
 
     let queryable = new CanPlayerActQueryable(
@@ -73,6 +21,7 @@ NextPlayerToActService.selectPlayerImproved = function(
     );
 
     for (let i = 0; i < activeInRoundPlayers.length; i++) {
+
         let offset = (i + indexOfLastPlayer + 1) % activeInRoundPlayers.length;
         if (queryable.canPlayerAct(activeInRoundPlayers[offset])) {
             return activeInRoundPlayers[offset];
@@ -105,11 +54,11 @@ CanPlayerActQueryable.prototype.canPlayerAct = function(playerId)
         return false;
     }
 
-    if (this.hasBetMinAmountToPlay(playerId)) {
-        return false;
+    if (!this.hasActedOnce(playerId)) {
+        return true;
     }
 
-    if (!this.hasActedOnce(playerId)) {
+    if (this.hasBetMinAmountToPlay(playerId)) {
         return false;
     }
 

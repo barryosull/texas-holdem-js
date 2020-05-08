@@ -247,6 +247,9 @@ RoundProjection.prototype.getLastActivePlayer = function ()
         if (e instanceof events.BetPlaced) {
             player = e.playerId;
         }
+        if (e instanceof events.HandFolded) {
+            player = e.playerId;
+        }
         if (e instanceof events.BettingRoundClosed) {
             player = null;
         }
