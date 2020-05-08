@@ -147,6 +147,24 @@ Controller.foldHand = function()
     View.disableFoldButton();
 };
 
+Controller.foldPlayerHand = function()
+{
+    var playerId = $('#player_ids').val();
+    if (playerId === "" || playerId === "all"){
+        return;
+    }
+    Game.foldHand(playerId);
+};
+
+Controller.checkPlayerHand = function()
+{
+    var playerId = $('#player_ids').val();
+    if (playerId === "" || playerId === "all"){
+        return;
+    }
+    Game.makeBet(playerId, 0);
+};
+
 Controller.placeBet = function()
 {
     var $amount = $('#amount');
@@ -766,6 +784,12 @@ Bootstrapper.attachHtmlEventListeners = function()
     });
     $('#check').click(function(){
         Controller.check();
+    });
+    $('#fold-player').click(function(){
+        Controller.foldPlayerHand();
+    });
+    $('#check-player').click(function(){
+        Controller.checkPlayerHand();
     });
 };
 

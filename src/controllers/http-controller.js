@@ -157,6 +157,11 @@ HttpController.prototype.placeBet = function(req, res)
 
     let socketId = req.header('Authorization').replace("Bearer ", "");
     let playerId = this.socketMapper.getPlayerIdForSocket(socketId);
+
+    if (isGameAdmin(this, gameId, req)) {
+        playerId = req.params.playerId;
+    }
+
     let amount = parseInt(req.body.amount);
 
     this.useCases.placeBet(gameId, playerId, amount);
@@ -169,7 +174,12 @@ HttpController.prototype.foldHand = function(req, res)
     let gameId = req.params.gameId;
 
     let socketId = req.header('Authorization').replace("Bearer ", "");
+
     let playerId = this.socketMapper.getPlayerIdForSocket(socketId);
+
+    if (isGameAdmin(this, gameId, req)) {
+        playerId = req.params.playerId;
+    }
 
     this.useCases.foldHand(gameId, playerId);
 
