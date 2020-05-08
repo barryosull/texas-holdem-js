@@ -18,6 +18,8 @@ function boot(app, io)
 
     app.post('/api/game/:gameId/join', controller.join.bind(controller));
 
+    app.post('/api/game/:gameId/set-small-blind', controller.setSmallBlind.bind(controller));
+
     app.post('/api/game/:gameId/deal', controller.dealCards.bind(controller));
 
     app.post('/api/game/:gameId/flop', controller.dealFlop.bind(controller));

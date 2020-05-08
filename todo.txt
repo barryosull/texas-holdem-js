@@ -205,6 +205,9 @@
 [x] Look into bug with game-92ebb9e6-2101-4ff5-a4d4-f6e13be314cb.json
     - Allowed a player to "check" instead of bet all in and picked the wrong player as next act (a4a1d198-e6ef-4119-9bff-33d95e985b7a)
     - ac2aad15-bd6f-4a32-ba7c-93c24c6961ec should not have been able to "check" as they had chips (according to the UI)
+[x] Fix bug with wrong total broadcast on a player winning a hand
+    - Other player totals are wrong
+[ ] Configurable blinds
 [ ] Improve the betting experience
 [ ] Highlight active players better
     - They didn't like the name version, gonna have to improve it

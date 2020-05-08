@@ -5,8 +5,6 @@ const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const UseCases = require('../application/use-cases');
 
-let gameRepo = new GameRepo();
-
 /**
  * @param notifier {Notifier}
  * @param socketMapper {SocketMapper}
@@ -41,6 +39,25 @@ HttpController.prototype.join = function(req, res)
     let notificationList = this.notifier.getRoundNotifications(gameId, playerId);
 
     res.json(notificationList);
+};
+
+HttpController.prototype.setSmallBlind = function(req, res)
+{
+    let gameId = req.params.gameId;
+    if (!isGameAdmin(this, gameId, req)) {
+        res.send('Nice try bucko');
+        return;
+    }
+    let amount = parseInt(req.body.amount);
+
+    if (amount <= 0) {
+        res.send('Amount too small, must be larger than zero');
+        return;
+    }
+
+    this.useCases.setSmallBlind(gameId, amount);
+
+    res.send('');
 };
 
 HttpController.prototype.dealCards = function(req, res)

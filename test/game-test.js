@@ -429,5 +429,28 @@ describe('Game', () => {
         let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, null, "No other moves can be made, everyone has matched the bet");
     });
+
+    it ('allows blinds to be configured', () => {
+        let game = makeGame();
+        let playerA = 'a53e5f71-2dce-45ed-8639-13ad81804d7d'; // 2nd
+        let playerB = 'b9128c1e-f4aa-4009-b0f6-0d4822c28a65'; // 1st
+        let playerC = 'ce29bbb2-e76c-4cf6-8931-2e22be61f345'; // 3rd
+        game.addPlayer(playerA, "playerA");
+        game.addPlayer(playerB, "playerB");
+        game.addPlayer(playerC, "playerC");
+        game.givePlayerChips(playerB, 1000);
+        game.givePlayerChips(playerA, 2000);
+        game.givePlayerChips(playerC, 3000);
+        game.setSmallBlind(40);
+
+        game.startNewRound('test-seed');
+
+        let roundQueryable = new RoundQueryable(game.events);
+        let playerBSmallBlind = roundQueryable.getPlayerBet(playerB);
+        let playerCBigBlind = roundQueryable.getPlayerBet(playerC);
+
+        assert.equal(playerBSmallBlind, 40);
+        assert.equal(playerCBigBlind, 80);
+    });
 });
 

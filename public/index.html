@@ -42,7 +42,7 @@
         </div>
         <div style="clear:both"></div>
 
-        <div id="player-controls" class="controls" style="">
+        <div id="player-controls" class="controls">
             <div class="title">Player</div>
             <button id="fold" disabled="disabled">Fold</button>
             <div>
@@ -51,22 +51,21 @@
             </div>
         </div>
 
-        <div id="admin-controls" class="controls" style="display: none">
+        <div id="admin-controls" class="controls" style="display: none; width: 300px">
             <div class="title">Admin</div>
             <span id="community-cards">
-            <button id="flop">Flop</button>
-            <button id="turn">Turn</button>
-            <button id="river">River</button>
-            <button id="finish">Finish</button>
-            <button id="deal">Deal</button>
-        </span>
-            <div style="border-bottom: 1px solid #444; margin: 5px 0; 10px"></div>
-            <select id="player_ids">
+                <button id="deal">Deal</button>
+            </span>
+            <div style="border-bottom: 1px solid #fff; margin: 10px 0"></div>
+            <input type="number" class="amount" value="20" id="small-blind">
+            <button id="set-small-blind">Set Small Blind</button><br>
+            <div style="border-bottom: 1px solid #fff; margin: 10px 0"></div>
+            <select id="player_ids" style="height: 30px">
                 <option value="">(Choose player)</option>
+                <option value="all">All Players</option>
             </select>
             <input type="number" class="amount" placeholder="chips" id="chips-to-give">
-            <button id="give-chips">Give</button>
-            <button id="give-all-chips">Give All</button>
+            <button id="give-chips">Give</button><br>
         </div>
     </div>
 </div>

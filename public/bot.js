@@ -32,7 +32,13 @@ UiAdapter.prototype.performAction = function(action)
         $('#bet').click();
     }
     if (action === 'raise') {
-        $('#amount').val( $('#amount').val() * 2 );
+        let currentAmount = $('#amount').val();
+        if (currentAmount) {
+            $('#amount').val( currentAmount * 2 );
+        } else {
+            $('#amount').val( 40 );
+        }
+
         $('#bet').click();
     }
     if (action === 'fold') {

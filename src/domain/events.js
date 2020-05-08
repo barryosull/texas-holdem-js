@@ -1,4 +1,9 @@
 
+function SmallBlindSet(amount)
+{
+    this.amount = amount;
+}
+
 function PlayerNamed(playerId, name)
 {
     this.playerId = playerId;
@@ -74,6 +79,7 @@ function BettingRoundClosed()
 }
 
 module.exports = {
+    SmallBlindSet,
     PlayerNamed,
     SeatTaken,
     SeatEmptied,

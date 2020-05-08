@@ -33,6 +33,18 @@ Game.join = function(playerId, playerName)
     );
 };
 
+Game.setSmallBlind = function(amount)
+{
+    return $.post(
+        "api/game/" + Game.gameId + "/set-small-blind",
+        {
+            amount: amount,
+        },
+        d => {},
+        "json"
+    );
+};
+
 Game.dealHands = function()
 {
     $.post("api/game/" + Game.gameId + "/deal");
@@ -148,6 +160,12 @@ Controller.placeBet = function()
     $amount.val('');
     View.disableBetting();
     View.disableFoldButton();
+};
+
+Controller.setSmallBlind = function()
+{
+    var amount = $('#small-blind').val();
+    Game.setSmallBlind(amount);
 };
 
 Controller.joinGame = function()
@@ -329,20 +347,17 @@ Controller.givePlayerChips = function()
     var playerId = $('#player_ids').val();
     var amount = parseInt($('#chips-to-give').val());
 
-    Game.giveChipsToPlayer(playerId, amount);
-
-    $('#chips-to-give').val('');
-};
-
-Controller.giveAllPlayerChips = function()
-{
-    var amount = parseInt($('#chips-to-give').val());
-
-    $('#player_ids option').each(function(){
-        var playerId = $(this).attr('value');
+    if (playerId === 'all') {
+        $('#player_ids option').each(function(){
+            var playerId = $(this).attr('value');
+            if (playerId === 'all') {
+                return;
+            }
+            Game.giveChipsToPlayer(playerId, amount);
+        });
+    } else {
         Game.giveChipsToPlayer(playerId, amount);
-    });
-
+    }
     $('#chips-to-give').val('');
 };
 
@@ -376,7 +391,7 @@ View.renderPlayersForAdmin = function(players)
 {
     var $playerIds = $('#player_ids');
     $playerIds.html('<option value="">(Choose player)</option>');
-
+    $playerIds.html('<option value="all">All Players</option>');
     for (var index in players) {
         var player = players[index];
         if (player.playerId) {
@@ -706,8 +721,8 @@ Bootstrapper.attachHtmlEventListeners = function()
     $("#give-chips").click(function(){
         Controller.givePlayerChips();
     });
-    $("#give-all-chips").click(function(){
-        Controller.giveAllPlayerChips();
+    $("#set-small-blind").click(function(){
+        Controller.setSmallBlind();
     });
     $('#bet').click(function(){
         Controller.placeBet();

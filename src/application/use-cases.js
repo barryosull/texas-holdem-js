@@ -1,6 +1,5 @@
 
 const GameRepo = require('../domain/game-repository');
-const NextPlayerToActService = require('../domain/next-player-to-act-service');
 const SeatsQueryable = require('../application/seats-queryable');
 const NextPlayerQueryable = require('../application/next-player-queryable');
 const RoundQueryable = require('./round-queryable');
@@ -37,6 +36,14 @@ UseCases.prototype.joinGame = function(gameId, playerId, playerName)
 
     this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, playersList , isAdmin));
 };
+
+UseCases.prototype.setSmallBlind = function(gameId, amount)
+{
+    let game = gameRepo.fetchOrCreate(gameId);
+    game.setSmallBlind(amount);
+    gameRepo.store(game);
+};
+
 
 UseCases.prototype.dealCards = function(gameId)
 {
@@ -217,6 +224,7 @@ UseCases.prototype.foldHand = function(gameId, playerId)
 
     this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
 
+    let seatProjection = new SeatsQueryable(game.events);
     let roundQueryable = new RoundQueryable(game.events);
     let chipsQueryable = new ChipsQueryable(game.events);
 
@@ -228,9 +236,14 @@ UseCases.prototype.foldHand = function(gameId, playerId)
 
     if (activeHands.length === 1) {
         let winningHand = activeHands[0];
-        let playerChips = chipsQueryable.getPlayerChips(winningHand.playerId);
         this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand.playerId));
-        this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
+
+        let players = seatProjection.getPlayers();
+
+        players.forEach(playerId => {
+            let playerChips = chipsQueryable.getPlayerChips(playerId);
+            this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
+        });
 
         triggerNextAction.call(this, game);
 

@@ -32,7 +32,7 @@ describe('buggy-games', () => {
         assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
     });
 
-    it.only ('chose the wrong player after a bet', () => {
+    it ('chose the wrong player after a bet', () => {
         let gameId = '1a5f1c5b-1efd-4026-b5b0-b4cd5b20e9bc';
 
         let game = gameRepo.fetchOrCreate(gameId);

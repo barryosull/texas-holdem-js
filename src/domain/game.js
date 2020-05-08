@@ -18,6 +18,11 @@ function Game (id, eventStream)
     this.events = eventStream;
 }
 
+Game.prototype.setSmallBlind = function(amount)
+{
+    this.events.push(new events.SmallBlindSet(amount));
+};
+
 Game.prototype.addPlayer = function(playerId, name)
 {
     let seatsProjection = new SeatsProjection(this.events);
@@ -82,13 +87,15 @@ Game.prototype.startNewRound = function(deckSeed)
 
     this.events.push(new events.RoundStarted(deckSeed, dealer, smallBlind, bigBlind));
 
+    let smallBlindAmount = (new ChipsProjection(this.events)).getSmallBlind();
+
     activePlayers.forEach(playerId => {
         let cards = deckProjection.getCards(2);
         this.events.push(new events.HandDealt(playerId, cards));
     });
 
-    this.placeBet(smallBlind, 20);
-    this.placeBet(bigBlind, 40);
+    this.placeBet(smallBlind, smallBlindAmount);
+    this.placeBet(bigBlind, smallBlindAmount * 2);
 };
 
 Game.prototype.foldHand = function(playerId)
