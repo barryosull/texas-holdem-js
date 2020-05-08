@@ -28,15 +28,20 @@ UiAdapter.prototype.isPlayersGo = function()
 
 UiAdapter.prototype.performAction = function(action)
 {
+    var $amount = $('#amount');
     if (action === 'bet') {
-        $('#bet').click();
+        if ($amount.attr('min') == 0) {
+            $('#check').click();
+        } else {
+            $('#bet').click();
+        }
     }
     if (action === 'raise') {
-        let currentAmount = $('#amount').val();
+        let currentAmount = $amount.val();
         if (currentAmount) {
-            $('#amount').val( currentAmount * 2 );
+            $amount.val( currentAmount * 2 );
         } else {
-            $('#amount').val( 40 );
+            $amount.val( 40 );
         }
 
         $('#bet').click();

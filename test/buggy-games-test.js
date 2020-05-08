@@ -40,8 +40,6 @@ describe('buggy-games', () => {
         let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         let expectedPlayerId = '3b94934c-8b55-42f3-9f04-748aedc99334';
 
-        console.log('getAmountToPlay', (new RoundQueryable(game.events)).getAmountToPlay(expectedPlayerId));
-
         assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
     });
 });

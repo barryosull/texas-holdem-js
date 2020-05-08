@@ -151,11 +151,6 @@ Controller.placeBet = function()
 {
     var $amount = $('#amount');
     var amount = $amount.val() === "" ? 0 : parseInt($amount.val());
-    var minAmount = parseInt($amount.attr('min'));
-    if (amount < minAmount) {
-        alert("Bet too low to play. Minimum bet is "+ minAmount + ".");
-        return;
-    }
     Game.makeBet(Controller.playerId, amount);
     View.resetAmount();
     View.disableBetting();
