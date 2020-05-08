@@ -64,16 +64,16 @@ RoundQueryable.prototype.getNextPlayerToAct = function()
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
     let playersInRound = this.projection.getPlayersPlayingInRound();
     let playersThatFolded = this.projection.getPlayersThatFolded();
-    let playersToActionCount = this.projection.getPlayersToActionCount();
-    let playersToChipCount = this.projection.getPlayersToChips();
+    let playersThatActed = this.projection.getPlayersThatActed();
+    let playersWithChips = this.projection.getPlayersWithChips();
     let playersToAmountBet = this.projection.getPlayersToBetsInRound();
 
     return NextPlayerToActService.selectPlayer(
         lastActivePlayer,
         playersInRound,
         playersThatFolded,
-        playersToActionCount,
-        playersToChipCount,
+        playersThatActed,
+        playersWithChips,
         playersToAmountBet
     );
 };

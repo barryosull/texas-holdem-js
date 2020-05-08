@@ -5,8 +5,8 @@ NextPlayerToActService.selectPlayer = function(
     lastPlayerToAct,
     playersInRound,
     playersThatFolded,
-    playersToActionCount,
-    playersToChipCount,
+    playersThatActed,
+    playersWithChips,
     playersToAmountBet
 )
 {
@@ -14,8 +14,8 @@ NextPlayerToActService.selectPlayer = function(
 
     let queryable = new CanPlayerActQueryable(
         playersThatFolded,
-        playersToActionCount,
-        playersToChipCount,
+        playersThatActed,
+        playersWithChips,
         playersToAmountBet
     );
 
@@ -31,14 +31,14 @@ NextPlayerToActService.selectPlayer = function(
 
 function CanPlayerActQueryable(
     playersThatFolded,
-    playersToActionCount,
-    playersToChipCount,
+    playersThatActed,
+    playersWithChips,
     playersToAmountBet
 )
 {
     this.playersThatFolded = playersThatFolded;
-    this.playersToActionCount = playersToActionCount;
-    this.playersToChipCount = playersToChipCount;
+    this.playersThatActed = playersThatActed;
+    this.playersWithChips = playersWithChips;
     this.playersToAmountBet = playersToAmountBet;
 }
 
@@ -51,7 +51,7 @@ CanPlayerActQueryable.prototype.canPlayerAct = function(playerId)
         return false;
     }
 
-    if (!this.hasActedOnce(playerId)) {
+    if (!this.hasPlayerActed(playerId)) {
         return true;
     }
 
@@ -69,7 +69,7 @@ CanPlayerActQueryable.prototype.hasPlayerFolded = function(playerId)
 
 CanPlayerActQueryable.prototype.doesPlayerHaveChips = function(playerId)
 {
-    return this.playersToChipCount[playerId] !== undefined && this.playersToChipCount[playerId] > 0;
+    return this.playersWithChips.indexOf(playerId) !== -1;
 };
 
 CanPlayerActQueryable.prototype.hasBetMinAmountToPlay = function(playerId)
@@ -79,9 +79,9 @@ CanPlayerActQueryable.prototype.hasBetMinAmountToPlay = function(playerId)
     return this.playersToAmountBet[playerId] === maxBet;
 };
 
-CanPlayerActQueryable.prototype.hasActedOnce = function(playerId)
+CanPlayerActQueryable.prototype.hasPlayerActed = function(playerId)
 {
-    return this.playersToActionCount[playerId] !== undefined && this.playersToActionCount[playerId] > 0;
+    return this.playersThatActed.indexOf(playerId) !== -1;
 };
 
 module.exports = NextPlayerToActService;

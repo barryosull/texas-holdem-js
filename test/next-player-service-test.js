@@ -21,15 +21,17 @@ describe('Select the next player to act', () => {
             player2
         ];
 
-        let playersToActionCount = {};
-        playersToActionCount[player1] = 1;
-        playersToActionCount[player2] = 1;
-        playersToActionCount[player3] = 1;
+        let playersThatActed = [
+            player1,
+            player2,
+            player3,
+        ];
 
-        let playersToChipCount = {};
-        playersToChipCount[player1] = 1000;
-        playersToChipCount[player2] = 1000;
-        playersToChipCount[player3] = 100;
+        let playersWithChips = [
+            player1,
+            player2,
+            player3,
+        ];
 
         let playersToAmountBet = {};
         playersToAmountBet[player1] = 300;
@@ -41,8 +43,8 @@ describe('Select the next player to act', () => {
             lastPlayerToAct,
             playersInRound,
             playersThatFolded,
-            playersToActionCount,
-            playersToChipCount,
+            playersThatActed,
+            playersWithChips,
             playersToAmountBet
         );
 

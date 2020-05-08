@@ -138,9 +138,9 @@ RoundProjection.prototype.getPlayersToBetsInBettingRound = function(playerIds)
     }, {});
 };
 
-RoundProjection.prototype.getPlayersToChips = function()
+RoundProjection.prototype.getPlayersWithChips = function()
 {
-    return this.eventStream.project('app/round.getPlayersToChips', (playersToChips, e) => {
+    let playersWithChips = this.eventStream.project('app/round.getPlayersWithChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -150,6 +150,10 @@ RoundProjection.prototype.getPlayersToChips = function()
         }
         return playersToChips;
     }, {});
+
+    return Object.keys(playersWithChips).filter(playerId => {
+        return playersWithChips[playerId] > 0;
+    });
 };
 
 RoundProjection.prototype.getPlayersPlayingInRound = function()
@@ -178,9 +182,9 @@ RoundProjection.prototype.getPlayersThatFolded = function()
     }, []);
 };
 
-RoundProjection.prototype.getPlayersToActionCount = function()
+RoundProjection.prototype.getPlayersThatActed = function()
 {
-    return  this.eventStream.project('app/round.getPlayersToActionCount', (actions, e) => {
+    let playersToActionCount = this.eventStream.project('app/round.getPlayersThatActed', (actions, e) => {
         if (e instanceof events.RoundStarted) {
             actions = {};
             // Big and small blinds still need to "act" even though they have bet
@@ -200,6 +204,10 @@ RoundProjection.prototype.getPlayersToActionCount = function()
         }
         return actions;
     }, {});
+
+    return Object.keys(playersToActionCount).filter(playerId => {
+        return playersToActionCount[playerId] > 0;
+    });
 };
 
 RoundProjection.prototype.getActivePlayersToAmountsBet = function()
