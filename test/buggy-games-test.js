@@ -31,8 +31,8 @@ describe('buggy-games', () => {
         assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
     });
 
-    it ('figures out why a player was allowed to check even though the bet was all in', () => {
-        let gameId = '2ab9eb40-abef-45a9-aa78-00112c99f2e1';
+    it.only ('chose the wrong player after a bet', () => {
+        let gameId = '1a5f1c5b-1efd-4026-b5b0-b4cd5b20e9bc';
 
         let game = gameRepo.fetchOrCreate(gameId);
 
