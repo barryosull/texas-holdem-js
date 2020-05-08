@@ -208,13 +208,15 @@
 [x] Fix bug with wrong total broadcast on a player winning a hand
     - Other player totals are wrong
 [x] Configurable blinds
-[ ] Improve the betting experience
-[ ] Highlight active players better
+[x] Improve the betting experience
+[x] Highlight active players better
     - They didn't like the name version, gonna have to improve it
     - Maybe switch to the background color again
-[ ] Auto play for a user if they're AFC
-[ ] Make the admin controls easier for people to use
+[x] Make the admin controls easier for people to use
     - It currently looks ugly and only I can control it
+    - Slight improvement, enough that someone else should be able to use it
+[ ] Auto play for a user if they're AFC
+    - Admin can perform an action on behalf of a user (easier to implement)
 [ ] Show hand titles
 
 
