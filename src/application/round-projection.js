@@ -230,16 +230,6 @@ RoundProjection.prototype.getActivePlayersToAmountsBet = function()
     }, {});
 };
 
-RoundProjection.prototype.getDealer = function()
-{
-    return  this.eventStream.project('app/round.getDealer', (dealer, e) => {
-        if (e instanceof events.RoundStarted) {
-            dealer = e.dealer;
-        }
-        return dealer;
-    }, null);
-};
-
 RoundProjection.prototype.getLastActivePlayer = function ()
 {
     return  this.eventStream.project('app/round.getLastActivePlayer', (player, e) => {

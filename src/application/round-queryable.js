@@ -59,23 +59,34 @@ RoundQueryable.prototype.getPlayerBet = function(playerId)
     return playersToBets[playerId] || 0;
 };
 
-RoundQueryable.prototype.getNextPlayerToAct = function()
+RoundQueryable.prototype.getLastActivePlayer = function()
 {
-    let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
-    let playersInRound = this.projection.getPlayersPlayingInRound();
-    let playersThatFolded = this.projection.getPlayersThatFolded();
-    let playersThatActed = this.projection.getPlayersThatActed();
-    let playersWithChips = this.projection.getPlayersWithChips();
-    let playersToAmountBet = this.projection.getPlayersToBetsInRound();
+    return this.projection.getLastActivePlayer();
+};
 
-    return NextPlayerToActService.selectPlayer(
-        lastActivePlayer,
-        playersInRound,
-        playersThatFolded,
-        playersThatActed,
-        playersWithChips,
-        playersToAmountBet
-    );
+RoundQueryable.prototype.getPlayersPlayingInRound = function()
+{
+    return this.projection.getPlayersPlayingInRound();
+};
+
+RoundQueryable.prototype.getPlayersThatFolded = function()
+{
+    return this.projection.getPlayersThatFolded();
+};
+
+RoundQueryable.prototype.getPlayersThatActed = function()
+{
+    return this.projection.getPlayersThatActed();
+};
+
+RoundQueryable.prototype.getPlayersWithChips = function()
+{
+    return this.projection.getPlayersWithChips();
+};
+
+RoundQueryable.prototype.getPlayersToBetsInRound = function()
+{
+    return this.projection.getPlayersToBetsInRound();
 };
 
 RoundQueryable.prototype.getAmountToPlay = function(playerId)
@@ -93,7 +104,7 @@ RoundQueryable.prototype.getAmountToPlay = function(playerId)
 
 RoundQueryable.prototype.getDealer = function()
 {
-    return this.projection.getRoundStarted().smallBlind;
+    return this.projection.getRoundStarted().dealer;
 };
 
 RoundQueryable.prototype.getSmallBlindPlayer = function()

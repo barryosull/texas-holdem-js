@@ -1,6 +1,8 @@
 
 const GameRepo = require('../domain/game-repository');
+const NextPlayerToActService = require('../domain/next-player-to-act-service');
 const SeatsQueryable = require('../application/seats-queryable');
+const NextPlayerQueryable = require('../application/next-player-queryable');
 const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
 const PlayersQueryable = require('./players-queryable');
@@ -58,10 +60,9 @@ UseCases.prototype.dealCards = function(gameId)
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getSmallBlindPlayer()));
     this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getBigBlindPlayer()));
 
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
-
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -95,9 +96,9 @@ UseCases.prototype.dealFlop = function(gameId)
     this.notifier.broadcast(game.id, new notifications.FlopDealt(cards));
     this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -131,9 +132,9 @@ UseCases.prototype.dealTurn = function(gameId)
     this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
     this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -153,9 +154,9 @@ UseCases.prototype.dealRiver = function(gameId)
     this.notifier.broadcast(game.id, new notifications.RiverDealt(card));
     this.notifier.broadcast(game.id, makePotTotalNotification(game));
 
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -199,11 +200,9 @@ UseCases.prototype.placeBet = function(gameId, playerId, amount)
     let notification = createBetMadeNotification(game, playerId);
     this.notifier.broadcast(game.id, notification);
 
-    let roundQueryable = new RoundQueryable(game.events);
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
-
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -238,9 +237,9 @@ UseCases.prototype.foldHand = function(gameId, playerId)
         return;
     }
 
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
+    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
     if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game));
+        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
         return;
     }
 
@@ -351,12 +350,10 @@ function createBetMadeNotification(game, playerId)
     return new notifications.BetMade(playerId, amountBetInBettingRound, playerChips);
 }
 
-function createNextPlayersTurnNotification(game)
+function createNextPlayersTurnNotification(game, nextPlayerToAct)
 {
     let roundQueryable = new RoundQueryable(game.events);
     let chipsQueryable = new ChipsQueryable(game.events);
-
-    let nextPlayerToAct = roundQueryable.getNextPlayerToAct();
 
     let amountToPlay = roundQueryable.getAmountToPlay(nextPlayerToAct);
 

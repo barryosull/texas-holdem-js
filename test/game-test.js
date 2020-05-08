@@ -6,6 +6,7 @@ const Pot = require('../src/domain/pot');
 const SeatsQueryable = require('../src/application/seats-queryable');
 const RoundQueryable = require('../src/application/round-queryable');
 const ChipsQueryable = require('../src/application/chips-queryable');
+const NextPlayerQueryable = require('../src/application/next-player-queryable');
 
 function makeGame()
 {
@@ -181,28 +182,28 @@ describe('Game', () => {
 
         game.startNewRound('test-seed');
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(playerA, nextToAct);
 
         game.placeBet(playerA, 40);
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(playerB, nextToAct);
 
         game.placeBet(playerB, 20);
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         // Big blind has bet 40 but has not acted, so they get a turn to act
         assert.equal(playerC, nextToAct);
 
         game.placeBet(playerC, 0);
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(null, nextToAct);
 
         game.dealFlop();
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(playerB, nextToAct);
     });
 
@@ -224,7 +225,7 @@ describe('Game', () => {
 
         game.placeBet(playerB, 40);
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(playerA, nextToAct);
     });
 
@@ -282,11 +283,11 @@ describe('Game', () => {
         game.foldHand(playerB);
         game.placeBet(playerC, 0);
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, null, "All players (acted and bet same amount) or folded.");
         game.dealFlop();
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(playerC, nextToAct);
     });
 
@@ -316,12 +317,12 @@ describe('Game', () => {
 
         game.startNewRound('test-seedb');
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, playerA);
 
         game.placeBet(playerA, 20);
 
-        nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, playerB);
     });
 
@@ -388,7 +389,7 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 2960);
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, null);
 
         game.dealFlop();
@@ -425,7 +426,7 @@ describe('Game', () => {
         game.placeBet(playerB, 980);
         game.placeBet(playerC, 1960);
 
-        let nextToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let nextToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
         assert.equal(nextToAct, null, "No other moves can be made, everyone has matched the bet");
     });
 });
