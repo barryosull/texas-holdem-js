@@ -33,7 +33,7 @@ GameRepository.prototype.fetchOrCreate = function(gameId)
     if (!game) {
         let eventStream = this.eventRepo.loadStream(gameId);
         game = new Game(gameId, eventStream);
-        GameRepository.store(game);
+        this.store(game);
     }
     return game;
 };

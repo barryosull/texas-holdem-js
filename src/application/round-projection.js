@@ -115,10 +115,13 @@ RoundProjection.prototype.getPlayersToBetsInRound = function()
     }, {});
 };
 
-RoundProjection.prototype.getPlayersToBetsInBettingRound = function(playerIds)
+RoundProjection.prototype.getPlayersToBetsInBettingRound = function()
 {
-    let playersToBets = this.eventStream.project('app/round.getPlayersToBetsInBettingRound', (playersToBets, e) => {
+    return this.eventStream.project('app/round.getPlayersToBetsInBettingRound', (playersToBets, e) => {
         if (e instanceof events.BettingRoundClosed) {
+            playersToBets = {};
+        }
+        if (e instanceof events.RoundStarted) {
             playersToBets = {};
         }
         if (e instanceof events.BetPlaced) {
@@ -126,15 +129,6 @@ RoundProjection.prototype.getPlayersToBetsInBettingRound = function(playerIds)
             playersToBets[e.playerId] += e.amount;
         }
         return playersToBets;
-    }, {});
-
-    if (!playerIds) {
-        return playersToBets;
-    }
-
-    return playerIds.reduce((reducedPlayersToBets, playerId) => {
-        reducedPlayersToBets[playerId] = playersToBets[playerId] || 0;
-        return reducedPlayersToBets;
     }, {});
 };
 
