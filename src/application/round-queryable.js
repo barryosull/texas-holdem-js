@@ -1,6 +1,7 @@
 
 const RoundProjection = require('./round-projection');
 const Pot = require('../domain/pot');
+const NextPlayerToActService = require('../domain/next-player-to-act-service');
 
 /**
  * @param eventStream {EventStream}
@@ -60,30 +61,22 @@ RoundQueryable.prototype.getPlayerBet = function(playerId)
 
 RoundQueryable.prototype.getNextPlayerToAct = function()
 {
-    if (noFurtherActionsCanBeMade(this.projection)) {
-        return;
-    }
-
     let lastActivePlayer = this.projection.getLastActivePlayer() || this.projection.getDealer();
-    let activeInRoundPlayers = this.projection.getPlayersActiveInRound();
     let activePlayersWithChips = getActivePlayersWithChips(this.projection);
+    let playersToActionCount = this.projection.getPlayersToActionCount();
+    let activeInRoundPlayers = this.projection.getPlayersActiveInRound();
+    let playersToChipCount = this.projection.getPlayersToChips(activeInRoundPlayers);
+    let playersToAmountBet = this.projection.getPlayersToBetsInRound(activeInRoundPlayers);
 
-    return getPlayerToLeftOfPlayer(lastActivePlayer, activePlayersWithChips, activeInRoundPlayers);
+    return NextPlayerToActService.selectPlayer(
+        lastActivePlayer,
+        activePlayersWithChips,
+        playersToActionCount,
+        activeInRoundPlayers,
+        playersToChipCount,
+        playersToAmountBet
+    );
 };
-
-function noFurtherActionsCanBeMade(projection)
-{
-    let playersThatCanAct = getActivePlayersWithChips(projection);
-    let playersToActionCount = projection.getPlayersToActionCount();
-
-    if (waitingForPlayerToAct(playersThatCanAct, playersToActionCount)) {
-        return false;
-    }
-
-    let playersToChipCount = projection.getPlayersToChips(playersThatCanAct);
-    let playersToAmountBet = projection.getPlayersToBetsInBettingRound(playersThatCanAct);
-    return (everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount));
-}
 
 function getActivePlayersWithChips(projection)
 {
@@ -149,34 +142,6 @@ function getPlayersWithChips(playersToChipCount)
     return Object.keys(playersToChipCount).filter(playerId => {
         return playersToChipCount[playerId] > 0;
     });
-}
-
-function waitingForPlayerToAct(activePlayers, playersToActionCount)
-{
-    return !activePlayers.reduce((hasActed, playerId) => {
-        return hasActed && playersToActionCount[playerId] > 0;
-    }, true);
-}
-
-function everyoneHasPaidFairlyIntoThePot(playersToAmountBet, playersToChipCount)
-{
-    let maxBet = Math.max(...Object.values(playersToAmountBet));
-
-    let playersThatCanBet = Object.keys(playersToAmountBet).filter(playerId => {
-        return playersToAmountBet[playerId] !== maxBet && playersToChipCount[playerId] !== 0;
-    });
-
-    return playersThatCanBet.length === 0;
-}
-
-function getPlayerToLeftOfPlayer(previousPlayerId, activePlayersWithChips, activeInRoundPlayers)
-{
-    let playerList = activeInRoundPlayers.filter(playerId => {
-        return activePlayersWithChips.indexOf(playerId) !== -1 || playerId === previousPlayerId;
-    });
-    let currPlayerIndex = playerList.indexOf(previousPlayerId);
-    let nextPlayerIndex = ((currPlayerIndex + 1) % playerList.length);
-    return playerList[nextPlayerIndex];
 }
 
 function PlayerBets(playersToBets, activePlayers)

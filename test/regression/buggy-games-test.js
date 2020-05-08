@@ -30,5 +30,15 @@ describe('buggy-games', () => {
         let expectedPlayerId = 'ac2aad15-bd6f-4a32-ba7c-93c24c6961ec';
         assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
     });
+
+    it ('figures out why a player was allowed to check even though the bet was all in', () => {
+        let gameId = '2ab9eb40-abef-45a9-aa78-00112c99f2e1';
+
+        let game = gameRepo.fetchOrCreate(gameId);
+
+        let nextPlayerToAct = (new RoundQueryable(game.events)).getNextPlayerToAct();
+        let expectedPlayerId = 'ac2aad15-bd6f-4a32-ba7c-93c24c6961ec';
+        assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
+    });
 });
 
