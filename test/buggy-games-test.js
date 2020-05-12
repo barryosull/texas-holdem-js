@@ -42,5 +42,16 @@ describe('buggy-games', () => {
 
         assert.equal(nextPlayerToAct, expectedPlayerId, "Player checked previously, should be their turn now");
     });
+
+    it ('shouldnt choose a next player to act', () => {
+        let gameId = '221f7d4a-fb5a-4abb-801b-cd0a0d70436b';
+
+        let game = gameRepo.fetchOrCreate(gameId);
+
+        let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
+        let expectedPlayerId = null;
+
+        assert.equal(nextPlayerToAct, expectedPlayerId, "No player should be chosen, as no further moves can be made");
+    });
 });
 

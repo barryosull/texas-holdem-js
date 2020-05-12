@@ -19,14 +19,24 @@ NextPlayerToActService.selectPlayer = function(
         playersToAmountBet
     );
 
-    for (let i = 0; i < playersInRound.length; i++) {
+    let playersThatCanAct = [];
 
+    for (let i = 0; i < playersInRound.length; i++) {
         let offset = (i + indexOfLastPlayerToAct + 1) % playersInRound.length;
         if (queryable.canPlayerAct(playersInRound[offset])) {
-            return playersInRound[offset];
+            playersThatCanAct.push(playersInRound[offset]);
         }
     }
-    return;
+
+    if (playersThatActed.length === 0 && playersThatCanAct.length === 1) {
+        return null;
+    }
+
+    if (playersThatCanAct.length === 0) {
+        return null;
+    }
+
+    return playersThatCanAct[0];
 };
 
 function CanPlayerActQueryable(
