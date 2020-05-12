@@ -217,6 +217,9 @@
     - Slight improvement, enough that someone else should be able to use it
 [x] Auto play for a user if they're AFC
     - Admin can perform an action on behalf of a user (easier to implement)
+[x] Bug: Players do not need to match bets to keep playing, need to fix
+[x] Bug: Check button not displaying for first player
+[x] Bug: Keeps choosing the last player with chips to act a round start, even though there's no one else that can play
 [ ] Show hand titles
 
 
