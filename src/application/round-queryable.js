@@ -1,7 +1,6 @@
 
 const RoundProjection = require('./round-projection');
 const Pot = require('../domain/pot');
-const NextPlayerToActService = require('../domain/next-player-to-act-service');
 
 /**
  * @param eventStream {EventStream}

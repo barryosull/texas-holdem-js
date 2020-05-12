@@ -206,10 +206,18 @@ Game.prototype.closeRoundOfBetting = function()
 Game.prototype.placeBet = function(playerId, amount)
 {
     let chipsProjection = new ChipsProjection(this.events);
+    let roundProjection = new RoundProjection(this.events);
     let playerChips = chipsProjection.getPlayerChips(playerId);
+    let amountToPlay = roundProjection.getAmountToPlay(playerId);
+
+    if (playerChips > amountToPlay && amount < amountToPlay) {
+        return false;
+    }
+
     amount = (amount >= 0) ? amount: 0;
     amount = (amount < playerChips) ? amount : playerChips;
     this.events.push(new events.BetPlaced(playerId, amount));
+    return true;
 };
 
 module.exports = Game;

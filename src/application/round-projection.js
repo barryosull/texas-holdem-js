@@ -134,7 +134,7 @@ RoundProjection.prototype.getPlayersToBetsInBettingRound = function()
 
 RoundProjection.prototype.getPlayersWithChips = function()
 {
-    let playersWithChips = this.eventStream.project('app/round.getPlayersWithChips', (playersToChips, e) => {
+    let playersToChips = this.eventStream.project('app/round.getPlayersWithChips', (playersToChips, e) => {
         if (e instanceof events.PlayerGivenChips) {
             playersToChips[e.playerId] = playersToChips[e.playerId] || 0;
             playersToChips[e.playerId] += e.amount;
@@ -145,8 +145,8 @@ RoundProjection.prototype.getPlayersWithChips = function()
         return playersToChips;
     }, {});
 
-    return Object.keys(playersWithChips).filter(playerId => {
-        return playersWithChips[playerId] > 0;
+    return Object.keys(playersToChips).filter(playerId => {
+        return playersToChips[playerId] > 0;
     });
 };
 

@@ -132,6 +132,35 @@ RoundProjection.prototype.getPots = function()
     return pots;
 };
 
+RoundProjection.prototype.getAmountToPlay = function(playerId)
+{
+    if (!playerId) {
+        return null;
+    }
+    let playersToBetsInBettingRound = this.eventStream.project('domain/round.getAmountToPlay', (playersToBets, e) => {
+        if (e instanceof events.BettingRoundClosed) {
+            playersToBets = {};
+        }
+        if (e instanceof events.RoundStarted) {
+            playersToBets = {};
+        }
+        if (e instanceof events.BetPlaced) {
+            playersToBets[e.playerId] = playersToBets[e.playerId] || 0;
+            playersToBets[e.playerId] += e.amount;
+        }
+        return playersToBets;
+    }, {});
+
+    if (Object.values(playersToBetsInBettingRound).length === 0) {
+        return 0;
+    }
+
+    let playersBet = playersToBetsInBettingRound[playerId] || 0;
+    let maxBet = Math.max(...Object.values(playersToBetsInBettingRound));
+
+    return maxBet - playersBet;
+};
+
 function getPlayerBets()
 {
     let playersToBets =  this.eventStream.project('domain/round.getPots', (playersToBets, e) => {
