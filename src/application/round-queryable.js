@@ -95,6 +95,10 @@ RoundQueryable.prototype.getAmountToPlay = function(playerId)
     }
     let playersToBetsInBettingRound = this.projection.getPlayersToBetsInBettingRound();
 
+    if (Object.values(playersToBetsInBettingRound).length === 0) {
+        return 0;
+    }
+
     let playersBet = playersToBetsInBettingRound[playerId] || 0;
     let maxBet = Math.max(...Object.values(playersToBetsInBettingRound));
 
