@@ -69,7 +69,7 @@ HttpController.prototype.dealCards = function(req, res)
         return;
     }
 
-    this.useCases.dealCards(gameId);
+    this.useCases.startRound(gameId);
 
     res.send('');
 };
@@ -125,7 +125,7 @@ HttpController.prototype.finish = function(req, res)
         return;
     }
 
-    this.useCases.finish(gameId);
+    this.useCases.announceWinners(gameId);
 
     res.send('');
 };

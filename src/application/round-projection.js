@@ -76,7 +76,7 @@ RoundProjection.prototype.getNextAction = function()
             nextAction = 'river';
         }
         if (e instanceof events.RiverDealt) {
-            nextAction = 'finish';
+            nextAction = 'announceWinners';
         }
         if (e instanceof events.PotWon) {
             nextAction = 'deal';

@@ -28,7 +28,7 @@ function boot(app, io)
 
     app.post('/api/game/:gameId/river', controller.dealRiver.bind(controller));
 
-    app.post('/api/game/:gameId/finish', controller.finish.bind(controller));
+    app.post('/api/game/:gameId/announceWinners', controller.finish.bind(controller));
 
     app.post('/api/game/:gameId/give-chips-to-player', controller.givePlayerChips.bind(controller));
 

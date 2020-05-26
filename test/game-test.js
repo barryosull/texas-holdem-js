@@ -97,7 +97,7 @@ describe('Game', () => {
         game.placeBet(playerA, 40);
         game.placeBet(playerB, 40);
 
-        game.finish();
+        game.announceWinners();
 
         // Player A wins
         let winningPlayers = (new RoundQueryable(game.events)).getWinners();
@@ -261,7 +261,7 @@ describe('Game', () => {
         game.placeBet(playerB, 120);
         game.placeBet(playerA, 40);
 
-        game.finish();
+        game.announceWinners();
     });
 
     it ('folded players are not considered for next player', () => {
@@ -313,7 +313,7 @@ describe('Game', () => {
         game.dealFlop();
         game.dealTurn();
         game.dealRiver();
-        game.finish();
+        game.announceWinners();
 
         game.startNewRound('test-seedb');
 
@@ -358,7 +358,7 @@ describe('Game', () => {
         game.dealFlop();
         game.dealTurn();
         game.dealRiver();
-        game.finish();
+        game.announceWinners();
 
         let chipsQueryable = new ChipsQueryable(game.events);
 
@@ -398,7 +398,7 @@ describe('Game', () => {
         game.foldHand(playerB);
 
         game.dealRiver();
-        game.finish();
+        game.announceWinners();
 
         let chipsQueryable = new ChipsQueryable(game.events);
 
@@ -475,7 +475,7 @@ describe('Game', () => {
         assert.equal(playerCBigBlind, 80);
     });
 
-    it.only ('players must either fold, match the bet or go all in. Cannot short change a bet.', () => {
+    it ('players must either fold, match the bet or go all in. Cannot short change a bet.', () => {
         let game = makeGame();
         let playerA = 'a53e5f71-2dce-45ed-8639-13ad81804d7d'; // 2nd
         let playerB = 'b9128c1e-f4aa-4009-b0f6-0d4822c28a65'; // 1st

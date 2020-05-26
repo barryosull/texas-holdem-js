@@ -1,25 +1,20 @@
 
 const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
-const NextPlayerQueryable = require('../application/next-player-queryable');
-const RoundQueryable = require('./round-queryable');
-const ChipsQueryable = require('./chips-queryable');
-const PlayersQueryable = require('./players-queryable');
-const notifications = require('./notifications');
-
-const SEAT_COUNT = 8;
+const UiNotifier = require('./ui-notifier');
 
 let gameRepo = new GameRepo();
 
 function UseCases(notifier, socketMapper)
 {
-    this.notifier = notifier;
     this.socketMapper = socketMapper;
+    this.uiNotifier = new UiNotifier(notifier, socketMapper, this);
 }
 
+// TODO: Move out of usecases, this is not a usecase
 UseCases.prototype.existingPlayer = function(gameId, playerId, socketId)
 {
-    this.notifier.broadcastToPlayer(gameId, playerId, socketId, new notifications.ExistingSession());
+    this.uiNotifier.broadcastExistingSession(gameId, playerId, socketId);
 };
 
 UseCases.prototype.joinGame = function(gameId, playerId, playerName)
@@ -28,13 +23,7 @@ UseCases.prototype.joinGame = function(gameId, playerId, playerName)
     game.addPlayer(playerId, playerName);
     gameRepo.store(game);
 
-    let seatsQueryable = new SeatsQueryable(game.events);
-
-    let player = createPlayer(game, playerId);
-    let playersList = createPlayerList(game);
-    let isAdmin = seatsQueryable.isAdmin(playerId);
-
-    this.notifier.broadcast(game.id, new notifications.PlayerAdded(player, playersList , isAdmin));
+    this.uiNotifier.playerAdded(game.events, playerId);
 };
 
 UseCases.prototype.setSmallBlind = function(gameId, amount)
@@ -44,38 +33,17 @@ UseCases.prototype.setSmallBlind = function(gameId, amount)
     gameRepo.store(game);
 };
 
-
-UseCases.prototype.dealCards = function(gameId)
+UseCases.prototype.startRound = function(gameId)
 {
     let game = gameRepo.fetchOrCreate(gameId);
     this.removeDisconnectedPlayers(this, game);
     game.startNewRound();
     gameRepo.store(game);
 
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let roundStartedNotification = createRoundStartedNotification(game);
-    this.notifier.broadcast(game.id, roundStartedNotification);
-
-    let hands = roundQueryable.getHands();
-
-    hands.forEach(hand => {
-        let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
-        this.notifier.broadcastToPlayer(game.id, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
-    });
-
-    this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getSmallBlindPlayer()));
-    this.notifier.broadcast(game.id, createBetMadeNotification(game, roundQueryable.getBigBlindPlayer()));
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.roundStarted(game.events);
 };
 
+// TODO: Re-evaluate this method, it's using infra directly
 UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
 {
     let seatsQueryable = new SeatsQueryable(game.events);
@@ -97,34 +65,9 @@ UseCases.prototype.dealFlop = function(gameId)
     game.dealFlop();
     gameRepo.store(game);
 
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let cards = roundQueryable.getCommunityCards().slice(0, 3);
-    this.notifier.broadcast(game.id, new notifications.FlopDealt(cards));
-    this.notifier.broadcast(game.id, makePotTotalNotification(game));
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.flopDealt(game.events);
 };
 
-function makePotTotalNotification(game)
-{
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let pots = roundQueryable.getPots().reduce((pots, pot) => {
-        if (pot.players.length > 1) {
-            pots.push(pot.amount);
-        }
-        return pots;
-    }, []);
-
-    return new notifications.PotTotal(pots);
-}
 
 UseCases.prototype.dealTurn = function(gameId)
 {
@@ -132,20 +75,7 @@ UseCases.prototype.dealTurn = function(gameId)
     game.dealTurn();
     gameRepo.store(game);
 
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let card = roundQueryable.getCommunityCards().slice(-1).pop();
-
-    this.notifier.broadcast(game.id, new notifications.TurnDealt(card));
-    this.notifier.broadcast(game.id, makePotTotalNotification(game));
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.turnDealt(game.events);
 };
 
 UseCases.prototype.dealRiver = function(gameId)
@@ -154,48 +84,16 @@ UseCases.prototype.dealRiver = function(gameId)
     game.dealRiver();
     gameRepo.store(game);
 
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let card = roundQueryable.getCommunityCards().slice(-1).pop();
-
-    this.notifier.broadcast(game.id, new notifications.RiverDealt(card));
-    this.notifier.broadcast(game.id, makePotTotalNotification(game));
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.riverDealt(game.events);
 };
 
-UseCases.prototype.finish = function(gameId)
+UseCases.prototype.announceWinners = function(gameId)
 {
     let game = gameRepo.fetchOrCreate(gameId);
-    game.finish();
+    game.announceWinners();
     gameRepo.store(game);
 
-    let seatProjection = new SeatsQueryable(game.events);
-    let roundQueryable = new RoundQueryable(game.events);
-    let chipsQueryable = new ChipsQueryable(game.events);
-
-    let winners = roundQueryable.getWinners();
-    let players = seatProjection.getPlayers();
-
-    winners.forEach(playerId => {
-        let winningHand = roundQueryable.getPlayerHand(playerId);
-        this.notifier.broadcast(game.id, new notifications.WinningHand(winningHand));
-    });
-
-    players.forEach(playerId => {
-        let playerChips = chipsQueryable.getPlayerChips(playerId);
-        this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
-    });
-
-    if (chipsQueryable.getNumberOfPlayersWithChips() > 1) {
-        triggerNextAction.call(this, game);
-    }
+    this.uiNotifier.winnersAnnounced(game.events);
 };
 
 UseCases.prototype.placeBet = function(gameId, playerId, amount)
@@ -204,16 +102,7 @@ UseCases.prototype.placeBet = function(gameId, playerId, amount)
     game.placeBet(playerId, amount);
     gameRepo.store(game);
 
-    let notification = createBetMadeNotification(game, playerId);
-    this.notifier.broadcast(game.id, notification);
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.betPlaced(game.events, playerId);
 };
 
 UseCases.prototype.foldHand = function(gameId, playerId)
@@ -222,41 +111,7 @@ UseCases.prototype.foldHand = function(gameId, playerId)
     game.foldHand(playerId);
     gameRepo.store(game);
 
-    this.notifier.broadcast(game.id, new notifications.PlayerFolded(playerId));
-
-    let seatProjection = new SeatsQueryable(game.events);
-    let roundQueryable = new RoundQueryable(game.events);
-    let chipsQueryable = new ChipsQueryable(game.events);
-
-    let hands = roundQueryable.getHands();
-
-    let activeHands = hands.filter(hand => {
-        return hand.hasFolded === false;
-    });
-
-    if (activeHands.length === 1) {
-        let winningHand = activeHands[0];
-        this.notifier.broadcast(game.id, new notifications.WinnerByDefault(winningHand.playerId));
-
-        let players = seatProjection.getPlayers();
-
-        players.forEach(playerId => {
-            let playerChips = chipsQueryable.getPlayerChips(playerId);
-            this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
-        });
-
-        triggerNextAction.call(this, game);
-
-        return;
-    }
-
-    let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(game.id, createNextPlayersTurnNotification(game, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, game);
+    this.uiNotifier.handFolded(game.events, playerId);
 };
 
 UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
@@ -265,117 +120,7 @@ UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
     game.givePlayerChips(playerId, amount);
     gameRepo.store(game);
 
-    let playerChips = (new ChipsQueryable(game.events)).getPlayerChips(playerId);
-    this.notifier.broadcast(game.id, new notifications.PlayerGivenChips(playerId, playerChips));
+    this.uiNotifier.playerGivenChips(game.events, playerId);
 };
-
-function triggerNextAction(game)
-{
-    let roundQueryable = new RoundQueryable(game.events);
-    let nextAction = roundQueryable.getNextAction();
-
-    let actionToUseCase = {
-        'deal': this.dealCards,
-        'flop': this.dealFlop,
-        'turn': this.dealTurn,
-        'river': this.dealRiver,
-        'finish': this.finish
-    };
-
-    let actionTimeTimeouts = {
-        'deal': 5000,
-        'flop': 1000,
-        'turn': 1000,
-        'river': 1000,
-        'finish': 1000,
-    };
-
-    let nextUseCase = actionToUseCase[nextAction];
-
-    if (!nextUseCase) {
-        return;
-    }
-
-    let timeout = actionTimeTimeouts[nextAction] || 1000;
-
-    let useCases = this;
-
-    setTimeout(function(){
-        nextUseCase.call(useCases, game.id);
-    }, timeout);
-}
-
-//*********************************
-// Notifications creation methods
-//*********************************
-
-function createPlayer(game, playerId)
-{
-    const seatsQueryable = new SeatsQueryable(game.events);
-    const chipsQueryable = new ChipsQueryable(game.events);
-    const playersQueryable = new PlayersQueryable(game.events);
-
-    let chips = chipsQueryable.getPlayerChips(playerId) || 0;
-    let name = playersQueryable.getPlayerName(playerId);
-    let seat = seatsQueryable.getPlayersSeat(playerId);
-    return new notifications.Player(playerId, name, chips, seat);
-}
-
-/**
- * @param game
- * @returns {notifications.RoundStarted}
- */
-function createRoundStartedNotification(game)
-{
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let dealer = roundQueryable.getDealer();
-    let playersList = createPlayerList(game);
-
-    return new notifications.RoundStarted(dealer, playersList);
-}
-
-function createPlayerList(game)
-{
-    const seatsQueryable = new SeatsQueryable(game.events);
-    const chipsQueryable = new ChipsQueryable(game.events);
-    const playersQueryable = new PlayersQueryable(game.events);
-
-    let players = [];
-    for (let seat = 0; seat < SEAT_COUNT; seat++) {
-        let playerId = seatsQueryable.getPlayerInSeat(seat);
-        let chips = chipsQueryable.getPlayerChips(playerId) || 0;
-        let name = playersQueryable.getPlayerName(playerId);
-        players.push( new notifications.Player(playerId, name, chips, seat));
-    }
-
-    return players;
-}
-
-function createBetMadeNotification(game, playerId)
-{
-    let chipsQueryable = new ChipsQueryable(game.events);
-    let roundQueryable = new RoundQueryable(game.events);
-
-    let playerChips = chipsQueryable.getPlayerChips(playerId);
-    let amountBetInBettingRound = roundQueryable.getPlayerBet(playerId);
-
-    return new notifications.BetMade(playerId, amountBetInBettingRound, playerChips);
-}
-
-function createNextPlayersTurnNotification(game, nextPlayerToAct)
-{
-    let roundQueryable = new RoundQueryable(game.events);
-    let chipsQueryable = new ChipsQueryable(game.events);
-
-    let amountToPlay = roundQueryable.getAmountToPlay(nextPlayerToAct);
-    let minBet = chipsQueryable.getSmallBlind() * 2;
-
-    let playerChips = chipsQueryable.getPlayerChips(nextPlayerToAct);
-
-    amountToPlay = Math.min(playerChips, amountToPlay);
-
-    return new notifications.PlayersTurn(nextPlayerToAct, amountToPlay, minBet);
-}
 
 module.exports = UseCases;

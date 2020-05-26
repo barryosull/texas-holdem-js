@@ -165,7 +165,7 @@ Game.prototype.dealRiver = function()
     this.events.push(new events.RiverDealt(card));
 };
 
-Game.prototype.finish = function()
+Game.prototype.announceWinners = function()
 {
     let roundProjection = new RoundProjection(this.events);
     if (roundProjection.getStageOfRound() !== 'river') {

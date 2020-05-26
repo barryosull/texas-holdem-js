@@ -67,7 +67,7 @@ Game.dealRiver = function()
 
 Game.finishRound = function()
 {
-    $.post("api/game/" + Game.gameId + "/finish/");
+    $.post("api/game/" + Game.gameId + "/announceWinners/");
 };
 
 Game.giveChipsToPlayer = function(playerId, amount)
@@ -606,7 +606,7 @@ View.showRiverButton = function()
 View.showFinishButton = function()
 {
     View.hideCommunityCardsButtons();
-    $('#finish').show();
+    $('#announceWinners').show();
 };
 
 View.showDealButton = function()
@@ -767,7 +767,7 @@ Bootstrapper.attachHtmlEventListeners = function()
     $("#river").click(function(){
         Controller.dealRiver();
     });
-    $("#finish").click(function(){
+    $("#announceWinners").click(function(){
         Controller.finishRound();
     });
     $("#fold").click(function(){
