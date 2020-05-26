@@ -209,7 +209,7 @@ function triggerNextAction(events)
         'flop': this.useCases.dealFlop,
         'turn': this.useCases.dealTurn,
         'river': this.useCases.dealRiver,
-        'announceWinners': this.announceWinners
+        'announceWinners': this.useCases.announceWinners
     };
 
     let actionTimeTimeouts = {

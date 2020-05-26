@@ -4,7 +4,8 @@
 
 const GameRepo = require('../src/domain/game-repository');
 const EventRepoFilesystem = require('../src/domain/event-repo-filesystem');
-const RoundQueryable = require('../src/application/round-queryable');
+const AppRoundQueryable = require('../src/application/round-queryable');
+const DomainRoundProjection = require('../src/domain/round-projection');
 const NextPlayerQueryable = require('../src/application/next-player-queryable');
 const assert = require('assert');
 
@@ -52,6 +53,27 @@ describe('buggy-games', () => {
         let expectedPlayerId = null;
 
         assert.equal(nextPlayerToAct, expectedPlayerId, "No player should be chosen, as no further moves can be made");
+    });
+
+    it ('shouldnt choose a next player to act', () => {
+        let gameId = '464da4aa-4a68-47c2-86f7-0ad1d404500f';
+
+        let game = gameRepo.fetchOrCreate(gameId);
+
+        let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
+        let expectedPlayerId = null;
+
+        assert.equal(nextPlayerToAct, expectedPlayerId, "No player should be chosen, as no further moves can be made");
+
+        let roundQueryable = new AppRoundQueryable(game.events);
+        let nextAction = roundQueryable.getNextAction();
+
+        assert.equal(nextAction, 'announceWinners');
+
+        let roundProjection = new DomainRoundProjection(game.events);
+        let stage = roundProjection.getStageOfRound();
+
+        assert.equal(stage, 'river');
     });
 });
 
