@@ -1,7 +1,7 @@
 
 const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
-const UiNotifier = require('./ui-notifier');
+const UiNotifier = require('../application/ui-notifier');
 
 let gameRepo = new GameRepo();
 
