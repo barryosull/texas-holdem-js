@@ -75,5 +75,26 @@ describe('buggy-games', () => {
 
         assert.equal(stage, 'river');
     });
+
+    it.only ('shouldnt choose a next player to act', () => {
+        let gameId = '2ba25c0c-006b-4ce6-9bc7-23e42e87ae9a';
+
+        let game = gameRepo.fetchOrCreate(gameId);
+
+        let nextPlayerToAct = (new NextPlayerQueryable(game.events)).getNextPlayer();
+        let expectedPlayerId = null;
+
+        assert.equal(nextPlayerToAct, expectedPlayerId, "No player should be chosen, as no further moves can be made");
+
+        let roundQueryable = new AppRoundQueryable(game.events);
+        let nextAction = roundQueryable.getNextAction();
+
+        assert.equal(nextAction, 'flop');
+
+        let roundProjection = new DomainRoundProjection(game.events);
+        let stage = roundProjection.getStageOfRound();
+
+        assert.equal(stage, 'start');
+    });
 });
 

@@ -4,6 +4,7 @@ const SocketMapper = require('./socket-mapper');
 const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const UseCases = require('../application/use-cases');
+const notifications = require('../application/notifications');
 
 /**
  * @param notifier {Notifier}
@@ -28,7 +29,7 @@ HttpController.prototype.join = function(req, res)
     let existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        this.useCases.existingPlayer(gameId, playerId, playerName);
+        this.notifier.broadcastToPlayer(gameId, playerId, socketId, new notifications.ExistingSession());
         return;
     }
 
@@ -69,6 +70,15 @@ HttpController.prototype.dealCards = function(req, res)
         return;
     }
 
+    let game = (new GameRepo()).fetchOrCreate(gameId);
+
+    let seatsQueryable = new SeatsQueryable(game.events);
+    let players = seatsQueryable.getPlayers();
+    let disconnectedPlayers = players.filter(playerId => {
+        return !this.socketMapper.hasSocketForPlayer(playerId);
+    });
+
+    this.useCases.removePlayers(gameId, disconnectedPlayers);
     this.useCases.startRound(gameId);
 
     res.send('');

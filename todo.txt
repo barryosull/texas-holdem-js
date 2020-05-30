@@ -221,5 +221,6 @@
 [x] Bug: Check button not displaying for first player
 [x] Bug: Keeps choosing the last player with chips to act a round start, even though there's no one else that can play
 [ ] Show hand titles
+[ ] Bug: Last two players, other players cant see that the other player is playing, no cards are shown
 
 

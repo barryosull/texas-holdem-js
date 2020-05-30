@@ -1,6 +1,5 @@
 
 const GameRepo = require('../domain/game-repository');
-const SeatsQueryable = require('../application/seats-queryable');
 const UiNotifier = require('../application/ui-notifier');
 
 let gameRepo = new GameRepo();
@@ -10,12 +9,6 @@ function UseCases(notifier, socketMapper)
     this.socketMapper = socketMapper;
     this.uiNotifier = new UiNotifier(notifier, socketMapper, this);
 }
-
-// TODO: Move out of usecases, this is not a usecase
-UseCases.prototype.existingPlayer = function(gameId, playerId, socketId)
-{
-    this.uiNotifier.broadcastExistingSession(gameId, playerId, socketId);
-};
 
 UseCases.prototype.joinGame = function(gameId, playerId, playerName)
 {
@@ -36,27 +29,21 @@ UseCases.prototype.setSmallBlind = function(gameId, amount)
 UseCases.prototype.startRound = function(gameId)
 {
     let game = gameRepo.fetchOrCreate(gameId);
-    this.removeDisconnectedPlayers(this, game);
     game.startNewRound();
     gameRepo.store(game);
 
     this.uiNotifier.roundStarted(game.events);
 };
 
-// TODO: Re-evaluate this method, it's using infra directly
-UseCases.prototype.removeDisconnectedPlayers = function(controller, game)
+UseCases.prototype.removePlayers = function(gameId, disconnectedPlayers)
 {
-    let seatsQueryable = new SeatsQueryable(game.events);
-
-    let players = seatsQueryable.getPlayers();
-
-    let disconnectedPlayers = players.filter(playerId => {
-        return !this.socketMapper.hasSocketForPlayer(playerId);
-    });
+    let game = gameRepo.fetchOrCreate(gameId);
 
     disconnectedPlayers.forEach(playerId => {
         game.removePlayer(playerId);
     });
+
+    gameRepo.store(game);
 };
 
 UseCases.prototype.dealFlop = function(gameId)
