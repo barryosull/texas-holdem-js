@@ -16,7 +16,7 @@ UseCases.prototype.joinGame = function(gameId, playerId, playerName)
     game.addPlayer(playerId, playerName);
     gameRepo.store(game);
 
-    this.uiNotifier.playerAdded(game.events, playerId);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.setSmallBlind = function(gameId, amount)
@@ -32,6 +32,8 @@ UseCases.prototype.startRound = function(gameId)
     game.startNewRound();
     gameRepo.store(game);
 
+    // TODO: Create an event that signifies betting can begin
+    // this.uiNotifier.handleEvents(game.events);
     this.uiNotifier.roundStarted(game.events);
 };
 
@@ -52,7 +54,7 @@ UseCases.prototype.dealFlop = function(gameId)
     game.dealFlop();
     gameRepo.store(game);
 
-    this.uiNotifier.flopDealt(game.events);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 

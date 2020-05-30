@@ -5,6 +5,8 @@ const RoundQueryable = require('./round-queryable');
 const ChipsQueryable = require('./chips-queryable');
 const PlayersQueryable = require('./players-queryable');
 const notifications = require('./notifications');
+const eventTypes = require('../domain/events');
+
 
 const SEAT_COUNT = 8;
 
@@ -19,6 +21,19 @@ function UiNotifier(notifier, socketMapper, useCases)
     this.socketMapper = socketMapper;
     this.useCases = useCases;
 }
+
+UiNotifier.prototype.handleEvents = function(events)
+{
+    const uiNotifier = this;
+    events.project('uiNotifier.handleEvents', (_, e) => {
+        if (e instanceof eventTypes.SeatTaken) {
+            uiNotifier.playerAdded(events, e.playerId);
+        }
+        if (e instanceof eventTypes.FlopDealt) {
+            uiNotifier.flopDealt(events);
+        }
+    }, null);
+};
 
 UiNotifier.prototype.playerAdded = function(events, playerId)
 {
