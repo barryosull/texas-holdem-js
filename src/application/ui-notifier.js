@@ -20,11 +20,6 @@ function UiNotifier(notifier, socketMapper, useCases)
     this.useCases = useCases;
 }
 
-UiNotifier.prototype.broadcastExistingSession = function(gameId, playerId, socketId)
-{
-    this.notifier.broadcastToPlayer(gameId, playerId, socketId, new notifications.ExistingSession());
-};
-
 UiNotifier.prototype.playerAdded = function(events, playerId)
 {
     let seatsQueryable = new SeatsQueryable(events);
