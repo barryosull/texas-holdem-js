@@ -32,6 +32,21 @@ UiNotifier.prototype.handleEvents = function(events)
         if (e instanceof eventTypes.FlopDealt) {
             uiNotifier.flopDealt(events);
         }
+        if (e instanceof eventTypes.TurnDealt) {
+            uiNotifier.turnDealt(events);
+        }
+        if (e instanceof eventTypes.RiverDealt) {
+            uiNotifier.riverDealt(events);
+        }
+        if (e instanceof eventTypes.BetPlaced) {
+            uiNotifier.betPlaced(events, e.playerId);
+        }
+        if (e instanceof eventTypes.HandFolded) {
+            uiNotifier.handFolded(events, e.playerId);
+        }
+        if (e instanceof eventTypes.PlayerGivenChips) {
+            uiNotifier.playerGivenChips(events, e.playerId);
+        }
     }, null);
 };
 

@@ -64,7 +64,7 @@ UseCases.prototype.dealTurn = function(gameId)
     game.dealTurn();
     gameRepo.store(game);
 
-    this.uiNotifier.turnDealt(game.events);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.dealRiver = function(gameId)
@@ -73,7 +73,7 @@ UseCases.prototype.dealRiver = function(gameId)
     game.dealRiver();
     gameRepo.store(game);
 
-    this.uiNotifier.riverDealt(game.events);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.announceWinners = function(gameId)
@@ -82,6 +82,7 @@ UseCases.prototype.announceWinners = function(gameId)
     game.announceWinners();
     gameRepo.store(game);
 
+    // TODO: announceWinner needs to broadcast a single "win" event
     this.uiNotifier.winnersAnnounced(game.events);
 };
 
@@ -91,7 +92,7 @@ UseCases.prototype.placeBet = function(gameId, playerId, amount)
     game.placeBet(playerId, amount);
     gameRepo.store(game);
 
-    this.uiNotifier.betPlaced(game.events, playerId);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.foldHand = function(gameId, playerId)
@@ -100,7 +101,7 @@ UseCases.prototype.foldHand = function(gameId, playerId)
     game.foldHand(playerId);
     gameRepo.store(game);
 
-    this.uiNotifier.handFolded(game.events, playerId);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
@@ -109,7 +110,7 @@ UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
     game.givePlayerChips(playerId, amount);
     gameRepo.store(game);
 
-    this.uiNotifier.playerGivenChips(game.events, playerId);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 module.exports = UseCases;
