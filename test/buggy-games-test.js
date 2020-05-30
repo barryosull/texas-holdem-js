@@ -76,7 +76,7 @@ describe('buggy-games', () => {
         assert.equal(stage, 'river');
     });
 
-    it.only ('shouldnt choose a next player to act', () => {
+    it ('shouldnt choose a next player to act', () => {
         let gameId = '2ba25c0c-006b-4ce6-9bc7-23e42e87ae9a';
 
         let game = gameRepo.fetchOrCreate(gameId);
