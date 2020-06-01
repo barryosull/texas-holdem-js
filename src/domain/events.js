@@ -78,6 +78,11 @@ function BettingRoundClosed()
 
 }
 
+function RoundFinished()
+{
+
+}
+
 module.exports = {
     SmallBlindSet,
     PlayerNamed,
@@ -92,5 +97,6 @@ module.exports = {
     PotWon,
     PlayerGivenChips,
     BetPlaced,
-    BettingRoundClosed
+    BettingRoundClosed,
+    RoundFinished
 };

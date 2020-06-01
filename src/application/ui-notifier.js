@@ -29,6 +29,9 @@ UiNotifier.prototype.handleEvents = function(events)
         if (e instanceof eventTypes.SeatTaken) {
             uiNotifier.playerAdded(events, e.playerId);
         }
+        if (e instanceof eventTypes.RoundStarted) {
+            uiNotifier.roundStarted(events);
+        }
         if (e instanceof eventTypes.FlopDealt) {
             uiNotifier.flopDealt(events);
         }
@@ -46,6 +49,12 @@ UiNotifier.prototype.handleEvents = function(events)
         }
         if (e instanceof eventTypes.PlayerGivenChips) {
             uiNotifier.playerGivenChips(events, e.playerId);
+        }
+        if (e instanceof eventTypes.PotWon) {
+            uiNotifier.potWon(events, e.playerId);
+        }
+        if (e instanceof eventTypes.RoundFinished) {
+            uiNotifier.roundFinished(events);
         }
     }, null);
 };
@@ -74,17 +83,6 @@ UiNotifier.prototype.roundStarted = function(events)
         let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
         this.notifier.broadcastToPlayer(events.gameId, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
     });
-
-    this.notifier.broadcast(events.gameId, createBetMadeNotification(events, roundQueryable.getSmallBlindPlayer()));
-    this.notifier.broadcast(events.gameId, createBetMadeNotification(events, roundQueryable.getBigBlindPlayer()));
-
-    let nextPlayerToAct = (new NextPlayerQueryable(events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        this.notifier.broadcast(events.gameId, createNextPlayersTurnNotification(events, nextPlayerToAct));
-        return;
-    }
-
-    triggerNextAction.call(this, events);
 };
 
 UiNotifier.prototype.flopDealt = function(events)
@@ -140,25 +138,16 @@ UiNotifier.prototype.riverDealt = function(events)
     triggerNextAction.call(this, events);
 };
 
-UiNotifier.prototype.winnersAnnounced = function(events)
+UiNotifier.prototype.potWon = function(events, playerId)
 {
-    let seatProjection = new SeatsQueryable(events);
     let roundQueryable = new RoundQueryable(events);
+    let winningHand = roundQueryable.getPlayerHand(playerId);
+    this.notifier.broadcast(events.gameId, new notifications.WinningHand(winningHand));
+};
+
+UiNotifier.prototype.roundFinished = function(events)
+{
     let chipsQueryable = new ChipsQueryable(events);
-
-    let winners = roundQueryable.getWinners();
-    let players = seatProjection.getPlayers();
-
-    winners.forEach(playerId => {
-        let winningHand = roundQueryable.getPlayerHand(playerId);
-        this.notifier.broadcast(events.gameId, new notifications.WinningHand(winningHand));
-    });
-
-    players.forEach(playerId => {
-        let playerChips = chipsQueryable.getPlayerChips(playerId);
-        this.notifier.broadcast(events.gameId, new notifications.PlayerGivenChips(playerId, playerChips));
-    });
-
 
     if (chipsQueryable.getNumberOfPlayersWithChips() > 1) {
         triggerNextAction.call(this, events);

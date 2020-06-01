@@ -196,6 +196,8 @@ Game.prototype.announceWinners = function()
 
         game.events.push(handWonEvent, playerGivenChipsEvent);
     });
+
+    game.events.push(new events. RoundFinished());
 };
 
 Game.prototype.closeRoundOfBetting = function()

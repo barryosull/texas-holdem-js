@@ -32,9 +32,7 @@ UseCases.prototype.startRound = function(gameId)
     game.startNewRound();
     gameRepo.store(game);
 
-    // TODO: Create an event that signifies betting can begin
-    // this.uiNotifier.handleEvents(game.events);
-    this.uiNotifier.roundStarted(game.events);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.removePlayers = function(gameId, disconnectedPlayers)
@@ -82,8 +80,7 @@ UseCases.prototype.announceWinners = function(gameId)
     game.announceWinners();
     gameRepo.store(game);
 
-    // TODO: announceWinner needs to broadcast a single "win" event
-    this.uiNotifier.winnersAnnounced(game.events);
+    this.uiNotifier.handleEvents(game.events);
 };
 
 UseCases.prototype.placeBet = function(gameId, playerId, amount)
