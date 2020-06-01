@@ -79,7 +79,7 @@ UiNotifier.prototype.roundStarted = function(events)
     let hands = roundQueryable.getHands();
 
     hands.forEach(hand => {
-        this.notifier.broadcastToPlayer(events.gameId, hand.playerId, new notifications.PlayerDealtHand(hand));
+        this.notifier.broadcast(events.gameId, new notifications.PlayerDealtHand(hand));
     });
 };
 
@@ -158,6 +158,7 @@ UiNotifier.prototype.betPlaced = function(events, playerId)
     this.notifier.broadcast(events.gameId, notification);
 
     let nextPlayerToAct = (new NextPlayerQueryable(events)).getNextPlayer();
+
     if (nextPlayerToAct) {
         this.notifier.broadcast(events.gameId, createNextPlayersTurnNotification(events, nextPlayerToAct));
         return;
@@ -233,7 +234,6 @@ function triggerNextAction(events)
     };
 
     let nextUseCase = actionToUseCase[nextAction];
-
     if (!nextUseCase) {
         return;
     }

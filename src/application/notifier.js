@@ -13,15 +13,16 @@ Notifier.prototype.broadcast = function(gameId, notification) {
     if (notification instanceof notifications.RoundStarted) {
         this.notificationStore.resetSavedNotifications(gameId);
     }
+
+    if (notification instanceof notifications.PlayerDealtHand) {
+        let socketId = this.socketMapper.getSocketIdForPlayer(notification.playerId);
+        this.notificationStore.storePlayerNotification(gameId, notification.playerId, notification);
+        broadcastToPlayer.call(this, socketId, notification);
+        return;
+    }
+
     this.notificationStore.storeRoundNotification(gameId, notification);
     broadcast.call(this, gameId, notification);
-};
-
-Notifier.prototype.broadcastToPlayer = function(gameId, playerId, notification)
-{
-    let socketId = this.socketMapper.getSocketIdForPlayer(playerId);
-    this.notificationStore.storePlayerNotification(gameId, playerId, notification);
-    broadcastToPlayer.call(this, socketId, notification);
 };
 
 Notifier.prototype.getRoundNotifications = function(gameId, playerId)

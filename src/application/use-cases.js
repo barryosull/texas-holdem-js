@@ -7,7 +7,7 @@ let gameRepo = new GameRepo();
 function UseCases(notifier, socketMapper)
 {
     this.socketMapper = socketMapper;
-    this.uiNotifier = new UiNotifier(notifier, socketMapper, this);
+    this.uiNotifier = new UiNotifier(notifier, this);
 }
 
 UseCases.prototype.joinGame = function(gameId, playerId, playerName)
