@@ -1,6 +1,4 @@
 
-function ExistingSession() {}
-
 /**
  * @param dealer {String}
  * @param players {Player[]}
