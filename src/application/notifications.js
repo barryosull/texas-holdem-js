@@ -14,11 +14,6 @@ function PlayerDealtHand(hand)
     this.hand = hand;
 }
 
-function PlayerHandTitle(title)
-{
-    this.title = title;
-}
-
 function Player(playerId, playerName, chips, seat)
 {
     this.playerId = playerId;
