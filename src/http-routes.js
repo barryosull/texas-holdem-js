@@ -11,7 +11,8 @@ var SocketMapper = require('./controllers/socket-mapper');
  */
 function boot(app, io)
 {
-    let controller = new HttpController(new Notifier(io), new SocketMapper());
+    let socketMapper = new SocketMapper();
+    let controller = new HttpController(new Notifier(io, socketMapper), socketMapper);
 
     // Serve public files
     app.use(express.static('public'));

@@ -29,7 +29,7 @@ HttpController.prototype.join = function(req, res)
     let existingSocketId = this.socketMapper.getSocketIdForPlayer(playerId);
 
     if (existingSocketId && existingSocketId !== socketId) {
-        this.notifier.broadcastToPlayer(gameId, playerId, socketId, new notifications.ExistingSession());
+        res.send('', 403);
         return;
     }
 

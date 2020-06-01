@@ -15,10 +15,9 @@ const SEAT_COUNT = 8;
 //*********************************
 
 // TODO: Extract out calls to usecases into process managers
-function UiNotifier(notifier, socketMapper, useCases)
+function UiNotifier(notifier, useCases)
 {
     this.notifier = notifier;
-    this.socketMapper = socketMapper;
     this.useCases = useCases;
 }
 
@@ -80,8 +79,7 @@ UiNotifier.prototype.roundStarted = function(events)
     let hands = roundQueryable.getHands();
 
     hands.forEach(hand => {
-        let socketId = this.socketMapper.getSocketIdForPlayer(hand.playerId);
-        this.notifier.broadcastToPlayer(events.gameId, hand.playerId, socketId, new notifications.PlayerDealtHand(hand));
+        this.notifier.broadcastToPlayer(events.gameId, hand.playerId, new notifications.PlayerDealtHand(hand));
     });
 };
 

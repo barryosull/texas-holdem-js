@@ -94,10 +94,8 @@ function WinnerByDefault(playerId)
 module.exports = {
     PlayerAdded,
     PlayerGivenChips,
-    ExistingSession,
     RoundStarted,
     PlayerDealtHand,
-    PlayerHandTitle,
     BetMade,
     FlopDealt,
     TurnDealt,

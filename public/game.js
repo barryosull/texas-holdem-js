@@ -213,7 +213,10 @@ Controller.joinGame = function()
 
     Controller.playerId = Controller.getPlayerId() || Controller.createPlayerId();
 
-    Game.join(Controller.playerId, playerName).done(Controller.replayNotifications);
+    Game.join(Controller.playerId, playerName).done(Controller.replayNotifications)
+        .fail(function() {
+            View.existingSession();
+        });
 
     View.hideCommunityCardsButtons();
     View.disableBetting();
@@ -809,8 +812,7 @@ Bootstrapper.attachSocketEventListeners = function(socket)
         'playerFolded': Controller.playerFolded,
         'betMade': Controller.betMade,
         'potTotal': View.potTotal,
-        'playersTurn': Controller.playersTurn,
-        'existingSession': View.existingSession,
+        'playersTurn': Controller.playersTurn
     };
 
     for (var event in Controller.eventHandlers) {

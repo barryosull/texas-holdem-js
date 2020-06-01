@@ -1,33 +1,34 @@
 
 const notifications = require('./notifications');
 
-function Notifier(io)
+function Notifier(io, socketMapper)
 {
     this.io = io;
-    this.roundNotification = {};
-    this.playerNotifications = {};
+    this.socketMapper = socketMapper;
+    this.notificationStore = new NotificationStore();
 }
 
 Notifier.prototype.broadcast = function(gameId, notification) {
 
     if (notification instanceof notifications.RoundStarted) {
-        resetSavedNotifications.call(this, gameId);
+        this.notificationStore.resetSavedNotifications(gameId);
     }
-    storeRoundNotification.call(this, gameId, notification);
+    this.notificationStore.storeRoundNotification(gameId, notification);
     broadcast.call(this, gameId, notification);
 };
 
-Notifier.prototype.broadcastToPlayer = function(gameId, playerId, socketId, notification)
+Notifier.prototype.broadcastToPlayer = function(gameId, playerId, notification)
 {
-    storePlayerNotification.call(this, gameId, playerId, notification);
+    let socketId = this.socketMapper.getSocketIdForPlayer(playerId);
+    this.notificationStore.storePlayerNotification(gameId, playerId, notification);
     broadcastToPlayer.call(this, socketId, notification);
 };
 
 Notifier.prototype.getRoundNotifications = function(gameId, playerId)
 {
-    let roundNotifications = getRoundNotifications.call(this, gameId);
+    let roundNotifications = this.notificationStore.getRoundNotifications(gameId);
 
-    let playerNotifications = getPlayerNotifications.call(this, gameId, playerId);
+    let playerNotifications = this.notificationStore.getPlayerNotifications(gameId, playerId);
 
     return roundNotifications.slice().concat(playerNotifications);
 };
@@ -49,13 +50,19 @@ function makeTypeFromClass(notification)
 // Notification storage
 //*************************************
 
-function resetSavedNotifications(gameId)
+function NotificationStore()
+{
+    this.roundNotification = {};
+    this.playerNotifications = {};
+}
+
+NotificationStore.prototype.resetSavedNotifications = function(gameId)
 {
     this.roundNotification[gameId] = [];
     this.playerNotifications[gameId] = {};
-}
+};
 
-function storePlayerNotification(gameId, playerId, notification)
+NotificationStore.prototype.storePlayerNotification = function(gameId, playerId, notification)
 {
     let type = makeTypeFromClass(notification);
 
@@ -66,9 +73,9 @@ function storePlayerNotification(gameId, playerId, notification)
         'type': type,
         'notification': notification
     });
-}
+};
 
-function storeRoundNotification(gameId, notification)
+NotificationStore.prototype.storeRoundNotification = function(gameId, notification)
 {
     let type = makeTypeFromClass(notification);
 
@@ -78,20 +85,19 @@ function storeRoundNotification(gameId, notification)
         'type': type,
         'notification': notification
     });
-}
+};
 
-function getPlayerNotifications(gameId, playerId)
+NotificationStore.prototype.getPlayerNotifications = function(gameId, playerId)
 {
     let allPlayerNotifications = this.playerNotifications[gameId] || {};
 
     return allPlayerNotifications[playerId] || [];
-}
+};
 
-function getRoundNotifications(gameId)
+NotificationStore.prototype.getRoundNotifications = function(gameId)
 {
     return this.roundNotification[gameId] || [];
-}
-
+};
 
 //*************************************
 // Broadcasting
