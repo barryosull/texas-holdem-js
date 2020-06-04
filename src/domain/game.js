@@ -116,8 +116,9 @@ Game.prototype.foldHand = function(playerId)
 
     let handWonEvent = new events.PotWon(winningHand.playerId);
     let playerGivenChipsEvent = new events.PlayerGivenChips(winningHand.playerId, pot);
+    let roundFinished = new events. RoundFinished();
 
-    this.events.push(handWonEvent, playerGivenChipsEvent);
+    this.events.push(handWonEvent, playerGivenChipsEvent, roundFinished);
 };
 
 Game.prototype.dealFlop = function()

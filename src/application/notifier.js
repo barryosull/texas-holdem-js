@@ -8,6 +8,14 @@ function Notifier(io, socketMapper)
     this.notificationStore = new NotificationStore();
 }
 
+/**
+ * @param gameId {String}
+ * @param notifications {Array}
+ */
+Notifier.prototype.broadcastMany = function(gameId, notifications) {
+    notifications.forEach(notification => this.broadcast(gameId, notification));
+};
+
 Notifier.prototype.broadcast = function(gameId, notification) {
 
     if (notification instanceof notifications.RoundStarted) {

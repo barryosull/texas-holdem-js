@@ -63,9 +63,12 @@ RoundProjection.prototype.getCommunityCards = function()
     }, []);
 };
 
+/**
+ * @returns {String}
+ */
 RoundProjection.prototype.getNextAction = function()
 {
-    return  this.eventStream.project('app/round.getNextAction', (nextAction, e) => {
+    return this.eventStream.project('app/round.getNextAction', (nextAction, e) => {
         if (e instanceof events.RoundStarted) {
             nextAction = 'flop';
         }

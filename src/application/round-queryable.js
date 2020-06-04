@@ -42,6 +42,9 @@ RoundQueryable.prototype.getCommunityCards = function()
     return this.projection.getCommunityCards();
 };
 
+/**
+ * @return {String}
+ */
 RoundQueryable.prototype.getNextAction = function()
 {
     return this.projection.getNextAction();
