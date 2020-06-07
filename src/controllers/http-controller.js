@@ -4,7 +4,6 @@ const SocketMapper = require('./socket-mapper');
 const GameRepo = require('../domain/game-repository');
 const SeatsQueryable = require('../application/seats-queryable');
 const UseCases = require('../application/use-cases');
-const notifications = require('../application/notifications');
 
 /**
  * @param notifier {Notifier}
