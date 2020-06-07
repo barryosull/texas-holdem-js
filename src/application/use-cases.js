@@ -3,7 +3,7 @@ const GameRepo = require('../domain/game-repository');
 const NotificationProjection = require('../application/notification-projection');
 const RoundQueryable = require('../application/round-queryable');
 const ChipsQueryable = require('../application/chips-queryable');
-const NextPlayerQueryable = require('../application/next-player-queryable');
+const notificationTypes = require('../application/notifications');
 
 let gameRepo = new GameRepo();
 
@@ -60,8 +60,6 @@ UseCases.prototype.dealFlop = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
-
-    triggerNextAction.call(this, game.events);
 };
 
 
@@ -73,8 +71,6 @@ UseCases.prototype.dealTurn = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
-
-    triggerNextAction.call(this, game.events);
 };
 
 UseCases.prototype.dealRiver = function(gameId)
@@ -85,8 +81,6 @@ UseCases.prototype.dealRiver = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
-
-    triggerNextAction.call(this, game.events);
 };
 
 UseCases.prototype.announceWinners = function(gameId)
@@ -97,6 +91,8 @@ UseCases.prototype.announceWinners = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
+
+    triggerNextAction(this, game.events);
 };
 
 UseCases.prototype.placeBet = function(gameId, playerId, amount)
@@ -107,6 +103,11 @@ UseCases.prototype.placeBet = function(gameId, playerId, amount)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
+
+    if (waitingForPlayerToAct(notifications)) {
+        return;
+    }
+    triggerNextAction(this, game.events);
 };
 
 UseCases.prototype.foldHand = function(gameId, playerId)
@@ -118,7 +119,11 @@ UseCases.prototype.foldHand = function(gameId, playerId)
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
 
-    triggerNextAction.call(this, game.events);
+    if (waitingForPlayerToAct(notifications)) {
+        return;
+    }
+
+    triggerNextAction(this, game.events);
 };
 
 UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
@@ -131,28 +136,36 @@ UseCases.prototype.givePlayerChips = function(gameId, playerId, amount)
     this.notifier.broadcastMany(gameId, notifications);
 };
 
-function triggerNextAction(events)
+function waitingForPlayerToAct(notifications)
 {
-    let nextPlayerToAct = (new NextPlayerQueryable(events)).getNextPlayer();
-    if (nextPlayerToAct) {
-        return;
-    }
+    return (notifications.filter(notification => {
+        return notification instanceof notificationTypes.PlayersTurn;
+    }).length !== 0)
+}
 
+/**
+ * @param useCases {UseCases}
+ * @param events {EventStream}
+ */
+function triggerNextAction(useCases, events)
+{
     let roundQueryable = new RoundQueryable(events);
     let nextAction = roundQueryable.getNextAction();
 
     let chipsQueryable = new ChipsQueryable(events);
 
-    if (nextAction === "deal" && chipsQueryable.getNumberOfPlayersWithChips() >= 1) {
+    console.log('nextAction', nextAction);
+
+    if (nextAction === "deal" && chipsQueryable.getNumberOfPlayersWithChips() <= 1) {
         return;
     }
 
     let actionToUseCase = {
-        'deal': this.startRound,
-        'flop': this.dealFlop,
-        'turn': this.dealTurn,
-        'river': this.dealRiver,
-        'announceWinners': this.announceWinners
+        'deal': useCases.startRound,
+        'flop': useCases.dealFlop,
+        'turn': useCases.dealTurn,
+        'river': useCases.dealRiver,
+        'announceWinners': useCases.announceWinners
     };
 
     let actionTimeTimeouts = {
@@ -169,8 +182,6 @@ function triggerNextAction(events)
     }
 
     let timeout = actionTimeTimeouts[nextAction] || 1000;
-
-    let useCases = this.useCases;
 
     setTimeout(function(){
         nextUseCase.call(useCases, events.gameId);
