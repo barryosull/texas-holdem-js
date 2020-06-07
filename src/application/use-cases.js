@@ -60,6 +60,11 @@ UseCases.prototype.dealFlop = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
+
+    if (waitingForPlayerToAct(notifications)) {
+        return;
+    }
+    triggerNextAction(this, game.events);
 };
 
 
@@ -71,6 +76,11 @@ UseCases.prototype.dealTurn = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
+
+    if (waitingForPlayerToAct(notifications)) {
+        return;
+    }
+    triggerNextAction(this, game.events);
 };
 
 UseCases.prototype.dealRiver = function(gameId)
@@ -81,6 +91,11 @@ UseCases.prototype.dealRiver = function(gameId)
 
     let notifications = this.notificationProjection.handleEvents(game.events);
     this.notifier.broadcastMany(gameId, notifications);
+
+    if (waitingForPlayerToAct(notifications)) {
+        return;
+    }
+    triggerNextAction(this, game.events);
 };
 
 UseCases.prototype.announceWinners = function(gameId)

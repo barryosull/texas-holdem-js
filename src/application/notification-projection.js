@@ -168,6 +168,18 @@ NotificationProjection.prototype.riverDealt = function(events)
 NotificationProjection.prototype.potWon = function(events, playerId)
 {
     let roundQueryable = new RoundQueryable(events);
+
+    let hands = roundQueryable.getHands();
+
+    let activeHands = hands.filter(hand => {
+        return hand.hasFolded === false;
+    });
+
+    if (activeHands.length === 1) {
+        let winningHand = activeHands[0];
+        return [new notificationsTypes.WinnerByDefault(winningHand.playerId)];
+    }
+
     let winningHand = roundQueryable.getPlayerHand(playerId);
     return [new notificationsTypes.WinningHand(winningHand)];
 };
@@ -198,9 +210,7 @@ NotificationProjection.prototype.handFolded = function(events, playerId)
 {
     let notifications = [new notificationsTypes.PlayerFolded(playerId)];
 
-    let seatProjection = new SeatsQueryable(events);
     let roundQueryable = new RoundQueryable(events);
-    let chipsQueryable = new ChipsQueryable(events);
 
     let hands = roundQueryable.getHands();
 
@@ -209,17 +219,7 @@ NotificationProjection.prototype.handFolded = function(events, playerId)
     });
 
     if (activeHands.length === 1) {
-        let winningHand = activeHands[0];
-        notifications.push(new notificationsTypes.WinnerByDefault(winningHand.playerId));
-
-        let players = seatProjection.getPlayers();
-
-        players.forEach(playerId => {
-            let playerChips = chipsQueryable.getPlayerChips(playerId);
-            notifications.push(new notificationsTypes.PlayerGivenChips(playerId, playerChips));
-        });
-
-        return notifications;
+        return [];
     }
 
     let nextPlayerToAct = (new NextPlayerQueryable(events)).getNextPlayer();
