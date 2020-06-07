@@ -169,8 +169,6 @@ function triggerNextAction(useCases, events)
 
     let chipsQueryable = new ChipsQueryable(events);
 
-    console.log('nextAction', nextAction);
-
     if (nextAction === "deal" && chipsQueryable.getNumberOfPlayersWithChips() <= 1) {
         return;
     }
