@@ -6,7 +6,7 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha",
     "start": "node server.js",
-    "dev-start" : "nodemon --ignore 'logs/*.json' server.js"
+    "dev-start": "nodemon --ignore 'logs/*.json' server.js"
   },
   "repository": {
     "type": "git",
