@@ -26,7 +26,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "mocha": "^7.1.1",
+    "mocha": "^10.2.0",
     "poker-odds-calc": "0.0.11",
     "poker-ranking": "^1.1.3",
     "poker-tools": "^1.3.10",
